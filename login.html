@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ログイン - Cute Animal Wallet</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="script.js"></script>
+</head>
+<body>
+    <header>
+        <div class="header-container">
+            <div class="app-icon">
+                <img src="icon.jpg" alt="Cute Animal Wallet" class="app-logo" />
+                <h1 class="app-name">獭獭銀行</h1>
+            </div>
+            <div class="header-icons">
+                <div class="dropdown">
+                    <button class="dropbtn">いろいろ</button>
+                    <div class="dropdown-content">
+                        <a href="privacy.html">プライバシーについて</a>
+                        <a href="terms.html">利用規約</a>
+                    </div>
+                </div>
+                <a href="top.html" class="nav-link">マイページ</a>
+                <a href="login.html" class="nav-link">ログイン</a>
+                <a href="register.html" class="nav-link">新規登録</a>
+                <div class="hamburger-icon" onclick="toggleMenu()">&#8801;</div>
+                <div class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" title="ダークモード切替">
+                    <span class="moon-icon">🌙</span>
+                    <div class="toggle-switch"></div>
+                    <span class="sun-icon">☀</span>
+                </div>
+            </div>
+        </div>
+    </header>
+    <main class="form-container">
+        <h1>ログイン</h1>
+        <form>
+            <label for="email">メールアドレス:</label>
+            <input type="email" id="email" name="email" required>
+            <label for="password">パスワード:</label>
+            <input type="password" id="password" name="password" required>
+            <button type="submit">ログイン</button>
+        </form>
+        <p>新規登録は<a href="register.html">こちら</a>から。</p>
+    </main>
+    <footer>
+        <p>&copy; 2024 Cute Animal Wallet. All rights reserved.</p>
+    </footer>
+</body>
+</html>

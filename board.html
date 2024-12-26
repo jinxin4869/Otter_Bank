@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>掲示板 - Cute Animal Wallet</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="script.js"></script>
+</head>
+<body>
+    <header>
+        <div class="header-container">
+            <div class="app-icon">
+                <img src="icon.jpg" alt="Cute Animal Wallet" class="app-logo" />
+                <h1 class="app-name">獭獭銀行</h1>
+            </div>
+            <div class="header-icons">
+                <div class="dropdown">
+                    <button class="dropbtn">いろいろ</button>
+                    <div class="dropdown-content">
+                        <a href="privacy.html">プライバシーについて</a>
+                        <a href="terms.html">利用規約</a>
+                    </div>
+                </div>
+                <div>
+                    <a href="top.html" class="nav-link">マイページ</a>
+                    <a href="zukan.html" class="nav-link">図鑑一覧</a>
+                    <div class="hamburger" onclick="toggleMenu()">≡</div>
+                </div>
+                <div class="theme-toggle" onclick="toggleTheme()" title="ダークモードの切替">
+                    <span class="moon-icon">🌙</span>
+                    <span class="sun-icon">☀️</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="form-container">
+        <h2>掲示板</h2>
+        <div class="search-container">
+            <input type="text" id="search" placeholder="検索..." oninput="searchPosts(this.value)">
+            <select>
+                <option value="all">全て</option>
+                <option value="name">投稿順</option>
+                <option value="date">日付順</option>
+            </select>
+        </div>
+
+        <div id="post-list">
+            <!-- 投稿リスト -->
+            <div class="post">
+                <h3>投稿タイトル</h3>
+                <p>投稿時間: ここに内容が表示されます。</p>
+                <p class="post-details">投稿日: YYYY/MM/DD | 投稿者: ユーザー名</p>
+            </div>
+            <!-- 他の投稿も同様に続く -->
+        </div>
+
+        <button onclick="openPostForm()">新規投稿</button>
+    </main>
+
+    <footer>
+        <p>&copy; 2024 Cute Animal Wallet. All rights reserved.</p>
+    </footer>
+</body>
+</html>

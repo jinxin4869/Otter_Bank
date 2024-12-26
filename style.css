@@ -1,0 +1,359 @@
+/* リセットスタイル */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    transition: background-color 0.3s, color 0.3s; /* ダークモードへの移行アニメーション */
+}
+
+body.dark-mode {
+    background-color: #121212; /* ダークモード背景色 */
+    color: #e0e0e0; /* ダークモードのテキスト色 */
+}
+
+header {
+    background-color: #4CAF50; /* ヘッダーの背景色 */
+    color: white;
+    padding: 5px 20px;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+
+.header-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #4CAF50;
+    padding: 20px;
+}
+
+.app-icon {
+    display: flex;
+    align-items: center; /* アイコンとタイトルの中央寄せ */
+}
+
+.app-logo {
+    width: 50px; /* アイコンの大きさ */
+    height: auto; /* 自動比率 */
+    margin-right: 10px; /* テキストとの間隔 */
+}
+
+.header-icons {
+    display: flex;
+    align-items: center;
+}
+
+.header-icons a {
+    color: white;
+    text-decoration: none;
+    margin: 0 20px;
+}
+
+.header-icons .nav-link {
+    color: white;
+    text-decoration: none;
+    margin: 0 10px;
+}
+
+.app-name {
+    font-size: 1.5em;
+    line-height: 1;
+    margin: 0;
+    padding: 0;
+}
+
+.hamburger-icon {
+    display: none; /*フルスクリーン上では隠す */
+}
+
+.theme-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between; /* アイコンを左右に配置 */
+    cursor: pointer; 
+    width: 80px; /* トグルの幅を調整 */
+    background-color: #4CAF50; /* 背景色 */
+    border-radius: 35px; /* 丸みをつける */
+    position: relative;
+}
+
+.toggle-switch {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    position: absolute;
+    left: 5px;
+    transition: left 0.1s;
+}
+
+.theme-toggle.sun-active .toggle-switch {
+    left: 45px;
+}
+
+.moon-icon,
+.sun-moon {
+    font-size: 1.5em;
+    transition: opacity 0.3s;
+}
+
+.theme-toggle.sun-active .moon-icon {
+    opacity: 0;
+}
+
+.theme-toggle.sun-active .sun-icon {
+    opacity: 1;
+}
+
+.theme-toggle.sun-active .sun-icon {
+    opacity: 1;
+}
+
+.theme-toggle .sun-icon {
+    opacity: 0;
+}
+
+nav {
+    display: none;
+    justify-content: left;
+    background-color: #4CAF50;
+    padding: 10px 0;
+}
+
+.nav-link {
+    color: white;
+    text-decoration: none;
+    margin-left: 15px;
+    font-size: 1em;
+}
+
+#nav-menu {
+    display: none;
+    background-color: #4CAF50;
+    padding: 10px 0;
+}
+
+#nav-menu.active {
+    display: block;
+}
+
+nav ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+}
+
+nav ul li {
+    margin: 5px 0;
+}
+
+nav ul li a {
+    text-decoration: none;
+    color: white;
+}
+
+nav ul li a.active {
+    border-bottom: 2px solid yellow;
+}
+
+.logout {
+    color: white; /* 文字色 */
+    cursor: pointer; /* ポインタに変更 */
+    margin-left: 0 20px; /* アイコンとの間隔 */
+    font-size: 1em; /* フォントサイズ */
+}
+
+main {
+    max-width: 100%;
+    margin: 0px auto;
+    padding: 20px;
+    background-color: white;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.3s; /* ダークモードへの移行アニメーション */
+    margin-bottom: 50px;
+}
+
+body.dark-mode main {
+    background-color: #1e1e1e; /* ダークモードのメイン背景色 */
+}
+
+h1, h2 {
+    border-bottom: 2px solid #4CAF50;
+    margin-bottom: 0.5em;
+    margin-bottom: 1em;
+}
+
+.form-container {
+    max-width: 400px; /* フォームの最大幅 */
+    margin: 50px auto; /* 中央配置 */
+    padding: 20px;
+    background-color: #f9f9f9; /* 背景色 */
+    border: 1px solid #ccc; /* ボーダー */
+    border-radius: 5px; /* 角を丸くする */
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* 影 */
+}
+
+h1 {
+    text-align: center; /* 中央寄せ */
+}
+
+label {
+    display: block;
+    margin: 10px 0 5px; /* 上下のマージン */
+}
+
+input {
+    width: 100%; /* 幅を100%に */
+    padding: 10px; /* パディング */
+    margin-bottom: 15px; /* 下のマージン */
+    border: 1px solid #ccc; /* ボーダー */
+    border-radius: 5px; /* 角を丸くする */
+}
+
+button {
+    width: 100%; /* 幅を100%に */
+    padding: 10px; /* パディング */
+    background-color: #4CAF50; /* ボタン背景色 */
+    color: white; /* ボタン文字色 */
+    border: none; /* ボーダーなし */
+    border-radius: 5px; /* 角を丸くする */
+    cursor: pointer; /* カーソルをポインタに */
+}
+
+button:hover {
+    background-color: #45a049; /* ホバー時の色 */
+}
+
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.dropbtn {
+    background-color: #4CAF50; /* ボタンの色 */
+    color: white; /* 文字色 */
+    padding: 10px 15px; /* パディング */
+    border: none; /* ボーダーなし */
+    cursor: pointer;
+}
+
+.dropdown-content {
+    display: none; /* 初期状態は非表示 */
+    position: absolute;
+    min-width: 160px; /* メニューの幅 */
+    background-color: #f9f9f9; /* メニューの背景色 */
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    z-index: 1;
+}
+
+.dropdown:hover .dropdown-content {
+    display: block; /* マウスオーバーで表示 */
+}
+
+.dropdown-content a {
+    color: black; /* リンクの文字色 */
+    padding: 12px 16px; /* パディング */
+    text-decoration: none; /* 下線を削除 */
+    display: block; /* ブロック表示 */
+}
+
+.dropdown-content a:hover {
+    background-color: #f1f1f1; /* ホバー時の背景色 */
+}
+
+.zukan-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr); /* 4列 */
+    gap: 10px; /* グリッドの間隔 */
+    max-width: 100%;
+    margin: 0 auto;
+    padding: 20px; /* グリッドの内側のパディング */
+}
+
+.zukan-item {
+    width: 400px; /* 枠の幅 */
+    height: 400px; /* 枠の高さ */
+    background-color: #f0f4f8; /* 各アイテムの背景色 */
+    border: 1px solid #ccc; /* アイテムのボーダー */
+    border-radius: 5px; /* 角を丸くする */
+    position: relative; /* テキストの位置調整用 */
+    display: flex;
+    justify-content: center; /* 中央寄せ */
+    align-items: center; /* 中央寄せ */
+}
+
+.unlock-text {
+    color: red;
+    font-size: 1.5em;
+}
+
+.search-container {
+    display: flex;
+    align-items: center; /* 中央揃え */
+    margin-bottom: 20px; /* スペースを確保 */
+}
+
+#search {
+    padding: 10px;
+    margin-right: 15px; /* スペースを確保 */
+    flex: 1;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
+
+#filter {
+    padding: 10px; /* ドロップダウンのパディング */
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
+
+footer {
+    text-align: center;
+    padding: 10px;
+    background-color: #4CAF50; /* フッターの背景色 */
+    color: white;
+    position: fixed;
+    width: 100%;
+    bottom: 0;
+}
+
+.footer-links {
+    text-align: center;
+    margin: 20px 0;
+}
+
+.footer-links a {
+    color: green;
+    text-decoration: none;
+    margin: 0 15px;
+}
+
+body.dark-mode .footer-links a {
+    color: white;
+}
+
+.footer-links a:hover {
+    border-bottom: 2px solid white;
+    transition: border-bottom 0.3s;
+}
+
+/* スクリーンサイズが768px以下の場合 */
+@media screen and (max-width: 768px) {
+    .nav-link {
+        display: none; /* ヘッダーでの通常表示を非表示 */
+    }
+    
+    .hamburger-icon {
+        display: flex; /* ハンバーガーアイコンを表示 */
+        font-size: 1.5em; /* サイズ調整 */
+        cursor: pointer; /* カーソルをポインタに */
+    }
+
+    .nav-menu.active {
+        display: block; /* メニューがアクティブなときの表示 */
+    }
+}

@@ -1,0 +1,64 @@
+<!-- top.html -->
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>マイページ - Cute Animal Wallet</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="script.js"></script>
+</head>
+<body>
+    <header>
+        <div class="header-container">
+            <div class="app-icon">
+                <img src="icon.jpg" alt="Cute Animal Wallet" class="app-logo" />
+                <h1 class="app-name">獭獭銀行</h1>
+            </div>
+            <div class="header-icons">
+                <div class="dropdown">
+                    <button class="dropbtn">いろいろ</button>
+                    <div class="dropdown-content">
+                        <a href="privacy.html">プライバシーについて</a>
+                        <a href="terms.html">利用規約</a>
+                    </div>
+                </div>
+                <a href="zukan.html" class="nav-link">図鑑一覧</a>
+                <a href="board.html" class="nav-link">掲示板</a>
+                <a onclick="confirmLogout()">ログアウト</a>
+                <div class="hamburger-icon" onclick="toggleMenu()">&#9776;</div>
+                <div class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" title="ダークモードの切替">
+                    <span class="moon-icon">🌙</span>
+                    <span class="sun-icon">☀</span>
+                </div>
+            </div>
+        </div>
+    </header>
+    <main>
+        <h2 class="welcome">〇〇さん、お帰りなさい！</h2>
+        <div class="animation-container">
+            <img src="animation.gif" alt="Animal Animation" />
+        </div>
+        
+        <section class="balance">
+            <h3>残高</h3>
+            <p>現在の残高: ¥10,000</p>
+        </section>
+        
+        <section class="monthly-usage">
+            <h3>月次使用経過</h3>
+            <p>今月の使用金額: ¥5,000</p>
+            <p>先月の使用金額: ¥4,000</p>
+        </section>
+        
+        <section class="weekly-usage">
+            <h3>週間使用状況</h3>
+            <p>今週の使用金額: ¥1,000</p>
+            <p>先週の使用金額: ¥800</p>
+        </section>
+    </main>
+    <footer>
+        <p>&copy; 2024 Cute Animal Wallet. All rights reserved.</p>
+    </footer>
+</body>
+</html>
