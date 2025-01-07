@@ -11,7 +11,9 @@
     <header>
         <div class="header-container">
             <div class="app-icon">
-                <img src="icon.jpg" alt="Cute Animal Wallet" class="app-logo" />
+                <a href="index.html">
+                    <img src="icon.jpg" alt="Cute Animal Wallet" class="app-logo" />
+                </a>
                 <h1 class="app-name">獭獭銀行</h1>
             </div>
             <div class="header-icons">
@@ -24,7 +26,7 @@
                 </div>
                 <a href="top.html" class="nav-link">マイページ</a>
                 <a href="zukan.html" class="nav-link">図鑑一覧</a>
-                <a href="board.html" class="nav-link">掲示板</a>
+                <div onclick="confirmLogout()">ログアウト</div>
                 <div class="hamburger-icon" onclick="toggleMenu()">&#8801;</div>
                 <div class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" title="ダークモード切替">
                     <span class="moon-icon">🌙</span>
@@ -108,11 +110,11 @@
             postList.innerHTML = '';
 
             let posts = JSON.parse(localStorage.getItem('posts')) || [];
-            posts.forEach(post => {
+            posts.forEach((post, index) => {
                 const postElement = document.createElement('div');
                 postElement.className = 'post';
                 postElement.innerHTML = `
-                    <h3>${post.title}</h3>
+                    <h3><a href="edit.html?index=${index}">${post.title}</a></h3>
                     <p>${post.content}</p>
                     <p class="post-details">投稿日: ${post.date}</p>
                 `;

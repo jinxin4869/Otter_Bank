@@ -124,3 +124,58 @@ document.getElementById('post-form').addEventListener('submit', function(event) 
     savePost();
     closePostForm();
 });
+
+document.addEventListener('DOMContentLoaded', function() {
+    loadFinanceData();
+});
+
+document.getElementById('finance-form').addEventListener('submit', function(event) {
+    event.preventDefault();
+    saveFinanceData();
+});
+
+function saveFinanceData() {
+    const amount = parseFloat(document.getElementById('amount').value);
+    const type = document.getElementById('type').value;
+    const financeData = { amount, type, date: new Date().toISOString().split('T')[0] };
+
+    let finances = JSON.parse(localStorage.getItem('finances')) || [];
+    finances.push(financeData);
+    localStorage.setItem('finances', JSON.stringify(finances));
+
+    loadFinanceData();
+}
+
+function loadFinanceData() {
+    let finances = JSON.parse(localStorage.getItem('finances')) || [];
+    const income = finances.filter(f => f.type === 'income').reduce((sum, f) => sum + f.amount, 0);
+    const expense = finances.filter(f => f.type === 'expense').reduce((sum, f) => sum + f.amount, 0);
+
+    const ctx = document.getElementById('finance-chart').getContext('2d');
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['収入', '支出'],
+            datasets: [{
+                label: '金額',
+                data: [income, expense],
+                backgroundColor: ['#4CAF50', '#FF6347']
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+}
+
+function confirmLogout() {
+    const confirmed = confirm("ログアウトしますか?");
+    if (confirmed) {
+        window.location.href = "index.html";
+    }
+}
