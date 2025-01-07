@@ -17,11 +17,11 @@ RUN apt-get update -qq \
 RUN apt-get update -qq && apt-get install -y build-essential libpq-dev nodejs yarn vim
 
 # アプリケーションディレクトリの作成
-RUN mkdir /Otter_Bank
-WORKDIR /Otter_Bank
+RUN mkdir /myapp
+WORKDIR /myapp
 
 # Bundlerのインストール
 RUN gem install bundler
 
 # アプリケーションのコードをコピー
-COPY . /Otter_Bank
+COPY . /myapp
