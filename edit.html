@@ -11,7 +11,9 @@
     <header>
         <div class="header-container">
             <div class="app-icon">
-                <img src="icon.jpg" alt="Cute Animal Wallet" class="app-logo" />
+                <a href="index.html">
+                    <img src="icon.jpg" alt="Cute Animal Wallet" class="app-logo" />
+                </a>
                 <h1 class="app-name">獭獭銀行</h1>
             </div>
             <div class="header-icons">
@@ -34,17 +36,45 @@
             </div>
         </div>
     </header>
-    <main>
+
+    <main class="form-container">
         <h2>投稿詳細</h2>
-        <div class="post-detail">
-            <h3>投稿タイトル</h3>
-            <p>投稿時間: ここに内容が表示されます。</p>
-            <p class="post-details">投稿日: YYYY/MM/DD | 投稿者: ユーザー名</p>
-            <p>投稿内容: ここに投稿の詳細内容が表示されます。</p>
+        <div id="post-detail">
+            <!-- 投稿詳細 -->
         </div>
+        <button onclick="goBack()">掲示板に戻る</button>
     </main>
+
     <footer>
         <p>&copy; 2024 Cute Animal Wallet. All rights reserved.</p>
     </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            loadPostDetail();
+        });
+
+        function loadPostDetail() {
+            const params = new URLSearchParams(window.location.search);
+            const index = params.get('index');
+            let posts = JSON.parse(localStorage.getItem('posts')) || [];
+            const post = posts[index];
+
+            if (post) {
+                const postDetail = document.getElementById('post-detail');
+                postDetail.innerHTML = `
+                    <h3>${post.title}</h3>
+                    <p>${post.content}</p>
+                    <p class="post-details">投稿日: ${post.date}</p>
+                `;
+            } else {
+                document.getElementById('post-detail').innerHTML = '<p>投稿が見つかりません。</p>';
+            }
+        }
+
+        function goBack() {
+            window.location.href = 'board.html';
+        }
+    </script>
 </body>
 </html>
