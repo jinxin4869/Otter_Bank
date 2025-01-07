@@ -70,3 +70,17 @@ function searchPosts(criteria) {
     //並べ替えたものをDOMに再度入れる
     posts.forEach(post => postList.appendChild(post));
 }
+
+function openPostForm() {
+    document.getElementById('post-form-modal').style.display = 'block';
+}
+
+function closePostForm() {
+    document.getElementById('post-form-modal').style.display = 'none';
+}
+
+document.getElementById('post-form').addEventListener('submit', function(event) {
+    event.preventDefault();
+    // フォーム送信処理
+    closePostForm();
+});
