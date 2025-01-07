@@ -22,14 +22,14 @@
                         <a href="terms.html">利用規約</a>
                     </div>
                 </div>
-                <div>
-                    <a href="top.html" class="nav-link">マイページ</a>
-                    <a href="zukan.html" class="nav-link">図鑑一覧</a>
-                    <div class="hamburger" onclick="toggleMenu()">≡</div>
-                </div>
-                <div class="theme-toggle" onclick="toggleTheme()" title="ダークモードの切替">
+                <a href="top.html" class="nav-link">マイページ</a>
+                <a href="zukan.html" class="nav-link">図鑑一覧</a>
+                <a href="board.html" class="nav-link">掲示板</a>
+                <div class="hamburger-icon" onclick="toggleMenu()">&#8801;</div>
+                <div class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" title="ダークモード切替">
                     <span class="moon-icon">🌙</span>
-                    <span class="sun-icon">☀️</span>
+                    <div class="toggle-switch"></div>
+                    <span class="sun-icon">☀</span>
                 </div>
             </div>
         </div>
@@ -49,7 +49,7 @@
         <div id="post-list">
             <!-- 投稿リスト -->
             <div class="post">
-                <h3>投稿タイトル</h3>
+                <h3><a href="edit.html">投稿タイトル</a></h3>
                 <p>投稿時間: ここに内容が表示されます。</p>
                 <p class="post-details">投稿日: YYYY/MM/DD | 投稿者: ユーザー名</p>
             </div>
@@ -62,5 +62,20 @@
     <footer>
         <p>&copy; 2024 Cute Animal Wallet. All rights reserved.</p>
     </footer>
+
+    <!-- 新規投稿フォームのモーダル -->
+    <div id="post-form-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closePostForm()">&times;</span>
+            <h2>新規投稿</h2>
+            <form id="post-form">
+                <label for="post-title">タイトル:</label>
+                <input type="text" id="post-title" name="post-title" required>
+                <label for="post-content">内容:</label>
+                <textarea id="post-content" name="post-content" required></textarea>
+                <button type="submit">投稿</button>
+            </form>
+        </div>
+    </div>
 </body>
 </html>
