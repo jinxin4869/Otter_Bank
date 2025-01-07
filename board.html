@@ -35,27 +35,20 @@
         </div>
     </header>
 
+    <div class="search-container">
+        <input type="text" id="search" placeholder="検索..." oninput="searchPosts(this.value)">
+        <select>
+            <option value="all">全て</option>
+            <option value="name">投稿順</option>
+            <option value="date">日付順</option>
+        </select>
+    </div>
+
     <main class="form-container">
         <h2>掲示板</h2>
-        <div class="search-container">
-            <input type="text" id="search" placeholder="検索..." oninput="searchPosts(this.value)">
-            <select>
-                <option value="all">全て</option>
-                <option value="name">投稿順</option>
-                <option value="date">日付順</option>
-            </select>
-        </div>
-
         <div id="post-list">
             <!-- 投稿リスト -->
-            <div class="post">
-                <h3><a href="edit.html">投稿タイトル</a></h3>
-                <p>投稿時間: ここに内容が表示されます。</p>
-                <p class="post-details">投稿日: YYYY/MM/DD | 投稿者: ユーザー名</p>
-            </div>
-            <!-- 他の投稿も同様に続く -->
         </div>
-
         <button onclick="openPostForm()">新規投稿</button>
     </main>
 
@@ -77,5 +70,55 @@
             </form>
         </div>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            loadPosts();
+        });
+
+        document.getElementById('post-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            savePost();
+            closePostForm();
+        });
+
+        function openPostForm() {
+            document.getElementById('post-form-modal').style.display = 'block';
+        }
+
+        function closePostForm() {
+            document.getElementById('post-form-modal').style.display = 'none';
+        }
+
+        function savePost() {
+            const title = document.getElementById('post-title').value;
+            const content = document.getElementById('post-content').value;
+            const date = new Date().toISOString().split('T')[0];
+            const post = { title, content, date };
+
+            let posts = JSON.parse(localStorage.getItem('posts')) || [];
+            posts.push(post);
+            localStorage.setItem('posts', JSON.stringify(posts));
+
+            loadPosts();
+        }
+
+        function loadPosts() {
+            const postList = document.getElementById('post-list');
+            postList.innerHTML = '';
+
+            let posts = JSON.parse(localStorage.getItem('posts')) || [];
+            posts.forEach(post => {
+                const postElement = document.createElement('div');
+                postElement.className = 'post';
+                postElement.innerHTML = `
+                    <h3>${post.title}</h3>
+                    <p>${post.content}</p>
+                    <p class="post-details">投稿日: ${post.date}</p>
+                `;
+                postList.appendChild(postElement);
+            });
+        }
+    </script>
 </body>
 </html>
