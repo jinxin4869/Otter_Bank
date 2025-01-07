@@ -83,4 +83,44 @@ document.getElementById('post-form').addEventListener('submit', function(event) 
     event.preventDefault();
     // フォーム送信処理
     closePostForm();
+})
+
+function savePost() {
+    const title = document.getElementById('post-title').value;
+    const content = document.getElementById('post-content').value;
+    const date = new Date().toISOString().split('T')[0];
+    const post = { title, content, date };
+
+    let posts = JSON.parse(localStorage.getItem('posts')) || [];
+    posts.push(post);
+    localStorage.setItem('posts', JSON.stringify(posts));
+
+    loadPosts();
+}
+
+function loadPosts() {
+    const postList = document.getElementById('post-list');
+    postList.innerHTML = '';
+
+    let posts = JSON.parse(localStorage.getItem('posts')) || [];
+    posts.forEach(post => {
+        const postElement = document.createElement('div');
+        postElement.className = 'post';
+        postElement.innerHTML = `
+            <h3>${post.title}</h3>
+            <p>${post.content}</p>
+            <p class="post-details">投稿日: ${post.date}</p>
+        `;
+        postList.appendChild(postElement);
+    });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    loadPosts();
+});
+
+document.getElementById('post-form').addEventListener('submit', function(event) {
+    event.preventDefault();
+    savePost();
+    closePostForm();
 });
