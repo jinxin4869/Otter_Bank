@@ -77,3 +77,6 @@ MVPリリース時:
 | 認証 | Devise (Railsの認証ライブラリ) |
 | CI / CD | GitHub Actions |
 | 開発環境 | Docker (コンテナ化), VSCode (エディタ) |
+
+## 画面遷移図
+[Figmaリンク](https://www.figma.com/board/336gqg7QemlRBOyX6Hyjk9/Untitled?node-id=0-1&p=f&t=pWqT6LtmUdhXr6q1-0)
