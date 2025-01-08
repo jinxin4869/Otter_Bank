@@ -80,3 +80,7 @@ MVPリリース時:
 
 ## 画面遷移図
 [Figmaリンク](https://www.figma.com/board/336gqg7QemlRBOyX6Hyjk9/Untitled?node-id=0-1&p=f&t=pWqT6LtmUdhXr6q1-0)
+
+## ER図
+
+[ER図リンク](path/to/ER.drawio)
