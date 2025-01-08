@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cute Animal Wallet</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script src="script.js"></script>
+</head>
+<body>
+    <header>
+        <div class="header-container">
+            <div class="app-icon">
+                <a href="index.html">
+                    <img src="icon.jpg" alt="Cute Animal Wallet" class="app-logo" />
+                </a>
+                <h1 class="app-name">獭獭銀行</h1>
+            </div>
+            <div class="header-icons">
+                <div class="dropdown">
+                    <button class="dropbtn">いろいろ</button>
+                    <div class="dropdown-content">
+                        <a href="privacy.html">プライバシーについて</a>
+                        <a href="terms.html">利用規約</a>
+                    </div>
+                </div>
+                <a href="top.html" class="nav-link">マイページ</a>
+                <a href="login.html" class="nav-link">ログイン</a>
+                <a href="register.html" class="nav-link">新規登録</a>
+                <a href="contact.html" class="nav-link">問い合わせ</a>
+                <div class="hamburger-icon" onclick="toggleMenu()">&#8801;</div>
+                <div class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" title="ダークモード切替">
+                    <span class="moon-icon">🌙</span>
+                    <div class="toggle-switch"></div>
+                    <span class="sun-icon">☀</span>
+                </div>
+            </div>
+        </div>
+    </header>
+    <main class="container my-5">
+        <h2>問い合わせフォーム</h2>
+        <form id="contact-form">
+            <div class="form-group">
+                <label for="name">名前:</label>
+                <input type="text" class="form-control" id="name" name="name" required>
+            </div>
+            <div class="form-group">
+                <label for="email">メールアドレス:</label>
+                <input type="email" class="form-control" id="email" name="email" required>
+            </div>
+            <div class="form-group">
+                <label for="message">メッセージ:</label>
+                <textarea class="form-control" id="message" name="message" rows="5" required></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">送信</button>
+        </form>
+    </main>
+
+    <!-- フッターのインクルード -->
+    <div id="footer"></div>
+
+    <script>
+        // ヘッダーとフッターをインクルード
+        document.getElementById('header').innerHTML = fetch('header.html').then(response => response.text());
+        document.getElementById('footer').innerHTML = fetch('footer.html').then(response => response.text());
+
+        // 問い合わせフォームの送信処理
+        document.getElementById('contact-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            alert('お問い合わせありがとうございます。');
+            document.getElementById('contact-form').reset();
+        });
+    </script>
+</body>
+</html>
