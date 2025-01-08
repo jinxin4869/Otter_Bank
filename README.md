@@ -83,4 +83,4 @@ MVPリリース時:
 
 ## ER図
 
-[ER図リンク](path/to/ER.drawio)
+[ER図リンク](https://dbdiagram.io/d/677ebafd0231eca72990e11e)
