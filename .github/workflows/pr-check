@@ -1,0 +1,27 @@
+jobs:
+  build: # 1つ目のジョブ
+    name: Run Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Run build
+        run: echo "Running build..."
+
+  test: # 2つ目のジョブ
+    name: Run Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Run tests
+        run: echo "Running tests..."
+
+  lint: # 3つ目のジョブ
+    name: Run Linter
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Run lint
+        run: echo "Running linter..."
