@@ -68,10 +68,10 @@ MVPリリース時:
 
 | カテゴリー | 使用技術 |
 | --- | --- |
-| フロントエンド | HTML, JavaScript|
+| フロントエンド | HTML, JavaScript, Next.js|
 | バックエンド | Ruby on Rails |
 | サーバーサイド | Ruby on Rails |
-| CSSフレームワーク | Bootstrap (他のライブラリーも検討中) |
+| CSSフレームワーク | TailwindCSS, shadcn UI |
 | DB | PostgreSQL |
 | Redis | Redis (キャッシュやセッション管理) |
 | 認証 | Devise (Railsの認証ライブラリ) |
