@@ -17,7 +17,7 @@ services: # コンテナの定義開始
       
   web: # Railsアプリケーションの設定
     build: # Dockerイメージのビルド設定
-      context: .  # ビルドコンテキストはカレントディレクトリ
+      context: ./back  # バックエンドのビルドコンテキスト
       dockerfile: Dockerfile.dev # 開発用Dockerfileを使用
     command: bash -c "bundle install && bundle exec rails db:prepare && rm -f tmp/pids/server.pid && ./bin/dev"
     # ↑ サーバー起動時のコマンド：
@@ -29,9 +29,9 @@ services: # コンテナの定義開始
     tty: true # 疑似ターミナルを割り当て
     stdin_open: true # 標準入力を保持
     volumes:  # ボリュームマウントの設定
-      - .:/myapp # ソースコードのマウント
+      - ./back:/myapp # バックエンドソースコードのマウント
       - bundle_data:/usr/local/bundle:cached # gemの永続化
-      - node_modules:/myapp/node_modules # node_modulesの永続化
+      - node_modules_back:/myapp/node_modules # node_modulesの永続化
     environment: # 環境変数の設定
       TZ: Asia/Tokyo # タイムゾーンを日本に設定
     ports: # ポート設定
@@ -40,7 +40,24 @@ services: # コンテナの定義開始
       db: # dbサービスに依存
         condition: service_healthy # dbの健康チェックが通るまで待機
 
+  front: # Next.jsフロントエンドの設定
+    build: # Dockerイメージのビルド設定
+      context: ./front # フロントエンドのビルドコンテキスト
+      dockerfile: Dockerfile.dev # 開発用Dockerfileを使用（作成が必要）
+    command: bash -c "pnpm install && pnpm dev" # 開発サーバー起動コマンド
+    tty: true # 疑似ターミナルを割り当て
+    stdin_open: true # 標準入力を保持
+    volumes: # ボリュームマウントの設定
+      - ./front:/app # フロントエンドソースコードのマウント
+      - node_modules_front:/app/node_modules # フロント用node_modulesの永続化
+    environment: # 環境変数の設定
+      TZ: Asia/Tokyo # タイムゾーンを日本に設定
+      NEXT_PUBLIC_API_URL: http://web:3000 # バックエンドAPIのURL
+    ports: # ポート設定
+      - "3001:3000" # Next.js標準のポート（ホスト側は3001）
+
 volumes: # ボリュームの定義
   bundle_data: # gemデータの永続化用ボリューム
   postgresql_data: # PostgreSQLデータの永続化用ボリューム
-  node_modules: # Node.jsパッケージの永続化用ボリューム
+  node_modules_back: # バックエンド用Node.jsパッケージの永続化用ボリューム
+  node_modules_front: # フロントエンド用Node.jsパッケージの永続化用ボリューム
