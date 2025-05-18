@@ -71,7 +71,7 @@ export default function Header() {
             <Link href={isLoggedIn ? "/dashboard" : "/"} className="flex items-center">
               <div className="relative w-10 h-10 mr-2">
                 <Image
-                  src="/public/logo.png"
+                  src="/logo.png"
                   alt="Otter icon"
                   fill
                   className="object-contain"
