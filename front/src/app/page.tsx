@@ -1,103 +1,194 @@
-import Image from "next/image";
+import Link from "next/link"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import Image from "next/image"
+import { ArrowRight, PiggyBank, TrendingUp, BadgeCheck, Sparkles, HelpCircle } from "lucide-react"
 
 export default function Home() {
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+    <div className="space-y-12">
+      {/* ヘッダーセクション - アプリの紹介と主要なアクションボタン */}
+      <section className="text-center py-12">
+        <h1 className="text-4xl font-bold mb-4">獭獭银行 (Otter Bank)</h1>
+        <p className="text-xl mb-8 max-w-2xl mx-auto">
+          お金の管理をするためのアプリ - カワウソがあなたの出費に応じてリアクションを反応してくれます！
+        </p>
+        <div className="flex flex-col sm:flex-row justify-center gap-4">
+          <Button asChild size="lg" className="gap-2">
+            <Link href="/register">
+              新規登録
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </Button>
+          <Button asChild variant="outline" size="lg">
+            <Link href="/login">ログイン</Link>
+          </Button>
+          {/* 使い方ボタン - 枠を追加して視認性を向上 */}
+          <Button asChild variant="outline" size="lg" className="gap-2 border-2">
+            <Link href="/tutorial">
+              <HelpCircle className="h-4 w-4" />
+              使い方
+            </Link>
+          </Button>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      </section>
+
+      {/* アプリの特徴セクション - 主な機能と特徴の紹介 */}
+      <div className="relative">
+        <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-primary/5 rounded-lg -z-10" />
+        <div className="grid md:grid-cols-2 gap-8 items-center p-6 rounded-lg">
+          <div>
+            <h2 className="text-3xl font-bold mb-4">楽しく貯金、賢く管理</h2>
+            <p className="text-lg mb-6">
+              水獭银行は単なる家計簿アプリではありません。かわいいカワウソと一緒にお金の管理を楽しく続けられるアプリです。
+            </p>
+            <ul className="space-y-4">
+              <li className="flex items-start gap-3">
+                <PiggyBank className="h-6 w-6 text-primary mt-1" />
+                <div>
+                  <span className="font-semibold block">ゲーム感覚の金融マネジメント</span>
+                  <span className="text-muted-foreground">貯金するほどカワウソが喜ぶ！</span>
+                </div>
+              </li>
+              <li className="flex items-start gap-3">
+                <BadgeCheck className="h-6 w-6 text-primary mt-1" />
+                <div>
+                  <span className="font-semibold block">アチーブメントシステム</span>
+                  <span className="text-muted-foreground">貯金目標を達成して特別なバッジを獲得</span>
+                </div>
+              </li>
+              <li className="flex items-start gap-3">
+                <Sparkles className="h-6 w-6 text-primary mt-1" />
+                <div>
+                  <span className="font-semibold block">カスタマイズ要素</span>
+                  <span className="text-muted-foreground">貯金額に応じてカワウソの生活環境を変えられる！</span>
+                </div>
+              </li>
+              <li className="flex items-start gap-3">
+                <TrendingUp className="h-6 w-6 text-primary mt-1" />
+                <div>
+                  <span className="font-semibold block">わかりやすい収支分析</span>
+                  <span className="text-muted-foreground">グラフやチャートで支出パターンを可視化</span>
+                </div>
+              </li>
+            </ul>
+          </div>
+          <div className="relative h-64 md:h-96 rounded-lg overflow-hidden">
+            <Image
+              src="/placeholder.svg?height=400&width=400&text=Otter+App+Preview"
+              alt="Otter Bank App Preview"
+              fill
+              className="object-contain"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* 使用方法セクション - アプリの基本的な使い方を5ステップで紹介 */}
+      <section>
+        <h2 className="text-3xl font-bold mb-6 text-center">使用方法</h2>
+        <div className="grid md:grid-cols-5 gap-6">
+          <Card>
+            <CardHeader className="pb-2">
+              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-2">
+                <span className="text-2xl font-bold text-primary">1</span>
+              </div>
+              <CardTitle>アカウント作成</CardTitle>
+              <CardDescription>
+                アプリを起動後、アカウントを作成し、利用している銀行を選択して開始します。
+              </CardDescription>
+            </CardHeader>
+          </Card>
+          <Card>
+            <CardHeader className="pb-2">
+              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-2">
+                <span className="text-2xl font-bold text-primary">2</span>
+              </div>
+              <CardTitle>収支を記録</CardTitle>
+              <CardDescription>日々の収入と支出を記録して、カワウソの反応を楽しみましょう。</CardDescription>
+            </CardHeader>
+          </Card>
+          <Card>
+            <CardHeader className="pb-2">
+              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-2">
+                <span className="text-2xl font-bold text-primary">3</span>
+              </div>
+              <CardTitle>実績を獲得</CardTitle>
+              <CardDescription>
+                貯金目標を達成すると、特別なバッジや新しいカワウソの環境が解放されます。
+              </CardDescription>
+            </CardHeader>
+          </Card>
+          <Card>
+            <CardHeader className="pb-2">
+              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-2">
+                <span className="text-2xl font-bold text-primary">4</span>
+              </div>
+              <CardTitle>テーマを設定</CardTitle>
+              <CardDescription>お好みのカラーテーマを選択して、アプリの見た目をカスタマイズできます。</CardDescription>
+            </CardHeader>
+          </Card>
+          <Card>
+            <CardHeader className="pb-2">
+              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-2">
+                <span className="text-2xl font-bold text-primary">5</span>
+              </div>
+              <CardTitle>みんなとシェア</CardTitle>
+              <CardDescription>掲示板で貯金のコツや経験を共有し、他のユーザーと交流できます。</CardDescription>
+            </CardHeader>
+          </Card>
+        </div>
+        {/* 「詳しい使い方を見る」ボタンを削除 */}
+      </section>
+
+      {/* ロードマップセクション - 今後の開発予定を時系列で表示 */}
+      <section className="bg-muted/50 p-6 rounded-lg">
+        <h2 className="text-3xl font-bold mb-6">今後のロードマップ</h2>
+        <div className="space-y-4">
+          <div className="flex items-center gap-4">
+            <div className="bg-primary text-primary-foreground px-3 py-1 rounded font-medium min-w-[100px] text-center">
+              2025年4月
+            </div>
+            <div className="flex-1 bg-background p-3 rounded">ベータ版リリース</div>
+          </div>
+          <div className="flex items-center gap-4">
+            <div className="bg-primary text-primary-foreground px-3 py-1 rounded font-medium min-w-[100px] text-center">
+              2025年6月
+            </div>
+            <div className="flex-1 bg-background p-3 rounded">UI/UXの改善</div>
+          </div>
+          <div className="flex items-center gap-4">
+            <div className="bg-primary text-primary-foreground px-3 py-1 rounded font-medium min-w-[100px] text-center">
+              2025年8月
+            </div>
+            <div className="flex-1 bg-background p-3 rounded">追加カワウソの実装（最大6種類）</div>
+          </div>
+          <div className="flex items-center gap-4">
+            <div className="bg-primary text-primary-foreground px-3 py-1 rounded font-medium min-w-[100px] text-center">
+              2025年10月
+            </div>
+            <div className="flex-1 bg-background p-3 rounded">本リリース</div>
+          </div>
+        </div>
+      </section>
+
+      {/* お願いセクション - ユーザーへのメッセージとフィードバック依頼 */}
+      <section>
+        <h2 className="text-3xl font-bold mb-6">皆さんへのお願い</h2>
+        <Card>
+          <CardContent className="p-6">
+            <p className="mb-4">アプリを使っていただきありがとうございます！</p>
+            <p className="mb-4">
+              バグの報告や機能の提案は、githubのissueを通して行ってください。もしくはフォームから下記メールアドレスまでご連絡ください。
+            </p>
+            <p>新しいお金ライフを過ごせるように私たちは全力でサポートします。</p>
+            <Button asChild className="mt-6">
+              <Link href="/register">今すぐ始める</Link>
+            </Button>
+          </CardContent>
+        </Card>
+      </section>
     </div>
-  );
+  )
 }
+
