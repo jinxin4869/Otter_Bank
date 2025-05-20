@@ -1,319 +1,44 @@
 "use client"
 
+import type React from "react"
+
 import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Calendar } from "@/components/ui/calendar"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { format } from "date-fns"
 import { ja } from "date-fns/locale"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Calendar } from "@/components/ui/calendar"
-import { cn } from "@/lib/utils"
-import { CalendarIcon, Plus, ArrowUpRight, ArrowDownRight } from "lucide-react"
-import { toast } from "sonner"
-import MonthlyTrend from "@/components/monthly-trend"
+import {
+  CalendarIcon,
+  PlusCircle,
+  Wallet,
+  ArrowUpCircle,
+  ArrowDownCircle,
+  Coffee,
+  ShoppingBag,
+  Bus,
+  Film,
+  Lightbulb,
+  Home,
+  Stethoscope,
+  GraduationCap,
+  ShoppingCart,
+  HelpCircle,
+  Briefcase,
+  Gift,
+  TrendingUp,
+  DollarSign,
+} from "lucide-react"
+import OtterAnimation from "@/components/otter-animation"
 import ExpensePieChart from "@/components/expense-pie-chart"
-
-// サンプルデータ
-const SAMPLE_TRANSACTIONS: Transaction[] = [
-  {
-    id: "1",
-    amount: 5000,
-    type: "expense",
-    category: "food",
-    description: "スーパーでの買い物",
-    date: "2023-01-15T00:00:00.000Z",
-  },
-  {
-    id: "2",
-    amount: 3000,
-    type: "expense",
-    category: "transportation",
-    description: "電車定期券",
-    date: "2023-01-10T00:00:00.000Z",
-  },
-  {
-    id: "3",
-    amount: 150000,
-    type: "income",
-    category: "salary",
-    description: "1月給料",
-    date: "2023-01-25T00:00:00.000Z",
-  },
-  {
-    id: "4",
-    amount: 8000,
-    type: "expense",
-    category: "entertainment",
-    description: "映画と食事",
-    date: "2023-01-20T00:00:00.000Z",
-  },
-  {
-    id: "5",
-    amount: 60000,
-    type: "expense",
-    category: "rent",
-    description: "1月家賃",
-    date: "2023-01-05T00:00:00.000Z",
-  },
-  {
-    id: "6",
-    amount: 4500,
-    type: "expense",
-    category: "utilities",
-    description: "電気代",
-    date: "2023-01-08T00:00:00.000Z",
-  },
-  {
-    id: "7",
-    amount: 3200,
-    type: "expense",
-    category: "utilities",
-    description: "水道代",
-    date: "2023-01-08T00:00:00.000Z",
-  },
-  {
-    id: "8",
-    amount: 12000,
-    type: "expense",
-    category: "groceries",
-    description: "日用品",
-    date: "2023-01-12T00:00:00.000Z",
-  },
-  {
-    id: "9",
-    amount: 30000,
-    type: "income",
-    category: "bonus",
-    description: "臨時ボーナス",
-    date: "2023-02-15T00:00:00.000Z",
-  },
-  {
-    id: "10",
-    amount: 150000,
-    type: "income",
-    category: "salary",
-    description: "2月給料",
-    date: "2023-02-25T00:00:00.000Z",
-  },
-  {
-    id: "11",
-    amount: 60000,
-    type: "expense",
-    category: "rent",
-    description: "2月家賃",
-    date: "2023-02-05T00:00:00.000Z",
-  },
-  {
-    id: "12",
-    amount: 6000,
-    type: "expense",
-    category: "food",
-    description: "スーパーでの買い物",
-    date: "2023-02-10T00:00:00.000Z",
-  },
-  {
-    id: "13",
-    amount: 4800,
-    type: "expense",
-    category: "utilities",
-    description: "電気代",
-    date: "2023-02-08T00:00:00.000Z",
-  },
-  {
-    id: "14",
-    amount: 3500,
-    type: "expense",
-    category: "utilities",
-    description: "水道代",
-    date: "2023-02-08T00:00:00.000Z",
-  },
-  {
-    id: "15",
-    amount: 150000,
-    type: "income",
-    category: "salary",
-    description: "3月給料",
-    date: "2023-03-25T00:00:00.000Z",
-  },
-  {
-    id: "16",
-    amount: 60000,
-    type: "expense",
-    category: "rent",
-    description: "3月家賃",
-    date: "2023-03-05T00:00:00.000Z",
-  },
-  {
-    id: "17",
-    amount: 5500,
-    type: "expense",
-    category: "food",
-    description: "スーパーでの買い物",
-    date: "2023-03-12T00:00:00.000Z",
-  },
-  {
-    id: "18",
-    amount: 4200,
-    type: "expense",
-    category: "utilities",
-    description: "電気代",
-    date: "2023-03-08T00:00:00.000Z",
-  },
-  {
-    id: "19",
-    amount: 3300,
-    type: "expense",
-    category: "utilities",
-    description: "水道代",
-    date: "2023-03-08T00:00:00.000Z",
-  },
-  {
-    id: "20",
-    amount: 150000,
-    type: "income",
-    category: "salary",
-    description: "4月給料",
-    date: "2023-04-25T00:00:00.000Z",
-  },
-  {
-    id: "21",
-    amount: 60000,
-    type: "expense",
-    category: "rent",
-    description: "4月家賃",
-    date: "2023-04-05T00:00:00.000Z",
-  },
-  {
-    id: "22",
-    amount: 5800,
-    type: "expense",
-    category: "food",
-    description: "スーパーでの買い物",
-    date: "2023-04-14T00:00:00.000Z",
-  },
-  {
-    id: "23",
-    amount: 4500,
-    type: "expense",
-    category: "utilities",
-    description: "電気代",
-    date: "2023-04-08T00:00:00.000Z",
-  },
-  {
-    id: "24",
-    amount: 3400,
-    type: "expense",
-    category: "utilities",
-    description: "水道代",
-    date: "2023-04-08T00:00:00.000Z",
-  },
-  {
-    id: "25",
-    amount: 150000,
-    type: "income",
-    category: "salary",
-    description: "5月給料",
-    date: "2023-05-25T00:00:00.000Z",
-  },
-  {
-    id: "26",
-    amount: 60000,
-    type: "expense",
-    category: "rent",
-    description: "5月家賃",
-    date: "2023-05-05T00:00:00.000Z",
-  },
-  {
-    id: "27",
-    amount: 6200,
-    type: "expense",
-    category: "food",
-    description: "スーパーでの買い物",
-    date: "2023-05-16T00:00:00.000Z",
-  },
-  {
-    id: "28",
-    amount: 4300,
-    type: "expense",
-    category: "utilities",
-    description: "電気代",
-    date: "2023-05-08T00:00:00.000Z",
-  },
-  {
-    id: "29",
-    amount: 3200,
-    type: "expense",
-    category: "utilities",
-    description: "水道代",
-    date: "2023-05-08T00:00:00.000Z",
-  },
-  {
-    id: "30",
-    amount: 150000,
-    type: "income",
-    category: "salary",
-    description: "6月給料",
-    date: "2023-06-25T00:00:00.000Z",
-  },
-  {
-    id: "31",
-    amount: 60000,
-    type: "expense",
-    category: "rent",
-    description: "6月家賃",
-    date: "2023-06-05T00:00:00.000Z",
-  },
-  {
-    id: "32",
-    amount: 5900,
-    type: "expense",
-    category: "food",
-    description: "スーパーでの買い物",
-    date: "2023-06-18T00:00:00.000Z",
-  },
-  {
-    id: "33",
-    amount: 4100,
-    type: "expense",
-    category: "utilities",
-    description: "電気代",
-    date: "2023-06-08T00:00:00.000Z",
-  },
-  {
-    id: "34",
-    amount: 3300,
-    type: "expense",
-    category: "utilities",
-    description: "水道代",
-    date: "2023-06-08T00:00:00.000Z",
-  },
-]
-
-// 取引カテゴリー
-const EXPENSE_CATEGORIES = [
-  { value: "food", label: "食費" },
-  { value: "groceries", label: "日用品" },
-  { value: "transportation", label: "交通費" },
-  { value: "entertainment", label: "娯楽" },
-  { value: "utilities", label: "光熱費" },
-  { value: "rent", label: "家賃" },
-  { value: "medical", label: "医療費" },
-  { value: "education", label: "教育費" },
-  { value: "shopping", label: "買い物" },
-  { value: "other", label: "その他" },
-]
-
-const INCOME_CATEGORIES = [
-  { value: "salary", label: "給料" },
-  { value: "bonus", label: "ボーナス" },
-  { value: "gift", label: "贈与" },
-  { value: "investment", label: "投資" },
-  { value: "other", label: "その他" },
-]
+import MonthlyTrend from "@/components/monthly-trend"
+import { Tutorial } from "@/components/tutorial"
+import { cn } from "@/lib/utils"
+import { useRouter } from "next/navigation"
 
 type Transaction = {
   id: string
@@ -324,16 +49,41 @@ type Transaction = {
   date: string
 }
 
+const EXPENSE_CATEGORIES = [
+  { value: "food", label: "食費", icon: <Coffee className="h-4 w-4" /> },
+  { value: "groceries", label: "日用品", icon: <ShoppingBag className="h-4 w-4" /> },
+  { value: "transportation", label: "交通費", icon: <Bus className="h-4 w-4" /> },
+  { value: "entertainment", label: "娯楽", icon: <Film className="h-4 w-4" /> },
+  { value: "utilities", label: "光熱費", icon: <Lightbulb className="h-4 w-4" /> },
+  { value: "rent", label: "家賃", icon: <Home className="h-4 w-4" /> },
+  { value: "medical", label: "医療費", icon: <Stethoscope className="h-4 w-4" /> },
+  { value: "education", label: "教育費", icon: <GraduationCap className="h-4 w-4" /> },
+  { value: "shopping", label: "買い物", icon: <ShoppingCart className="h-4 w-4" /> },
+  { value: "other", label: "その他", icon: <HelpCircle className="h-4 w-4" /> },
+]
+
+const INCOME_CATEGORIES = [
+  { value: "salary", label: "給料", icon: <Briefcase className="h-4 w-4" /> },
+  { value: "bonus", label: "ボーナス", icon: <Gift className="h-4 w-4" /> },
+  { value: "investment", label: "投資", icon: <TrendingUp className="h-4 w-4" /> },
+  { value: "gift", label: "贈与", icon: <Gift className="h-4 w-4" /> },
+  { value: "other", label: "その他", icon: <DollarSign className="h-4 w-4" /> },
+]
+
 export default function DashboardPage() {
-  const router = useRouter()
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [amount, setAmount] = useState("")
+  const [amountError, setAmountError] = useState<string | null>(null)
   const [type, setType] = useState<"income" | "expense">("expense")
   const [category, setCategory] = useState("")
   const [description, setDescription] = useState("")
   const [date, setDate] = useState<Date>(new Date())
+  const [currentView, setCurrentView] = useState<"day" | "month" | "year">("month")
+  const [currentDate, setCurrentDate] = useState<Date>(new Date())
+  const [otterMood, setOtterMood] = useState<"happy" | "neutral" | "sad">("neutral")
+  const router = useRouter()
 
-  // ログイン状態を確認
+  // ログイン状態を確認する処理を追加
   useEffect(() => {
     // ログイン状態をチェック
     const isLoggedIn = localStorage.getItem("isLoggedIn") === "true"
@@ -343,274 +93,508 @@ export default function DashboardPage() {
       router.push("/login")
       return
     }
+  }, [router])
 
-    // ローカルストレージから取引データを取得
+  // Load transactions from localStorage on component mount
+  useEffect(() => {
     const savedTransactions = localStorage.getItem("transactions")
     if (savedTransactions) {
       setTransactions(JSON.parse(savedTransactions))
     } else {
-      // サンプルデータを使用
-      setTransactions(SAMPLE_TRANSACTIONS)
-      localStorage.setItem("transactions", JSON.stringify(SAMPLE_TRANSACTIONS))
+      // Create sample data for demo
+      const sampleData = generateSampleData()
+      setTransactions(sampleData)
+      localStorage.setItem("transactions", JSON.stringify(sampleData))
     }
-  }, [router])
+  }, [])
 
-  // 新規取引の追加
-  const handleAddTransaction = () => {
-    // 金額の検証
-    const amountValue = Number.parseFloat(amount)
-    if (isNaN(amountValue) || amountValue <= 0) {
-      toast.error("無効な金額", {
-        description: "有効な金額を入力してください。",
-      })
-      return
+  // Update otter mood based on financial health
+  useEffect(() => {
+    if (transactions.length === 0) return
+
+    const thisMonth = new Date().getMonth()
+    const thisYear = new Date().getFullYear()
+
+    const monthlyTransactions = transactions.filter((t) => {
+      const tDate = new Date(t.date)
+      return tDate.getMonth() === thisMonth && tDate.getFullYear() === thisYear
+    })
+
+    const income = monthlyTransactions.filter((t) => t.type === "income").reduce((sum, t) => sum + t.amount, 0)
+
+    const expense = monthlyTransactions.filter((t) => t.type === "expense").reduce((sum, t) => sum + t.amount, 0)
+
+    const savingsRate = income > 0 ? (income - expense) / income : 0
+
+    if (savingsRate > 0.2) {
+      setOtterMood("happy")
+    } else if (savingsRate < 0) {
+      setOtterMood("sad")
+    } else {
+      setOtterMood("neutral")
+    }
+  }, [transactions])
+
+  const validateAmount = (value: string) => {
+    // 空の場合はエラーなし
+    if (!value) {
+      setAmountError(null)
+      return true
     }
 
-    // カテゴリーの検証
-    if (!category) {
-      toast.error("カテゴリーが選択されていません",{
-        description: "カテゴリーを選択してください。",
-      })
-      return
+    // 数値のみを許可
+    const numericValue = value.replace(/,/g, "")
+    if (!/^\d+(\.\d{0,2})?$/.test(numericValue)) {
+      setAmountError("数字を入力してください。例：1000")
+      return false
     }
 
-    // 新しい取引を作成
+    setAmountError(null)
+    return true
+  }
+
+  const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value
+    setAmount(value)
+    validateAmount(value)
+  }
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+
+    if (!amount || !category || !validateAmount(amount)) return
+
+    const numericAmount = Number.parseFloat(amount.replace(/,/g, ""))
+
     const newTransaction: Transaction = {
       id: Date.now().toString(),
-      amount: amountValue,
+      amount: numericAmount,
       type,
       category,
       description,
-      date: date.toISOString(),
+      date: format(date, "yyyy-MM-dd"),
     }
 
-    // 取引リストに追加
     const updatedTransactions = [...transactions, newTransaction]
     setTransactions(updatedTransactions)
 
-    // ローカルストレージに保存
+    // Save to localStorage
     localStorage.setItem("transactions", JSON.stringify(updatedTransactions))
 
-    // フォームをリセット
+    // Reset form
     setAmount("")
-    setType("expense")
-    setCategory("")
+    setAmountError(null)
     setDescription("")
     setDate(new Date())
-
-    toast.success("取引を追加しました",{
-      description: "新しい取引が正常に追加されました。",
-    })
   }
 
-  // 収入と支出の合計を計算
-  const totalIncome = transactions
-    .filter((t) => t.type === "income")
-    .reduce((sum, transaction) => sum + transaction.amount, 0)
+  const deleteTransaction = (id: string) => {
+    const updatedTransactions = transactions.filter((t) => t.id !== id)
+    setTransactions(updatedTransactions)
+    localStorage.setItem("transactions", JSON.stringify(updatedTransactions))
+  }
 
-  const totalExpense = transactions
-    .filter((t) => t.type === "expense")
-    .reduce((sum, transaction) => sum + transaction.amount, 0)
+  const getFilteredTransactions = () => {
+    let filtered = [...transactions]
 
-  const balance = totalIncome - totalExpense
+    if (currentView === "day") {
+      filtered = filtered.filter((t) => {
+        return t.date === format(currentDate, "yyyy-MM-dd")
+      })
+    } else if (currentView === "month") {
+      const month = currentDate.getMonth()
+      const year = currentDate.getFullYear()
+      filtered = filtered.filter((t) => {
+        const tDate = new Date(t.date)
+        return tDate.getMonth() === month && tDate.getFullYear() === year
+      })
+    } else if (currentView === "year") {
+      const year = currentDate.getFullYear()
+      filtered = filtered.filter((t) => {
+        const tDate = new Date(t.date)
+        return tDate.getFullYear() === year
+      })
+    }
 
-  // 最近の取引を取得（最新の5件）
-  const recentTransactions = [...transactions]
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-    .slice(0, 5)
+    return filtered.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+  }
 
-  // カテゴリーの表示名を取得
-  const getCategoryLabel = (category: string, type: "income" | "expense") => {
+  const calculateBalance = () => {
+    const filtered = getFilteredTransactions()
+    const income = filtered.filter((t) => t.type === "income").reduce((sum, t) => sum + t.amount, 0)
+
+    const expense = filtered.filter((t) => t.type === "expense").reduce((sum, t) => sum + t.amount, 0)
+
+    return income - expense
+  }
+
+  const calculateTotalIncome = () => {
+    const filtered = getFilteredTransactions()
+    return filtered.filter((t) => t.type === "income").reduce((sum, t) => sum + t.amount, 0)
+  }
+
+  const calculateTotalExpense = () => {
+    const filtered = getFilteredTransactions()
+    return filtered.filter((t) => t.type === "expense").reduce((sum, t) => sum + t.amount, 0)
+  }
+
+  const getCategoryLabel = (categoryValue: string, type: "income" | "expense") => {
     const categories = type === "income" ? INCOME_CATEGORIES : EXPENSE_CATEGORIES
-    return categories.find((c) => c.value === category)?.label || category
+    return categories.find((c) => c.value === categoryValue)?.label || categoryValue
   }
+
+  const getCategoryIcon = (categoryValue: string, type: "income" | "expense") => {
+    const categories = type === "income" ? INCOME_CATEGORIES : EXPENSE_CATEGORIES
+    return categories.find((c) => c.value === categoryValue)?.icon || <HelpCircle className="h-4 w-4" />
+  }
+
+  const getViewTitle = () => {
+    if (currentView === "day") {
+      return format(currentDate, "yyyy年MM月dd日", { locale: ja })
+    } else if (currentView === "month") {
+      return format(currentDate, "yyyy年MM月", { locale: ja })
+    } else {
+      return format(currentDate, "yyyy年", { locale: ja })
+    }
+  }
+
+  const navigateDate = (direction: "prev" | "next") => {
+    if (currentView === "day") {
+      const newDate = new Date(currentDate)
+      newDate.setDate(newDate.getDate() + (direction === "next" ? 1 : -1))
+      setCurrentDate(newDate)
+    } else if (currentView === "month") {
+      const newDate = new Date(currentDate)
+      newDate.setMonth(newDate.getMonth() + (direction === "next" ? 1 : -1))
+      setCurrentDate(newDate)
+    } else {
+      const newDate = new Date(currentDate)
+      newDate.setFullYear(newDate.getFullYear() + (direction === "next" ? 1 : -1))
+      setCurrentDate(newDate)
+    }
+  }
+
+  // Generate sample data for demo
+  const generateSampleData = (): Transaction[] => {
+    const data: Transaction[] = []
+    const today = new Date()
+    const currentMonth = today.getMonth()
+    const currentYear = today.getFullYear()
+
+    // Generate data for the last 3 months
+    for (let m = 0; m < 3; m++) {
+      const month = (currentMonth - m + 12) % 12
+      const year = month > currentMonth ? currentYear - 1 : currentYear
+
+      // Add salary for each month
+      data.push({
+        id: `income-${year}-${month}-1`,
+        amount: 280000,
+        type: "income",
+        category: "salary",
+        description: "月給",
+        date: format(new Date(year, month, 15), "yyyy-MM-dd"),
+      })
+
+      // Add some random expenses
+      for (let i = 0; i < 15; i++) {
+        const day = Math.floor(Math.random() * 28) + 1
+        const categoryIndex = Math.floor(Math.random() * EXPENSE_CATEGORIES.length)
+        const amount = Math.floor(Math.random() * 10000) + 500
+
+        data.push({
+          id: `expense-${year}-${month}-${i}`,
+          amount,
+          type: "expense",
+          category: EXPENSE_CATEGORIES[categoryIndex].value,
+          description: `${EXPENSE_CATEGORIES[categoryIndex].label}の支出`,
+          date: format(new Date(year, month, day), "yyyy-MM-dd"),
+        })
+      }
+    }
+
+    return data
+  }
+
+  const filteredTransactions = getFilteredTransactions()
+  const balance = calculateBalance()
+  const totalIncome = calculateTotalIncome()
+  const totalExpense = calculateTotalExpense()
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* 収支サマリー */}
-        <Card className="md:col-span-2">
-          <CardHeader>
-            <CardTitle>収支サマリー</CardTitle>
-            <CardDescription>現在の収入と支出の概要</CardDescription>
+      {/* チュートリアルコンポーネントを追加 */}
+      <Tutorial />
+
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <h1 className="text-3xl font-bold">家計簿</h1>
+
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={() => navigateDate("prev")}>
+            前へ
+          </Button>
+
+          <div className="font-medium">{getViewTitle()}</div>
+
+          <Button variant="outline" size="sm" onClick={() => navigateDate("next")}>
+            次へ
+          </Button>
+
+          <Select value={currentView} onValueChange={(value) => setCurrentView(value as "day" | "month" | "year")}>
+            <SelectTrigger className="w-[100px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="day">日別</SelectItem>
+              <SelectItem value="month">月別</SelectItem>
+              <SelectItem value="year">年別</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card className="md:col-span-1">
+          <CardHeader className="pb-2">
+            <CardTitle>カワウソの様子</CardTitle>
+            <CardDescription>財政状況に応じて変化</CardDescription>
           </CardHeader>
-          <CardContent className="grid grid-cols-3 gap-4">
-            <div className="space-y-2">
-              <p className="text-sm font-medium text-muted-foreground">収入</p>
-              <p className="text-2xl font-bold text-green-600">{totalIncome.toLocaleString()} 円</p>
-            </div>
-            <div className="space-y-2">
-              <p className="text-sm font-medium text-muted-foreground">支出</p>
-              <p className="text-2xl font-bold text-red-600">{totalExpense.toLocaleString()} 円</p>
-            </div>
-            <div className="space-y-2">
-              <p className="text-sm font-medium text-muted-foreground">残高</p>
-              <p className={`text-2xl font-bold ${balance >= 0 ? "text-green-600" : "text-red-600"}`}>
-                {balance.toLocaleString()} 円
-              </p>
+          <CardContent>
+            <OtterAnimation mood={otterMood} />
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gradient-to-br from-blue-50/80 to-blue-100/50 dark:from-blue-900/10 dark:to-blue-800/10 border-blue-200/70 dark:border-blue-800/30">
+          <CardHeader className="pb-2">
+            <CardDescription>総収入</CardDescription>
+            <CardTitle className="text-2xl text-blue-500 dark:text-blue-300 flex items-center">
+              <ArrowUpCircle className="mr-2 h-5 w-5" />
+              {totalIncome.toLocaleString()} 円
+            </CardTitle>
+          </CardHeader>
+        </Card>
+
+        <Card className="bg-gradient-to-br from-rose-50/80 to-rose-100/50 dark:from-rose-900/10 dark:to-rose-800/10 border-rose-200/70 dark:border-rose-800/30">
+          <CardHeader className="pb-2">
+            <CardDescription>総支出</CardDescription>
+            <CardTitle className="text-2xl text-rose-500 dark:text-rose-300 flex items-center">
+              <ArrowDownCircle className="mr-2 h-5 w-5" />
+              {totalExpense.toLocaleString()} 円
+            </CardTitle>
+          </CardHeader>
+        </Card>
+
+        <Card
+          className={cn(
+            "bg-gradient-to-br",
+            balance >= 0
+              ? "from-teal-50/80 to-teal-100/50 dark:from-teal-900/10 dark:to-teal-800/10 border-teal-200/70 dark:border-teal-800/30"
+              : "from-amber-50/80 to-amber-100/50 dark:from-amber-900/10 dark:to-amber-800/10 border-amber-200/70 dark:border-amber-800/30",
+          )}
+        >
+          <CardHeader className="pb-2">
+            <CardDescription>収支バランス</CardDescription>
+            <CardTitle
+              className={cn(
+                "text-2xl flex items-center",
+                balance >= 0 ? "text-teal-500 dark:text-teal-300" : "text-amber-500 dark:text-amber-300",
+              )}
+            >
+              <Wallet className="mr-2 h-5 w-5" />
+              {balance.toLocaleString()} 円
+            </CardTitle>
+          </CardHeader>
+        </Card>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <Card className="lg:col-span-2">
+          <CardHeader>
+            <CardTitle>取引履歴</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {filteredTransactions.length === 0 ? (
+                <p className="text-center text-muted-foreground py-4">この期間の取引はありません</p>
+              ) : (
+                <div className="space-y-2 max-h-[400px] overflow-y-auto pr-2">
+                  {filteredTransactions.map((transaction) => (
+                    <div
+                      key={transaction.id}
+                      className="flex justify-between items-center p-3 border rounded hover:bg-accent/50 transition-colors"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div
+                          className={cn(
+                            "w-10 h-10 rounded-full flex items-center justify-center",
+                            transaction.type === "income"
+                              ? "bg-blue-100/70 text-blue-500 dark:bg-blue-900/30 dark:text-blue-300"
+                              : "bg-rose-100/70 text-rose-500 dark:bg-rose-900/30 dark:text-rose-300",
+                          )}
+                        >
+                          {getCategoryIcon(transaction.category, transaction.type)}
+                        </div>
+                        <div>
+                          <div className="font-medium">{getCategoryLabel(transaction.category, transaction.type)}</div>
+                          {transaction.description && (
+                            <div className="text-sm text-muted-foreground">{transaction.description}</div>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <div className="text-right">
+                          <div
+                            className={cn(
+                              "font-medium",
+                              transaction.type === "income"
+                                ? "text-blue-500 dark:text-blue-300"
+                                : "text-rose-500 dark:text-rose-300",
+                            )}
+                          >
+                            {transaction.type === "income" ? "+" : "-"}
+                            {transaction.amount.toLocaleString()} 円
+                          </div>
+                          <div className="text-sm text-muted-foreground">
+                            {format(new Date(transaction.date), "yyyy/MM/dd")}
+                          </div>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => deleteTransaction(transaction.id)}
+                          className="text-muted-foreground hover:text-destructive"
+                        >
+                          削除
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
 
-        {/* 新規取引 */}
         <Card>
           <CardHeader>
             <CardTitle>新規取引</CardTitle>
-            <CardDescription>収入や支出を記録</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="amount">金額</Label>
-              <Input
-                id="amount"
-                type="number"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                placeholder="金額を入力"
-                min="0"
-                step="1"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="type">種類</Label>
-              <Select value={type} onValueChange={(value: "income" | "expense") => setType(value)}>
-                <SelectTrigger id="type">
-                  <SelectValue placeholder="種類を選択" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="income">収入</SelectItem>
-                  <SelectItem value="expense">支出</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="category">カテゴリー</Label>
-              <Select value={category} onValueChange={setCategory}>
-                <SelectTrigger id="category">
-                  <SelectValue placeholder="カテゴリーを選択" />
-                </SelectTrigger>
-                <SelectContent>
-                  {type === "income"
-                    ? INCOME_CATEGORIES.map((category) => (
-                        <SelectItem key={category.value} value={category.value}>
-                          {category.label}
-                        </SelectItem>
-                      ))
-                    : EXPENSE_CATEGORIES.map((category) => (
-                        <SelectItem key={category.value} value={category.value}>
-                          {category.label}
-                        </SelectItem>
-                      ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="description">詳細</Label>
-              <Input
-                id="description"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder="詳細を入力（任意）"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="date">日付</Label>
-              <Popover>
-                <PopoverTrigger asChild>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="amount">金額</Label>
+                <Input
+                  id="amount"
+                  type="text"
+                  placeholder="1000"
+                  value={amount}
+                  onChange={handleAmountChange}
+                  required
+                  className={amountError ? "border-red-500" : ""}
+                />
+                {amountError && <p className="text-sm text-red-500">{amountError}</p>}
+              </div>
+
+              <div className="space-y-2">
+                <Label>タイプ</Label>
+                <div className="flex gap-2">
                   <Button
-                    variant="outline"
-                    className={cn("w-full justify-start text-left font-normal", !date && "text-muted-foreground")}
+                    type="button"
+                    variant={type === "expense" ? "default" : "outline"}
+                    className={cn("flex-1", type === "expense" && "bg-rose-500/90 hover:bg-rose-600/90")}
+                    onClick={() => {
+                      setType("expense")
+                      setCategory("")
+                    }}
                   >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {date ? format(date, "yyyy年MM月dd日", { locale: ja }) : "日付を選択"}
+                    支出
                   </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                  <Calendar mode="single" selected={date} onSelect={(date) => date && setDate(date)} initialFocus />
-                </PopoverContent>
-              </Popover>
-            </div>
+                  <Button
+                    type="button"
+                    variant={type === "income" ? "default" : "outline"}
+                    className={cn("flex-1", type === "income" && "bg-blue-500/90 hover:bg-blue-600/90")}
+                    onClick={() => {
+                      setType("income")
+                      setCategory("")
+                    }}
+                  >
+                    収入
+                  </Button>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="category">カテゴリー</Label>
+                <Select value={category} onValueChange={setCategory} required>
+                  <SelectTrigger id="category">
+                    <SelectValue placeholder="カテゴリーを選択" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(type === "income" ? INCOME_CATEGORIES : EXPENSE_CATEGORIES).map((cat) => (
+                      <SelectItem key={cat.value} value={cat.value} className="flex items-center gap-2">
+                        <div className="flex items-center gap-2">
+                          {cat.icon}
+                          <span>{cat.label}</span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="description">詳細 (任意)</Label>
+                <Input
+                  id="description"
+                  placeholder="取引の詳細"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>日付</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className="w-full justify-start text-left font-normal">
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {format(date, "yyyy年MM月dd日", { locale: ja })}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0">
+                    <Calendar mode="single" selected={date} onSelect={(date) => date && setDate(date)} initialFocus />
+                  </PopoverContent>
+                </Popover>
+              </div>
+
+              <Button type="submit" className="w-full" disabled={!!amountError}>
+                <PlusCircle className="mr-2 h-4 w-4" />
+                追加
+              </Button>
+            </form>
           </CardContent>
-          <CardFooter>
-            <Button onClick={handleAddTransaction} className="w-full">
-              <Plus className="mr-2 h-4 w-4" />
-              追加
-            </Button>
-          </CardFooter>
         </Card>
       </div>
 
-      {/* 分析グラフ */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>月次トレンド</CardTitle>
-            <CardDescription>過去6ヶ月の収支推移</CardDescription>
-          </CardHeader>
-          <CardContent className="h-80">
-            <MonthlyTrend transactions={transactions} />
-          </CardContent>
-        </Card>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
             <CardTitle>支出カテゴリー分析</CardTitle>
-            <CardDescription>カテゴリー別の支出割合</CardDescription>
           </CardHeader>
-          <CardContent className="h-80">
-            <ExpensePieChart transactions={transactions} />
+          <CardContent className="h-[300px]">
+            <ExpensePieChart transactions={filteredTransactions} />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>月次推移</CardTitle>
+          </CardHeader>
+          <CardContent className="h-[300px]">
+            <MonthlyTrend transactions={transactions} />
           </CardContent>
         </Card>
       </div>
-
-      {/* 最近の取引 */}
-      <Card>
-        <CardHeader>
-          <CardTitle>最近の取引</CardTitle>
-          <CardDescription>直近5件の取引履歴</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {recentTransactions.length > 0 ? (
-              recentTransactions.map((transaction) => (
-                <div key={transaction.id} className="flex items-center justify-between border-b pb-4">
-                  <div className="flex items-center">
-                    <div
-                      className={cn(
-                        "w-10 h-10 rounded-full flex items-center justify-center mr-3",
-                        transaction.type === "income" ? "bg-green-100 text-green-600" : "bg-red-100 text-red-600",
-                      )}
-                    >
-                      {transaction.type === "income" ? (
-                        <ArrowUpRight className="h-5 w-5" />
-                      ) : (
-                        <ArrowDownRight className="h-5 w-5" />
-                      )}
-                    </div>
-                    <div>
-                      <p className="font-medium">{getCategoryLabel(transaction.category, transaction.type)}</p>
-                      <p className="text-sm text-muted-foreground">{transaction.description || "詳細なし"}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {format(new Date(transaction.date), "yyyy年MM月dd日", { locale: ja })}
-                      </p>
-                    </div>
-                  </div>
-                  <p className={cn("font-bold", transaction.type === "income" ? "text-green-600" : "text-red-600")}>
-                    {transaction.type === "income" ? "+" : "-"}
-                    {transaction.amount.toLocaleString()} 円
-                  </p>
-                </div>
-              ))
-            ) : (
-              <p className="text-center text-muted-foreground">取引がありません</p>
-            )}
-          </div>
-        </CardContent>
-        <CardFooter>
-          <Button variant="outline" className="w-full">
-            すべての取引を表示
-          </Button>
-        </CardFooter>
-      </Card>
     </div>
   )
 }
