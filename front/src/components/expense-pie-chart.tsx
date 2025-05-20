@@ -96,7 +96,7 @@ export default function ExpensePieChart({ transactions }: ExpensePieChartProps) 
       // Draw label line and text if slice is big enough
       if (sliceAngle > 0.2) {
         const midAngle = startAngle + sliceAngle / 2
-        const labelRadius = radius * 1.3 // ラベルの位置を円グラフからさらに離す
+        const labelRadius = radius * 1.2
         const labelX = centerX + Math.cos(midAngle) * labelRadius
         const labelY = centerY + Math.sin(midAngle) * labelRadius
 
@@ -113,7 +113,7 @@ export default function ExpensePieChart({ transactions }: ExpensePieChartProps) 
         ctx.textBaseline = "middle"
         ctx.fillText(
           `${categoryInfo.label} (${Math.round((categoryTotals[category] / totalExpense) * 100)}%)`,
-          labelX + (labelX > centerX ? 10 : -10), // テキストの位置も調整
+          labelX + (labelX > centerX ? 5 : -5),
           labelY,
         )
       }

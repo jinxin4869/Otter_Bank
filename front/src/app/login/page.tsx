@@ -133,11 +133,7 @@ export default function LoginPage() {
         </CardContent>
         <CardFooter className="flex justify-center">
           <p className="text-sm text-center">
-            新規登録は
-            <Link href="/register" className="text-primary hover:underline">
-              こちら
-            </Link>
-            から。
+            <Link href="/register" className="text-blue-500 hover:underline font-medium">新規登録はこちらから</Link>
           </p>
         </CardFooter>
       </Card>

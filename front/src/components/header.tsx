@@ -33,34 +33,26 @@ export default function Header() {
   const isMobile = useMobile()
   const router = useRouter()
 
-  // チュートリアルの表示状態を確認
+  // Check if tutorial has been seen
   useEffect(() => {
     const tutorialSeen = localStorage.getItem("tutorialSeen")
     setHasTutorialSeen(tutorialSeen === "true")
   }, [])
 
-  // モバイルメニューの開閉
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen)
   }
 
-  // ログアウト処理 - ローカルストレージとセッションストレージの両方をクリア
   const handleLogout = () => {
     const confirmed = window.confirm("ログアウトしますか?")
     if (confirmed) {
-      // ログイン状態をクリア
-      localStorage.removeItem("isLoggedIn")
-      localStorage.removeItem("currentUserEmail")
-
-      // セッションストレージもクリア - これによりログアウト後のチュートリアルページでの状態も正しく処理される
-      sessionStorage.removeItem("wasLoggedIn")
-
-      // ホームページにリダイレクト
+      // In a real app, this would call a logout API
+      // Immediately navigate to home page
       router.push("/")
     }
   }
 
-  // ログイン状態の確認 - パスに基づいて判定
+  // Check if user is logged in (this would be replaced with actual auth check)
   const isLoggedIn = pathname.includes("/dashboard") || pathname.includes("/collection") || pathname.includes("/board")
 
   return (
@@ -72,7 +64,7 @@ export default function Header() {
               <div className="relative w-10 h-10 mr-2">
                 <Image
                   src="/logo.png"
-                  alt="Otter icon"
+                  alt="Otter Bank"
                   fill
                   className="object-contain"
                 />
@@ -81,7 +73,7 @@ export default function Header() {
             </Link>
           </div>
 
-          {/* デスクトップナビゲーション */}
+          {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-4">
             {isLoggedIn ? (
               <>
@@ -197,7 +189,7 @@ export default function Header() {
             )}
           </div>
 
-          {/* モバイルナビゲーション */}
+          {/* Mobile Navigation */}
           <div className="flex md:hidden items-center space-x-2">
             {isLoggedIn ? (
               <>
@@ -268,7 +260,7 @@ export default function Header() {
           </div>
         </div>
 
-        {/* モバイルメニュー */}
+        {/* Mobile Menu */}
         {isMenuOpen && isMobile && (
           <nav className="mt-4 pb-2">
             <ul className="flex flex-col space-y-2">
@@ -381,7 +373,7 @@ export default function Header() {
           </nav>
         )}
 
-        {/* テーマ設定ダイアログ */}
+        {/* Theme Dialog */}
         <Dialog open={isThemeDialogOpen} onOpenChange={setIsThemeDialogOpen}>
           <DialogContent>
             <DialogHeader>
