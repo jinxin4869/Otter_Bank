@@ -3,176 +3,106 @@
 import type React from "react"
 
 import { useState } from "react"
-import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { toast } from "sonner"
-import { Loader2, Mail, Lock, AlertCircle } from "lucide-react"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import Image from "next/image"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { AlertCircle, Loader2 } from "lucide-react"
 
 export default function LoginPage() {
-  const router = useRouter()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [isGoogleLoading, setIsGoogleLoading] = useState(false)
+  const router = useRouter()
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setError(null)
     setIsLoading(true)
-
-    // 入力検証
-    if (!email || !password) {
-      setError("メールアドレスとパスワードを入力してください。")
-      setIsLoading(false)
-      return
-    }
-
-    try {
-      // 実際のアプリではAPIを呼び出します
-      // このデモでは、ローカルストレージに保存するだけです
-      await new Promise((resolve) => setTimeout(resolve, 1500))
-
-      // ユーザー情報をローカルストレージに保存
-      localStorage.setItem("isLoggedIn", "true")
-      localStorage.setItem("currentUserEmail", email)
-
-      // 成功メッセージを表示
-      toast.success("ログイン成功",{
-        description: "ダッシュボードにリダイレクトします。",
-      })
-
-      // ダッシュボードにリダイレクト
-      router.push("/dashboard")
-    } catch (error) {
-      setError("ログイン中にエラーが発生しました。後でもう一度お試しください。")
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  const handleGoogleLogin = async () => {
     setError(null)
-    setIsGoogleLoading(true)
 
     try {
-      // 実際のアプリではGoogle OAuth認証を行います
-      // このデモでは、シミュレーションのみ行います
-      await new Promise((resolve) => setTimeout(resolve, 1500))
-
-      // ダミーのGoogleアカウント情報
-      const googleEmail = "user@gmail.com"
-
-      // ユーザー情報をローカルストレージに保存
-      localStorage.setItem("isLoggedIn", "true")
-      localStorage.setItem("currentUserEmail", googleEmail)
-
-      // 成功メッセージを表示
-      toast.success("Google認証完了",{
-        description: "Googleアカウントでログインしました。",
+      // In a real app, this would call an API
+      // Simulate API call with validation
+      await new Promise((resolve, reject) => {
+        setTimeout(() => {
+          // Demo validation - in a real app this would be server-side
+          if (email === "demo@example.com" && password === "password") {
+            resolve(true)
+          } else if (email === "" || password === "") {
+            reject(new Error("メールアドレスとパスワードを入力してください"))
+          } else {
+            reject(new Error("メールアドレスまたはパスワードが正しくありません"))
+          }
+        }, 1000)
       })
 
-      // ダッシュボードにリダイレクト
+      // Success case
+      toast.success("ログイン成功",{
+        description: "ダッシュボードにリダイレクトします",
+      })
+
       router.push("/dashboard")
     } catch (error) {
-      setError("Google認証中にエラーが発生しました。後でもう一度お試しください。")
+      // Error case
+      if (error instanceof Error) {
+        setError(error.message)
+      } else {
+        setError("ログインに失敗しました。もう一度お試しください。")
+      }
     } finally {
-      setIsGoogleLoading(false)
+      setIsLoading(false)
     }
   }
 
   return (
     <div className="flex justify-center items-center min-h-[calc(100vh-200px)]">
       <Card className="w-full max-w-md">
-        <CardHeader className="space-y-1">
+        <CardHeader>
           <CardTitle className="text-2xl text-center">ログイン</CardTitle>
-          <CardDescription className="text-center">
-            メールアドレスとパスワードを入力してログインしてください
-          </CardDescription>
+          <CardDescription className="text-center">アカウントにログインしてください</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent>
           {error && (
-            <Alert variant="destructive">
+            <Alert variant="destructive" className="mb-4">
               <AlertCircle className="h-4 w-4" />
+              <AlertTitle>エラー</AlertTitle>
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
 
-          {/* Googleでログインボタン */}
-          <div className="space-y-2">
-            <Button
-              variant="outline"
-              onClick={handleGoogleLogin}
-              disabled={isGoogleLoading || isLoading}
-              className="w-full flex items-center justify-center"
-            >
-              {isGoogleLoading ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : (
-                <Image
-                  src="/placeholder.svg?height=20&width=20&text=G"
-                  alt="Google"
-                  width={20}
-                  height={20}
-                  className="mr-2"
-                />
-              )}
-              Googleでログイン
-            </Button>
-          </div>
-
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t" />
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-background px-2 text-muted-foreground">または</span>
-            </div>
-          </div>
-
-          <form onSubmit={handleLogin} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">メールアドレス</Label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="name@example.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="pl-10"
-                  disabled={isLoading}
-                />
-              </div>
+              <Input
+                id="email"
+                type="email"
+                placeholder="example@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
             </div>
             <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="password">パスワード</Label>
-                <Link href="/forgot-password" className="text-sm text-primary hover:underline">
-                  パスワードを忘れた場合
+              <Label htmlFor="password">パスワード</Label>
+              <Input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+              <div className="text-sm text-right">
+                <Link href="#" className="text-primary hover:underline">
+                  パスワードをお忘れですか？
                 </Link>
               </div>
-              <div className="relative">
-                <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="パスワードを入力"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="pl-10"
-                  disabled={isLoading}
-                />
-              </div>
             </div>
-            <Button type="submit" className="w-full" disabled={isLoading || isGoogleLoading}>
+            <Button type="submit" className="w-full" disabled={isLoading}>
               {isLoading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -183,18 +113,34 @@ export default function LoginPage() {
               )}
             </Button>
           </form>
+
+          <div className="relative my-6">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-background px-2 text-muted-foreground">または</span>
+            </div>
+          </div>
+
+          <Button variant="outline" className="w-full" disabled={isLoading}>
+            デモアカウントでログイン
+          </Button>
+
+          <div className="mt-4 text-center text-sm text-muted-foreground">
+            <p>デモ用: メールアドレス「demo@example.com」、パスワード「password」でログインできます</p>
+          </div>
         </CardContent>
         <CardFooter className="flex justify-center">
-          <div className="text-sm text-center">
-            アカウントをお持ちでない場合は{" "}
-            <Link href="/register" className="underline underline-offset-4 hover:text-primary">
-              新規登録
+          <p className="text-sm text-center">
+            新規登録は
+            <Link href="/register" className="text-primary hover:underline">
+              こちら
             </Link>
-            してください。
-          </div>
+            から。
+          </p>
         </CardFooter>
       </Card>
     </div>
   )
 }
-
