@@ -388,7 +388,7 @@ export default function Home() {
               }
             ].map((phase, i) => (
               <div
-                key={i}
+                key={phase.title}
                 className={`relative group rounded-xl p-6 border shadow-sm hover:shadow-md transition-all duration-300 ${phase.color}`}
               >
                 <div className="absolute right-4 top-4 opacity-10 text-6xl group-hover:opacity-20 transition-opacity duration-300">
