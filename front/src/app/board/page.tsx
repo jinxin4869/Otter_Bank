@@ -404,7 +404,7 @@ export default function BoardPage() {
         <div className="relative flex-1">
           <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="投稿を検索..."
+            placeholder="「気になるトピックを検索してください、検索: 節約、投資、家計管理」"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-8"

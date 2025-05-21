@@ -59,7 +59,7 @@ export default function RegisterPage() {
       localStorage.setItem("tutorialSeen", "false")
 
       // 成功メッセージを表示
-      toast.success( "登録完了", {
+      toast.success("登録完了", {
         description: "アカウントが正常に作成されました。",
       })
 
@@ -90,7 +90,7 @@ export default function RegisterPage() {
       localStorage.setItem("tutorialSeen", "false")
 
       // 成功メッセージを表示
-      toast.success("Google認証完了",{
+      toast.success("Google認証完了", {
         description: "Googleアカウントでログインしました。",
       })
 
@@ -117,38 +117,6 @@ export default function RegisterPage() {
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
-
-          {/* Googleで登録ボタン */}
-          <div className="space-y-2">
-            <Button
-              variant="outline"
-              onClick={handleGoogleRegister}
-              disabled={isGoogleLoading || isLoading}
-              className="w-full flex items-center justify-center"
-            >
-              {isGoogleLoading ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : (
-                <Image
-                  src="/placeholder.svg?height=20&width=20&text=G"
-                  alt="Google"
-                  width={20}
-                  height={20}
-                  className="mr-2"
-                />
-              )}
-              Googleで登録
-            </Button>
-          </div>
-
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t" />
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-background px-2 text-muted-foreground">または</span>
-            </div>
-          </div>
 
           <form onSubmit={handleRegister} className="space-y-4">
             <div className="space-y-2">
@@ -210,7 +178,11 @@ export default function RegisterPage() {
                 />
               </div>
             </div>
-            <Button type="submit" className="w-full" disabled={isLoading || isGoogleLoading}>
+            <Button
+              type="submit"
+              className="w-full bg-blue-400 hover:bg-blue-600 text-white"
+              disabled={isLoading || isGoogleLoading}>
+
               {isLoading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -222,21 +194,54 @@ export default function RegisterPage() {
             </Button>
           </form>
         </CardContent>
+
+        <div className="relative">
+          <div className="absolute inset-0 flex items-center">
+            <span className="w-full border-t" />
+          </div>
+          <div className="relative flex justify-center text-xs uppercase">
+            <span className="bg-background px-2 text-muted-foreground">または</span>
+          </div>
+        </div>
+
+        {/* Googleで登録ボタン */}
+        <div className="space-y-2">
+          <Button
+            variant="outline"
+            onClick={handleGoogleRegister}
+            disabled={isGoogleLoading || isLoading}
+            className="w-full flex items-center justify-center"
+          >
+            {isGoogleLoading ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <Image
+                src="/placeholder.svg?height=20&width=20&text=G"
+                alt="Google"
+                width={20}
+                height={20}
+                className="mr-2"
+              />
+            )}
+            Googleで登録
+          </Button>
+        </div>
+
         <CardFooter className="flex flex-col space-y-2">
           <div className="text-sm text-center text-muted-foreground">
             登録することで、
-            <Link href="/terms" className="underline underline-offset-4 hover:text-primary">
+            <Link href="/terms" className="text-blue-500 hover:text-blue-700 underline underline-offset-4">
               利用規約
             </Link>
             と
-            <Link href="/privacy" className="underline underline-offset-4 hover:text-primary">
+            <Link href="/privacy" className="text-blue-500 hover:text-blue-700 underline underline-offset-4">
               プライバシーポリシー
             </Link>
             に同意したことになります。
           </div>
           <div className="text-sm text-center">
             すでにアカウントをお持ちですか？{" "}
-            <Link href="/login" className="underline underline-offset-4 hover:text-primary">
+            <Link href="/login" className="text-red-400 hover:text-red-700 underline underline-offset-4 hover:text-primary">
               ログイン
             </Link>
           </div>

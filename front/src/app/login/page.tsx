@@ -42,7 +42,7 @@ export default function LoginPage() {
       })
 
       // Success case
-      toast.success("ログイン成功",{
+      toast.success("ログイン成功", {
         description: "ダッシュボードにリダイレクトします",
       })
 
@@ -102,7 +102,10 @@ export default function LoginPage() {
                 </Link>
               </div>
             </div>
-            <Button type="submit" className="w-full" disabled={isLoading}>
+            <Button
+              type="submit"
+              className="w-full bg-blue-400 hover:bg-blue-600 text-white"
+              disabled={isLoading}>
               {isLoading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />

@@ -63,7 +63,7 @@ export default function Header() {
             <Link href={isLoggedIn ? "/dashboard" : "/"} className="flex items-center">
               <div className="relative w-10 h-10 mr-2">
                 <Image
-                  src="/logo.png"
+                  src="/画像5.svg"
                   alt="Otter Bank"
                   fill
                   className="object-contain"
