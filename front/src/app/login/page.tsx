@@ -127,11 +127,11 @@ export default function LoginPage() {
           </div>
 
           <Button variant="outline" className="w-full" disabled={isLoading}>
-            デモアカウントでログイン
+            ゲストでログイン
           </Button>
 
           <div className="mt-4 text-center text-sm text-muted-foreground">
-            <p>デモ用: メールアドレス「demo@example.com」、パスワード「password」でログインできます</p>
+            <p>ログインせずに内容を確認してみたい方向け</p>
           </div>
         </CardContent>
         <CardFooter className="flex justify-center">
