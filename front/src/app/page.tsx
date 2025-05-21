@@ -173,9 +173,9 @@ export default function Home() {
                 description: "カワウソの環境や見た目を自分好みにアレンジ",
                 color: "from-pink-500 to-rose-500"
               }
-            ].map((feature, i) => (
+            ].map((feature) => (
               <div
-                key={i}
+                key={feature.title}
                 className="relative group bg-background border rounded-xl p-6 hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
               >
                 <div className={`absolute inset-0 bg-gradient-to-br ${feature.color} opacity-0 group-hover:opacity-10 rounded-xl transition-opacity duration-300`} />
