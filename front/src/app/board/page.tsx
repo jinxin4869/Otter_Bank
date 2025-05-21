@@ -330,7 +330,7 @@ export default function BoardPage() {
       case 'income': return 'bg-yellow-50 text-yellow-800 border-yellow-200';
       case 'experience': return 'bg-teal-50 text-teal-800 border-teal-200';
       case 'question': return 'bg-orange-50 text-orange-800 border-orange-200';
-      default: return 'bg-gray-50 text-gray-800 border-gray-200';
+      default: return 'bg-cyan-50 text-cyan-800 border-cyan-200';
     }
   };
 
@@ -465,7 +465,11 @@ export default function BoardPage() {
         <TabsList className="w-full flex flex-wrap">
           <TabsTrigger value="all">すべて</TabsTrigger>
           {BOARD_CATEGORIES.map((category) => (
-            <TabsTrigger key={category.value} value={category.value}>
+            <TabsTrigger
+              key={category.value}
+              value={category.value}
+              className={activeTab === category.value ? getCategoryColor(category.value) : ""}
+            >
               {category.label}
             </TabsTrigger>
           ))}
@@ -510,7 +514,10 @@ export default function BoardPage() {
                 <Badge
                   key={category.value}
                   variant={newPostCategories.includes(category.value) ? "default" : "outline"}
-                  className="cursor-pointer"
+                  className={`cursor-pointer ${newPostCategories.includes(category.value)
+                    ? getCategoryColor(category.value)
+                    : ""
+                    }`}
                   aria-pressed={newPostCategories.includes(category.value)}
                   onClick={() => toggleCategory(category.value)}
                 >
@@ -552,8 +559,11 @@ export default function BoardPage() {
                   <Badge
                     key={category.value}
                     variant={selectedCategories.includes(category.value) ? "default" : "outline"}
-                    className="cursor-pointer"
-                    aria-pressed={selectedCategories.includes(category.value)} // aria-pressed属性の追加
+                    className={`cursor-pointer ${selectedCategories.includes(category.value)
+                      ? getCategoryColor(category.value)
+                      : ""
+                      }`}
+                    aria-pressed={selectedCategories.includes(category.value)}
                     onClick={() => {
                       if (selectedCategories.includes(category.value)) {
                         setSelectedCategories((prev) => prev.filter((c) => c !== category.value))
