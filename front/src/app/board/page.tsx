@@ -52,7 +52,7 @@ const SAMPLE_POSTS = [
       "私は毎月給料日に自動的に5000円を別口座に振り込む設定をしています。気づかないうちに貯金ができるのでおすすめです。皆さんはどのような方法で貯金していますか？",
     author: "貯金好き",
     authorEmail: "chokin@example.com",
-    category: "savings",
+    category: ["savings"],
     createdAt: new Date(2023, 0, 15).toISOString(),
     likes: 24,
     comments: 8,
@@ -65,7 +65,7 @@ const SAMPLE_POSTS = [
       "投資を始めたいけど何から手をつければいいか分からない方へ。まずは少額から積立NISAを始めることをおすすめします。リスクを抑えながら長期的な資産形成ができます。",
     author: "投資マスター",
     authorEmail: "invest@example.com",
-    category: "investment",
+    category: ["investment"],
     createdAt: new Date(2023, 1, 3).toISOString(),
     likes: 42,
     comments: 15,
@@ -78,7 +78,7 @@ const SAMPLE_POSTS = [
       "様々な家計簿アプリを使ってきましたが、獭獭銀行が一番使いやすいと感じています。特に支出の分析機能が優れていて、無駄遣いの発見に役立っています。",
     author: "アプリ評論家",
     authorEmail: "app@example.com",
-    category: "budget",
+    category: ["budget"],
     createdAt: new Date(2023, 2, 20).toISOString(),
     likes: 18,
     comments: 6,
@@ -91,7 +91,7 @@ const SAMPLE_POSTS = [
       "学生ローンの返済に苦労していましたが、収入の20%を毎月返済に充てる計画を立てたところ、予想より早く返済できました。計画的な返済が重要です。",
     author: "元借金持ち",
     authorEmail: "debt@example.com",
-    category: "debt",
+    category: ["debt"],
     createdAt: new Date(2023, 3, 5).toISOString(),
     likes: 31,
     comments: 12,
@@ -104,7 +104,7 @@ const SAMPLE_POSTS = [
       "空き時間を活用してポイントサイトで月に5000円ほど稼いでいます。特におすすめなのはアンケート回答とショッピング還元です。コツコツ続けることが大切です。",
     author: "副収入マニア",
     authorEmail: "side@example.com",
-    category: "income",
+    category: ["income"],
     createdAt: new Date(2023, 4, 12).toISOString(),
     likes: 27,
     comments: 9,
@@ -117,7 +117,7 @@ const SAMPLE_POSTS = [
       "20代から徹底的に節約し、ボーナスのほとんどを繰り上げ返済に回したことで、30代で住宅ローンを完済できました。苦労もありましたが、今は大きな安心感があります。",
     author: "早期完済者",
     authorEmail: "house@example.com",
-    category: "experience",
+    category: ["experience"],
     createdAt: new Date(2023, 5, 28).toISOString(),
     likes: 56,
     comments: 21,
@@ -130,7 +130,7 @@ const SAMPLE_POSTS = [
       "初心者には投資信託、ある程度知識がついてきたら個別株も検討するのがいいと思います。皆さんはどのような投資をしていますか？アドバイスをいただけると嬉しいです。",
     author: "投資初心者",
     authorEmail: "beginner@example.com",
-    category: "question",
+    category: ["question"],
     createdAt: new Date(2023, 6, 9).toISOString(),
     likes: 14,
     comments: 18,
@@ -143,7 +143,7 @@ const SAMPLE_POSTS = [
       "固定費の見直し、食費の削減、無駄な契約の解約などを行い、月5万円の節約に成功しました。具体的な方法を共有します。まずは自分の支出を把握することが大切です。",
     author: "節約上手",
     authorEmail: "save@example.com",
-    category: "budget",
+    category: ["budget"],
     createdAt: new Date(2023, 7, 17).toISOString(),
     likes: 38,
     comments: 11,
@@ -157,7 +157,7 @@ type Post = {
   content: string
   author: string
   authorEmail: string
-  category: string
+  category: string[]
   createdAt: string
   likes: number
   comments: number
@@ -178,7 +178,7 @@ export default function BoardPage() {
   // 新規投稿の状態
   const [newPostTitle, setNewPostTitle] = useState("")
   const [newPostContent, setNewPostContent] = useState("")
-  const [newPostCategory, setNewPostCategory] = useState("")
+  const [newPostCategories, setNewPostCategories] = useState<string[]>([])
 
   // ログイン状態を確認
   useEffect(() => {
@@ -204,19 +204,21 @@ export default function BoardPage() {
           post.title.toLowerCase().includes(term) ||
           post.content.toLowerCase().includes(term) ||
           post.author.toLowerCase().includes(term) ||
-          BOARD_CATEGORIES.find((cat) => cat.value === post.category)
-            ?.label.toLowerCase()
-            .includes(term),
+          post.category.some((category) =>
+            BOARD_CATEGORIES.find((cat) => cat.value === category)?.label.toLowerCase().includes(term)
+          )
       )
     }
 
     // カテゴリーでフィルタリング
     if (activeTab !== "all") {
-      filtered = filtered.filter((post) => post.category === activeTab)
+      filtered = filtered.filter((post) => post.category.includes(activeTab))
     }
 
     if (selectedCategories.length > 0) {
-      filtered = filtered.filter((post) => selectedCategories.includes(post.category))
+      filtered = filtered.filter((post) =>
+        post.category.some((category) => selectedCategories.includes(category))
+      )
     }
 
     // ソート
@@ -231,9 +233,17 @@ export default function BoardPage() {
         filtered.sort((a, b) => b.comments - a.comments)
         break
     }
-
     setFilteredPosts(filtered)
   }, [posts, searchTerm, activeTab, selectedCategories, sortOption])
+
+  // カテゴリーの追加・削除
+  const toggleCategory = (category: string) => {
+    setNewPostCategories((prev) =>
+      prev.includes(category)
+        ? prev.filter((c) => c !== category) // 既に選択されている場合は削除
+        : [...prev, category] // 選択されていない場合は追加
+    )
+  }
 
   // フィルター条件が変更されたときにフィルターを適用
   useEffect(() => {
@@ -244,21 +254,21 @@ export default function BoardPage() {
   const handleAddPost = () => {
     // 入力検証
     if (!newPostTitle.trim()) {
-      toast.error("タイトルが入力されていません",{
+      toast.error("タイトルが入力されていません", {
         description: "投稿のタイトルを入力してください。",
       })
       return
     }
 
     if (!newPostContent.trim()) {
-      toast.error("内容が入力されていません",{
+      toast.error("内容が入力されていません", {
         description: "投稿の内容を入力してください。",
       })
       return
     }
 
-    if (!newPostCategory) {
-      toast.error("カテゴリーが選択されていません",{
+    if (newPostCategories.length === 0) {
+      toast.error("カテゴリーが選択されていません", {
         description: "投稿のカテゴリーを選択してください。",
       })
       return
@@ -275,7 +285,7 @@ export default function BoardPage() {
       content: newPostContent,
       author: username,
       authorEmail: userEmail,
-      category: newPostCategory,
+      category: newPostCategories, // カテゴリーをカンマ区切りで保存
       createdAt: new Date().toISOString(),
       likes: 0,
       comments: 0,
@@ -288,10 +298,10 @@ export default function BoardPage() {
     // フォームをリセット
     setNewPostTitle("")
     setNewPostContent("")
-    setNewPostCategory("")
+    setNewPostCategories([])
     setIsNewPostDialogOpen(false)
 
-    toast.success("投稿が完了しました",{
+    toast.success("投稿が完了しました", {
       description: "あなたの投稿が掲示板に追加されました。",
     })
   }
@@ -305,15 +315,24 @@ export default function BoardPage() {
     })
   }
 
-  // カテゴリーの表示名を取得
-  const getCategoryLabel = (categoryValue: string) => {
-    return BOARD_CATEGORIES.find((cat) => cat.value === categoryValue)?.label || categoryValue
-  }
-
   // ユーザーのイニシャルを取得
   const getUserInitial = (email: string) => {
     return email.charAt(0).toUpperCase()
   }
+
+  // カテゴリーに応じた色を返す関数
+  const getCategoryColor = (categoryValue: string) => {
+    switch (categoryValue) {
+      case 'savings': return 'bg-blue-50 text-blue-800 border-blue-200';
+      case 'investment': return 'bg-green-50 text-green-800 border-green-200';
+      case 'budget': return 'bg-purple-50 text-purple-800 border-purple-200';
+      case 'debt': return 'bg-red-50 text-red-800 border-red-200';
+      case 'income': return 'bg-yellow-50 text-yellow-800 border-yellow-200';
+      case 'experience': return 'bg-teal-50 text-teal-800 border-teal-200';
+      case 'question': return 'bg-orange-50 text-orange-800 border-orange-200';
+      default: return 'bg-gray-50 text-gray-800 border-gray-200';
+    }
+  };
 
   // 投稿リストのレンダリング
   const renderPostList = (posts: Post[]) => {
@@ -336,9 +355,20 @@ export default function BoardPage() {
           <Card key={post.id} className="hover:shadow-md transition-shadow">
             <CardHeader className="pb-2">
               <div className="flex justify-between items-start">
-                <Badge variant="outline" className="mb-2">
-                  {getCategoryLabel(post.category)}
-                </Badge>
+                {/* カンマ区切りではなくそれぞれ単独の表示に変更 */}
+                <div className="flex flex-wrap gap-1 mb-2">
+                  {(post.category || []).map(categoryValue => {
+                    const categoryInfo = BOARD_CATEGORIES.find(cat => cat.value === categoryValue);
+                    return (
+                      <Badge key={categoryValue}
+                        variant="outline"
+                        className={`text-xs ${getCategoryColor(categoryValue)}`}
+                      >
+                        {categoryInfo?.label || categoryValue}
+                      </Badge>
+                    );
+                  })}
+                </div>
                 <div className="text-sm text-muted-foreground">
                   {format(new Date(post.createdAt), "yyyy年MM月dd日", { locale: ja })}
                 </div>
@@ -472,20 +502,21 @@ export default function BoardPage() {
                 maxLength={100}
               />
             </div>
-            <div className="grid gap-2">
-              <Label htmlFor="category">カテゴリー</Label>
-              <Select value={newPostCategory} onValueChange={setNewPostCategory}>
-                <SelectTrigger id="category">
-                  <SelectValue placeholder="カテゴリーを選択" />
-                </SelectTrigger>
-                <SelectContent>
-                  {BOARD_CATEGORIES.map((category) => (
-                    <SelectItem key={category.value} value={category.value}>
-                      {category.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+          </div>
+          <div className="grid gap-2">
+            <Label>カテゴリー</Label>
+            <div className="flex flex-wrap gap-2">
+              {BOARD_CATEGORIES.map((category) => (
+                <Badge
+                  key={category.value}
+                  variant={newPostCategories.includes(category.value) ? "default" : "outline"}
+                  className="cursor-pointer"
+                  aria-pressed={newPostCategories.includes(category.value)}
+                  onClick={() => toggleCategory(category.value)}
+                >
+                  {category.label}
+                </Badge>
+              ))}
             </div>
             <div className="grid gap-2">
               <Label htmlFor="content">内容</Label>
@@ -522,6 +553,7 @@ export default function BoardPage() {
                     key={category.value}
                     variant={selectedCategories.includes(category.value) ? "default" : "outline"}
                     className="cursor-pointer"
+                    aria-pressed={selectedCategories.includes(category.value)} // aria-pressed属性の追加
                     onClick={() => {
                       if (selectedCategories.includes(category.value)) {
                         setSelectedCategories((prev) => prev.filter((c) => c !== category.value))
