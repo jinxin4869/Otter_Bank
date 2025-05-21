@@ -75,7 +75,7 @@ export default function Home() {
           </div>
           <div className="relative h-64 md:h-96 rounded-lg overflow-hidden ">
             <Image
-              src="/top2.png"
+              src="/画像7.svg"
               alt="Otter Bank App Preview"
               fill
               className="object-contain"
