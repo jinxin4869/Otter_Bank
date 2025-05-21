@@ -33,7 +33,7 @@ export default function Home() {
                   無料で始める <ArrowRight className="h-4 w-4" />
                 </Link>
               </Button>
-              <Button variant="outline" size="lg" className="rounded-full px-8">
+              <Button asChild variant="outline" size="lg" className="rounded-full px-8">
                 <Link href="/login">ログイン</Link>
               </Button>
               {/* 使い方ボタン - 枠を追加して視認性を向上 */}
