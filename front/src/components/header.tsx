@@ -122,7 +122,7 @@ export default function Header() {
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" className="text-white hover:text-white/80 flex items-center">
                       <Settings className="mr-1 h-4 w-4" />
-                      いろいろ
+                      設定
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
@@ -170,7 +170,7 @@ export default function Header() {
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" className="text-white hover:text-white/80 flex items-center">
                       <Info className="mr-1 h-4 w-4" />
-                      いろいろ
+                      設定
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
@@ -289,7 +289,7 @@ export default function Header() {
                   <li>
                     <Link href="/tutorial" className="flex items-center py-2" onClick={() => setIsMenuOpen(false)}>
                       <HelpCircle className="mr-2 h-4 w-4" />
-                      使い方
+                      設定
                     </Link>
                   </li>
                   <li>
