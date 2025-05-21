@@ -132,7 +132,7 @@ export default function CollectionPage() {
 
       // 継続は力なりシリーズ
       {
-        id: 9,
+        id: 50,
         title: "初日の決意",
         description: "1日連続でアプリを使用しました",
         category: "streak",
@@ -143,7 +143,7 @@ export default function CollectionPage() {
         tier: 1,
       },
       {
-        id: 10,
+        id: 51,
         title: "一週間の習慣",
         description: "7日連続でアプリを使用しました",
         category: "streak",
@@ -152,10 +152,10 @@ export default function CollectionPage() {
         imageUrl: "/placeholder.svg?height=120&width=120&text=Week+1",
         reward: "カワウソのカレンダー",
         tier: 2,
-        prerequisiteId: 9,
+        prerequisiteId: 50,
       },
       {
-        id: 11,
+        id: 52,
         title: "10日間の継続",
         description: "10日連続でアプリを使用しました",
         category: "streak",
@@ -164,10 +164,10 @@ export default function CollectionPage() {
         imageUrl: "/placeholder.svg?height=120&width=120&text=10+Days",
         reward: "継続バッジ（中級）",
         tier: 3,
-        prerequisiteId: 10,
+        prerequisiteId: 51,
       },
       {
-        id: 12,
+        id: 53,
         title: "半月の努力",
         description: "15日連続でアプリを使用しました",
         category: "streak",
@@ -176,10 +176,10 @@ export default function CollectionPage() {
         imageUrl: "/placeholder.svg?height=120&width=120&text=15+Days",
         reward: "カワウソの特別衣装",
         tier: 4,
-        prerequisiteId: 11,
+        prerequisiteId: 52,
       },
       {
-        id: 13,
+        id: 54,
         title: "継続の達人",
         description: "30日連続でアプリを使用しました",
         category: "streak",
@@ -188,12 +188,12 @@ export default function CollectionPage() {
         imageUrl: "/placeholder.svg?height=120&width=120&text=30+Days",
         reward: "継続バッジ（金）とカワウソの王冠",
         tier: 5,
-        prerequisiteId: 12,
+        prerequisiteId: 53,
       },
 
       // 節約の達人シリーズ
       {
-        id: 6,
+        id: 100,
         title: "節約の始まり",
         description: "1ヶ月の支出を前月より10%削減しました",
         category: "expense",
@@ -204,7 +204,7 @@ export default function CollectionPage() {
         tier: 1,
       },
       {
-        id: 7,
+        id: 101,
         title: "節約の実践者",
         description: "1ヶ月の支出を前月より20%削減しました",
         category: "expense",
@@ -213,10 +213,10 @@ export default function CollectionPage() {
         imageUrl: "/placeholder.svg?height=120&width=120&text=Save+20%",
         reward: "節約バッジ（銀）",
         tier: 2,
-        prerequisiteId: 6,
+        prerequisiteId: 100,
       },
       {
-        id: 8,
+        id: 102,
         title: "節約の達人",
         description: "1ヶ月の支出を前月より30%削減しました",
         category: "expense",
@@ -225,12 +225,12 @@ export default function CollectionPage() {
         imageUrl: "/placeholder.svg?height=120&width=120&text=Save+30%",
         reward: "節約バッジ（金）",
         tier: 3,
-        prerequisiteId: 7,
+        prerequisiteId: 101,
       },
 
       // 特別な実績
       {
-        id: 14,
+        id: 150,
         title: "予算マスター",
         description: "3ヶ月連続で予算内に収まりました",
         category: "special",
@@ -240,7 +240,7 @@ export default function CollectionPage() {
         reward: "予算管理バッジ",
       },
       {
-        id: 15,
+        id: 151,
         title: "投資家デビュー",
         description: "初めての投資を行いました",
         category: "special",
@@ -250,7 +250,7 @@ export default function CollectionPage() {
         reward: "投資家バッジ",
       },
       {
-        id: 16,
+        id: 152,
         title: "完璧な記録",
         description: "1ヶ月間毎日支出を記録しました",
         category: "special",
@@ -260,7 +260,7 @@ export default function CollectionPage() {
         reward: "記録キーパーバッジ",
       },
       {
-        id: 17,
+        id: 153,
         title: "目標達成者",
         description: "設定した貯金目標を達成しました",
         category: "special",
@@ -270,7 +270,7 @@ export default function CollectionPage() {
         reward: "目標達成バッジ",
       },
       {
-        id: 18,
+        id: 154,
         title: "分析の達人",
         description: "すべての分析レポートを確認しました",
         category: "special",
@@ -282,7 +282,7 @@ export default function CollectionPage() {
 
       // 隠し実績
       ...Array.from({ length: 7 }, (_, i) => ({
-        id: i + 19,
+        id: i + 200,
         title: `未知の実績 ${i + 1}`,
         description: "この実績の詳細はまだ明かされていません",
         category: ["savings", "expense", "streak", "special"][Math.floor(Math.random() * 4)] as

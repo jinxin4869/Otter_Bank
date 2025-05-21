@@ -16,6 +16,7 @@ import {
   Shield,
   FileText,
   HelpCircle,
+  LogOut,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
@@ -139,6 +140,7 @@ export default function Header() {
                   </DropdownMenuContent>
                 </DropdownMenu>
                 <Button variant="ghost" className="text-white hover:text-white/80" onClick={handleLogout}>
+                  <LogOut className="mr-1 h-4 w-4" />
                   ログアウト
                 </Button>
               </>
