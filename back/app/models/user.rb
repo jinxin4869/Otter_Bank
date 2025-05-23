@@ -64,5 +64,6 @@ class User < ApplicationRecord
   def password_required?
     # OAuth認証の場合はパスワードを必須にしない
     return false if oauth_only?
+    true
   end
 end
