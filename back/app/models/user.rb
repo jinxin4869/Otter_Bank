@@ -6,6 +6,17 @@ class User < ApplicationRecord
     validates :email, presence: true, uniqueness: true, format: { with: URI::MailTo::EMAIL_REGEXP }
     validates :password, presence: true, length: { minimum: 6 }, if: :password_required?
 
+
+
+    # ゲストユーザーを生成または取得するクラスメソッド
+  def self.guest
+    find_or_create_by!(email: 'demo@example.com') do |user|
+      user.password = SecureRandom.urlsafe_base64
+      user.name = 'ゲストユーザー'
+      # 必要に応じて他の属性も設定
+    end
+  end
+
     # OAuthアカウントのみかどうか
   def oauth_only?
     oauth_providers.any? && !password_digest.present?
@@ -47,5 +58,11 @@ class User < ApplicationRecord
     
     user
   end
-end
+
+  private
+
+  def password_required?
+    # OAuth認証の場合はパスワードを必須にしない
+    return false if oauth_only?
+  end
 end

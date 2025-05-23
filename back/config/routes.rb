@@ -18,6 +18,9 @@ Rails.application.routes.draw do
       # 実績関連
       resources :achievements, only: [:index, :show]
 
+      # ゲストログイン用ルート
+      post 'guest_login', to: 'guest_sessions#create'
+
       # Auth関連
       get 'auth/google', to: 'auth#google'
       get 'auth/google/callback', to: 'auth#google_callback'
