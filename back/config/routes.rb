@@ -1,6 +1,10 @@
 Rails.application.routes.draw do
+  get '/auth/:provider/callback', to: 'api/v1/auth#google_callback'
+
+
   namespace :api do
     namespace :v1 do
+      get 'auth/google_callback'
       # ユーザー関連
       resources :users, only: [:create, :update, :destroy]
       resources :sessions, only: [:create, :destroy]
@@ -13,6 +17,10 @@ Rails.application.routes.draw do
 
       # 実績関連
       resources :achievements, only: [:index, :show]
+
+      # Auth関連
+      get 'auth/google', to: 'auth#google'
+      get 'auth/google/callback', to: 'auth#google_callback'
 
       get 'health', to: 'health#index'
     end
