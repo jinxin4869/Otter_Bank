@@ -97,7 +97,7 @@ export default function LoginPage() {
                 required
               />
               <div className="text-sm text-right">
-                <Link href="#" className="text-primary hover:underline">
+                <Link href="/reset-password" className="text-primary hover:underline">
                   パスワードをお忘れですか？
                 </Link>
               </div>

@@ -190,63 +190,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 使用方法セクション - アプリの基本的な使い方を5ステップで紹介 */}
-      <section>
-        <h2 className="text-3xl font-bold mb-6 text-center">使用方法</h2>
-        <div className="grid md:grid-cols-5 gap-6">
-          <Card>
-            <CardHeader className="pb-2">
-              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-2">
-                <span className="text-2xl font-bold text-primary">1</span>
-              </div>
-              <CardTitle>アカウント作成</CardTitle>
-              <CardDescription>
-                アプリを起動後、アカウントを作成し、利用している銀行を選択して開始します。
-              </CardDescription>
-            </CardHeader>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2">
-              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-2">
-                <span className="text-2xl font-bold text-primary">2</span>
-              </div>
-              <CardTitle>収支を記録</CardTitle>
-              <CardDescription>日々の収入と支出を記録して、カワウソの反応を楽しみましょう。</CardDescription>
-            </CardHeader>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2">
-              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-2">
-                <span className="text-2xl font-bold text-primary">3</span>
-              </div>
-              <CardTitle>実績を獲得</CardTitle>
-              <CardDescription>
-                貯金目標を達成すると、特別なバッジや新しいカワウソの環境が解放されます。
-              </CardDescription>
-            </CardHeader>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2">
-              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-2">
-                <span className="text-2xl font-bold text-primary">4</span>
-              </div>
-              <CardTitle>テーマを設定</CardTitle>
-              <CardDescription>お好みのカラーテーマを選択して、アプリの見た目をカスタマイズできます。</CardDescription>
-            </CardHeader>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2">
-              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-2">
-                <span className="text-2xl font-bold text-primary">5</span>
-              </div>
-              <CardTitle>みんなとシェア</CardTitle>
-              <CardDescription>掲示板で貯金のコツや経験を共有し、他のユーザーと交流できます。</CardDescription>
-            </CardHeader>
-          </Card>
-        </div>
-        {/* 「詳しい使い方を見る」ボタンを削除 */}
-      </section>
-
       <section className="py-20 bg-muted/30">
         <div className="container mx-auto">
           <div className="relative rounded-2xl overflow-hidden shadow-2xl bg-gradient-to-br from-background to-muted">
@@ -289,8 +232,11 @@ export default function Home() {
                   ))}
                 </div>
 
-                <Button size="lg" className="mt-8">
-                  <Link href="/register">今すぐ始める</Link>
+                <Button asChild className="bg-blue-500 hover:bg-blue-600">
+                  <Link href="/register" className="flex items-center gap-2">
+                    <ArrowRight className="h-4 w-4" />
+                    今すぐ始める
+                  </Link>
                 </Button>
               </div>
 
@@ -505,6 +451,9 @@ export default function Home() {
           </Card>
         </div>
       </section>
+
+
+
 
     </div>
   )
