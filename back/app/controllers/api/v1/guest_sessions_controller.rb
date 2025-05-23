@@ -1,6 +1,6 @@
 class Api::V1::GuestSessionsController < ApplicationController
   # 認証をスキップ（ゲストログインなのでログイン前の処理）
-  skip_before_action :authorize, only: [:create], raise: false
+  skip_before_action :authorize_request, only: [:create], raise: false
   
   def create
     user = User.guest
