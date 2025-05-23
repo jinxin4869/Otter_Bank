@@ -1,29 +1,51 @@
 class User < ApplicationRecord
-    skip_before_action :authorize_request, only: [:login, :oauth_callback]
+    has_secure_password validations: false # OAuth認証の場合はパスワード不要
 
-  # 通常のメール/パスワード認証
-  def login
-    user = User.find_by(email: params[:email])
-    
-    if user&.authenticate(params[:password])
-      token = JsonWebToken.encode(user_id: user.id)
-      render json: { token: token, user: UserSerializer.new(user) }, status: :ok
-    else
-      render json: { error: '認証に失敗しました' }, status: :unauthorized
-    end
+    has_many :oauth_providers, dependent: :destroy
+
+    validates :email, presence: true, uniqueness: true, format: { with: URI::MailTo::EMAIL_REGEXP }
+    validates :password, presence: true, length: { minimum: 6 }, if: :password_required?
+
+    # OAuthアカウントのみかどうか
+  def oauth_only?
+    oauth_providers.any? && !password_digest.present?
   end
 
-  # OAuth認証コールバック
-  def oauth_callback
-    auth = request.env['omniauth.auth']
-    user = User.find_or_create_from_oauth(auth)
+  # OAuthからユーザーを作成または検索
+  def self.find_or_create_from_oauth(auth)
+    # 既存のOAuthプロバイダーを検索
+    oauth = OauthProvider.find_by(provider: auth.provider, uid: auth.uid)
+    return oauth.user if oauth.present?
+    
+    # メールアドレスでユーザーを検索
+    user = User.find_by(email: auth.info.email)
     
     if user
-      token = JsonWebToken.encode(user_id: user.id)
-      # フロントエンドへリダイレクト（トークンを含む）
-      redirect_to "#{ENV['FRONTEND_URL']}/auth/callback?token=#{token}"
+      # 既存ユーザーにOAuthプロバイダーを追加
+      user.oauth_providers.create(
+        provider: auth.provider,
+        uid: auth.uid,
+        access_token: auth.credentials.token,
+        refresh_token: auth.credentials.refresh_token,
+        expires_at: auth.credentials.expires_at ? Time.at(auth.credentials.expires_at) : nil
+      )
     else
-      render json: { error: 'OAuth認証に失敗しました' }, status: :unprocessable_entity
+      # 新規ユーザーを作成
+      user = User.create!(
+        email: auth.info.email,
+        name: auth.info.name,
+        password: SecureRandom.hex(10) # ランダムパスワード
+      )
+      user.oauth_providers.create(
+        provider: auth.provider,
+        uid: auth.uid,
+        access_token: auth.credentials.token,
+        refresh_token: auth.credentials.refresh_token,
+        expires_at: auth.credentials.expires_at ? Time.at(auth.credentials.expires_at) : nil
+      )
     end
+    
+    user
   end
+end
 end
