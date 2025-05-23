@@ -9,7 +9,7 @@ export default function Home() {
     <div className="space-y-12">
       {/* ヘッダーセクション - アプリの紹介と主要なアクションボタン */}
 
-      <section className="relative min-h-[80vh] flex items-center overflow-hidden bg-gradient-to-b from-blue-50/50 to-white">
+      <section className="relative min-h-[80vh] flex items-center overflow-hidden bg-[#FAFBFF]">
         {/* 柔らかい背景装飾要素 */}
         <div className="absolute inset-0 bg-gradient-to-br from-blue-100/20 via-transparent to-indigo-100/10 z-0" />
         <div className="absolute -right-20 top-20 w-96 h-96 bg-cyan-100/30 rounded-full blur-3xl" />
@@ -190,6 +190,7 @@ export default function Home() {
         </div>
       </section>
 
+      {/* 紹介セクション - Appアプリの一面を表示する */}
       <section className="py-20 bg-muted/30">
         <div className="container mx-auto">
           <div className="relative rounded-2xl overflow-hidden shadow-2xl bg-gradient-to-br from-background to-muted">
@@ -240,37 +241,129 @@ export default function Home() {
                 </Button>
               </div>
 
+              {/* Webアプリ画面表示に変更 */}
+              {/* Webアプリ画面表示に変更 - Google風ブラウザとスワイプ機能 */}
               <div className="relative h-[600px]">
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="relative w-[300px] h-[600px] rotate-3 transform transition-all duration-500 hover:rotate-0 hover:scale-105">
-                    <div className="absolute inset-0 rounded-3xl border-8 border-background shadow-2xl overflow-hidden">
-                      <Image
-                        src="/app-demo.png"
-                        alt="App Demo"
-                        fill
-                        className="object-cover"
-                      />
-                    </div>
+                  <div className="relative w-full max-w-[550px] h-[400px] transform transition-all duration-500 hover:scale-102">
+                    {/* Google Chrome風のブラウザフレーム */}
+                    <div className="absolute inset-0 rounded-t-lg shadow-2xl overflow-hidden bg-white border border-gray-200">
+                      {/* ブラウザのヘッダー部分 - Chrome風 */}
+                      <div className="h-10 bg-[#f1f3f4] border-b border-gray-200 flex items-center px-3">
+                        <div className="flex space-x-1.5 mr-3">
+                          <div className="w-3 h-3 rounded-full bg-[#ed6a5e]"></div>
+                          <div className="w-3 h-3 rounded-full bg-[#f4bf4f]"></div>
+                          <div className="w-3 h-3 rounded-full bg-[#61c554]"></div>
+                        </div>
+                        <div className="flex items-center space-x-2 text-gray-500">
+                          <div className="w-5 h-5 flex items-center justify-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                          </div>
+                          <div className="w-5 h-5 flex items-center justify-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                          </div>
+                          <div className="w-5 h-5 flex items-center justify-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="1"></circle><circle cx="12" cy="5" r="1"></circle><circle cx="12" cy="19" r="1"></circle></svg>
+                          </div>
+                        </div>
+                        <div className="flex-1 mx-2">
+                          <div className="bg-white border border-gray-200 rounded-full px-4 py-1 text-xs text-gray-600 flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 mr-2 text-gray-400" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" /></svg>
+                            <span>otterbank.app/dashboard</span>
+                          </div>
+                        </div>
+                        <div className="flex space-x-2 text-gray-500">
+                          <div className="w-5 h-5 flex items-center justify-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+                          </div>
+                          <div className="w-5 h-5 flex items-center justify-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3a9 9 0 0 0 0 18 9 9 0 0 0 0-18z"></path></svg>
+                          </div>
+                          <div className="w-7 h-7 rounded-full bg-blue-500 text-white flex items-center justify-center text-xs font-medium">
+                            OB
+                          </div>
+                        </div>
+                      </div>
 
-                    {/* この部分にアニメーションするカワウソを配置 */}
-                    <div className="absolute -bottom-10 -right-10 w-32 h-32">
-                      <Image
-                        src="/画像5.svg"
-                        alt="Happy Otter"
-                        fill
-                        className="object-contain animate-bounce"
-                      />
+                      {/* タブバー - Chrome風 */}
+                      <div className="h-9 bg-[#f1f3f4] flex items-center px-3 text-xs text-gray-700 border-b border-gray-200">
+                        <div className="flex items-center bg-white rounded-t-lg px-3 py-1.5 border-t border-l border-r border-gray-200">
+                          <span className="mr-2">OtterBank - ホーム</span>
+                          <span className="text-gray-400">×</span>
+                        </div>
+                        <div className="flex items-center px-3 py-1.5 text-gray-500">
+                          <span className="mr-2">+</span>
+                        </div>
+                      </div>
+
+                      {/* スワイプ可能なコンテンツエリア - カルーセル */}
+                      <div className="relative h-[calc(100%-19px-10px)] flex overflow-hidden">
+                        {/* インジケーター（ドット）*/}
+                        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-20 flex space-x-2">
+                          <div className="w-2 h-2 rounded-full bg-primary"></div>
+                          <div className="w-2 h-2 rounded-full bg-gray-300"></div>
+                          <div className="w-2 h-2 rounded-full bg-gray-300"></div>
+                        </div>
+
+                        {/* 左右のナビゲーションボタン */}
+                        <button className="absolute left-2 top-1/2 transform -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-white/80 shadow-md flex items-center justify-center">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                        </button>
+                        <button className="absolute right-2 top-1/2 transform -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-white/80 shadow-md flex items-center justify-center">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                        </button>
+
+                        {/* スライド1: ダッシュボード */}
+                        <div className="flex-shrink-0 w-full h-full relative">
+                          <Image
+                            src="/app-top.png"
+                            alt="Otter Bank Dashboard"
+                            fill
+                            className="object-cover"
+                          />
+                          <div className="absolute bottom-12 right-4 bg-white/90 p-3 rounded-lg shadow-md border border-gray-100">
+                            <div className="flex items-center gap-2">
+                              <div className="w-8 h-8 bg-primary/20 rounded-full flex items-center justify-center">
+                                <PiggyBank className="h-5 w-5 text-primary" />
+                              </div>
+                              <div className="text-sm">
+                                <div className="font-medium">今月の貯金額</div>
+                                <div className="text-primary font-bold">¥12,500</div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* スライド2と3は隠れている状態 */}
+                      </div>
                     </div>
                   </div>
+
+                  {/* カワウソアイコンは独立して表示 */}
+                  <div className="absolute -bottom-20 right-20 w-40 h-40 z-10">
+                    <Image
+                      src="/画像5.svg"
+                      alt="Happy Otter"
+                      fill
+                      className="object-contain animate-bounce"
+                    />
+                  </div>
+
+                  {/* 吹き出し */}
+                  <div className="absolute bottom-48 right-28 bg-white p-3 rounded-xl shadow-lg z-10 max-w-[200px] transform rotate-3">
+                    <p className="text-sm">楽しく貯金できるね！今月も頑張ろう！</p>
+                    <div className="absolute -bottom-2 right-6 w-4 h-4 bg-white transform rotate-45"></div>
+                  </div>
+
                 </div>
               </div>
             </div>
           </div>
-        </div>
-      </section>
+        </div >
+      </section >
 
       {/* ロードマップセクション - シンプルカードデザイン */}
-      <section className="py-16 bg-gradient-to-br from-blue-50/30 to-indigo-50/30 rounded-3xl">
+      < section className="py-16 bg-gradient-to-br from-blue-50/30 to-indigo-50/30 rounded-3xl" >
         <div className="container mx-auto">
           <div className="text-center mb-8">
             <span className="bg-blue-100/50 text-blue-700 px-4 py-2 rounded-full text-sm font-medium">
@@ -385,10 +478,10 @@ export default function Home() {
             </div>
           </div>
         </div>
-      </section>
+      </section >
 
       {/* お願いセクション - ユーザーへのメッセージとフィードバック依頼 */}
-      <section className="py-12">
+      < section className="py-12" >
         <div className="container mx-auto">
           <h2 className="text-3xl font-bold mb-6">皆さんへのお願い</h2>
           <Card className="overflow-hidden">
@@ -450,12 +543,12 @@ export default function Home() {
             </CardContent>
           </Card>
         </div>
-      </section>
+      </section >
 
 
 
 
-    </div>
+    </div >
   )
 }
 
