@@ -1,6 +1,13 @@
 class Api::V1::AuthController < ApplicationController
+  include ActionController::Cookies
   skip_before_action :authorize_request, only: [:google_callback]
   
+  
+  # Googleログインへのリダイレクト
+  def google
+    redirect_to '/auth/google_oauth2'
+  end
+
   # Google OAuth2コールバック処理
   def google_callback
     auth = request.env['omniauth.auth']
