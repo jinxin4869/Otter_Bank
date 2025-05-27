@@ -10,7 +10,5 @@ class JsonWebToken
     raise JWT::DecodeError, "Token is nil" if token.nil? # 追加
     decoded = JWT.decode(token, SECRET_KEY)[0]
     HashWithIndifferentAccess.new decoded
-  # rescue JWT::DecodeError, JWT::ExpiredSignature => e # コントローラー側でrescueする
-  #   nil
   end
 end
