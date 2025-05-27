@@ -8,20 +8,15 @@ import { Input } from "@/components/ui/input"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { format } from "date-fns"
 import { ja } from "date-fns/locale"
-import { MessageSquare, Heart, Search, Filter, Plus, ThumbsUp, MessageCircle, Clock } from "lucide-react"
+import { MessageSquare, Heart, Search, Filter, Plus, ThumbsUp, MessageCircle, Clock, MoreVertical, Edit, Trash2, Bookmark, BookmarkCheck, Send, Eye, Star } from "lucide-react"
 import { toast } from "sonner"
 
 // 掲示板カテゴリー
@@ -151,6 +146,38 @@ const SAMPLE_POSTS = [
   },
 ]
 
+// サンプルコメントデータ
+const SAMPLE_COMMENTS: Comment[] = [
+  {
+    id: "c1",
+    postId: "1",
+    content: "とても参考になりました！私も自動振込を設定してみます。",
+    author: "節約初心者",
+    authorEmail: "beginner@example.com",
+    createdAt: new Date(2023, 0, 16).toISOString(),
+    likes: 3,
+  },
+  {
+    id: "c2",
+    postId: "1",
+    content: "自動振込以外にも、500円玉貯金もおすすめです。",
+    author: "コイン貯金マスター",
+    authorEmail: "coin@example.com",
+    createdAt: new Date(2023, 0, 17).toISOString(),
+    likes: 1,
+  },
+]
+
+type Comment = {
+  id: string
+  postId: string
+  content: string
+  author: string
+  authorEmail: string
+  createdAt: string
+  likes: number
+}
+
 type Post = {
   id: string
   title: string
@@ -162,34 +189,98 @@ type Post = {
   likes: number
   comments: number
   views: number
+  isBookmarked?: boolean // ブックマーク状態
 }
 
 export default function BoardPage() {
   const router = useRouter()
   const [posts, setPosts] = useState<Post[]>([])
+  const [likedPostIds, setLikedPostIds] = useState<string[]>([]); // いいねした投稿IDを管理
+  const [comments, setComments] = useState<Comment[]>([])
   const [filteredPosts, setFilteredPosts] = useState<Post[]>([])
+  const [bookmarkedPosts, setBookmarkedPosts] = useState<string[]>([])
+
+  // ダイアログの状態
   const [isNewPostDialogOpen, setIsNewPostDialogOpen] = useState(false)
+  const [isEditPostDialogOpen, setIsEditPostDialogOpen] = useState(false)
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [isFilterDialogOpen, setIsFilterDialogOpen] = useState(false)
+  const [isPostDetailDialogOpen, setIsPostDetailDialogOpen] = useState(false)
+
+  // 表示状態
   const [activeTab, setActiveTab] = useState("all")
   const [searchTerm, setSearchTerm] = useState("")
   const [sortOption, setSortOption] = useState("latest")
   const [selectedCategories, setSelectedCategories] = useState<string[]>([])
+  const [currentUserEmail, setCurrentUserEmail] = useState("")
 
   // 新規投稿の状態
   const [newPostTitle, setNewPostTitle] = useState("")
   const [newPostContent, setNewPostContent] = useState("")
   const [newPostCategories, setNewPostCategories] = useState<string[]>([])
+  const [newCommentContent, setNewCommentContent] = useState("")
+
+  // 編集・削除対象の投稿
+  const [editingPost, setEditingPost] = useState<Post | null>(null)
+  const [deletingPostId, setDeletingPostId] = useState<string | null>(null)
+  const [selectedPost, setSelectedPost] = useState<Post | null>(null)
 
   // ログイン状態を確認
   useEffect(() => {
     const isLoggedIn = localStorage.getItem("isLoggedIn") === "true"
+    const userEmail = localStorage.getItem("currentUserEmail") || ""
+
     if (!isLoggedIn) {
       router.push("/login")
       return
     }
 
     // サンプルデータを読み込み
+    setCurrentUserEmail(userEmail)
     setPosts(SAMPLE_POSTS)
+    setComments(SAMPLE_COMMENTS)
+
+    // ブックマークデータを読み込み
+    const savedBookmarks = localStorage.getItem("bookmarkedPosts")
+    if (savedBookmarks) {
+      setBookmarkedPosts(JSON.parse(savedBookmarks))
+    }
+
+    // ローカルストレージからいいね状態を読み込む
+    const storedLikedPosts = localStorage.getItem("likedPostIds");
+    if (storedLikedPosts) {
+      setLikedPostIds(JSON.parse(storedLikedPosts));
+    }
+
+    // いいねの処理を更新
+    const handleLike = (postId: string) => {
+      let updatedLikedPostIds: string[];
+      const isCurrentlyLiked = likedPostIds.includes(postId);
+
+      if (isCurrentlyLiked) {
+        // いいね解除
+        updatedLikedPostIds = likedPostIds.filter(id => id !== postId);
+        setPosts((prev) =>
+          prev.map((post) =>
+            post.id === postId ? { ...post, likes: Math.max(0, post.likes - 1) } : post
+          )
+        );
+        toast.success("いいねを取り消しました");
+      } else {
+        // いいねする
+        updatedLikedPostIds = [...likedPostIds, postId];
+        setPosts((prev) =>
+          prev.map((post) =>
+            post.id === postId ? { ...post, likes: post.likes + 1 } : post
+          )
+        );
+        toast.success("いいねしました");
+      }
+      setLikedPostIds(updatedLikedPostIds);
+      localStorage.setItem("likedPostIds", JSON.stringify(updatedLikedPostIds));
+    }
+
+
   }, [router])
 
   // 投稿のフィルタリングとソート - useCallbackでメモ化
@@ -250,6 +341,22 @@ export default function BoardPage() {
     filterAndSortPosts()
   }, [filterAndSortPosts])
 
+  // ブックマークの切り替え
+  const toggleBookmark = (postId: string) => {
+    const newBookmarks = bookmarkedPosts.includes(postId)
+      ? bookmarkedPosts.filter(id => id !== postId)
+      : [...bookmarkedPosts, postId]
+
+    setBookmarkedPosts(newBookmarks)
+    localStorage.setItem("bookmarkedPosts", JSON.stringify(newBookmarks))
+
+    toast.success(
+      bookmarkedPosts.includes(postId)
+        ? "ブックマークを削除しました"
+        : "ブックマークに追加しました"
+    )
+  }
+
   // 新規投稿の追加
   const handleAddPost = () => {
     // 入力検証
@@ -306,6 +413,142 @@ export default function BoardPage() {
     })
   }
 
+  // 投稿の編集を開始
+  const handleEditPost = (post: Post) => {
+    setEditingPost(post)
+    setNewPostTitle(post.title)
+    setNewPostContent(post.content)
+    setNewPostCategories([...post.category])
+    setIsEditPostDialogOpen(true)
+  }
+
+  // 投稿の編集を保存
+  const handleSaveEdit = () => {
+    if (!editingPost) return
+
+    // 入力検証
+    if (!newPostTitle.trim()) {
+      toast.error("タイトルが入力されていません")
+      return
+    }
+
+    if (!newPostContent.trim()) {
+      toast.error("内容が入力されていません")
+      return
+    }
+
+    if (newPostCategories.length === 0) {
+      toast.error("カテゴリーが選択されていません")
+      return
+    }
+
+    // 投稿を更新
+    setPosts((prev) =>
+      prev.map((post) =>
+        post.id === editingPost.id
+          ? {
+            ...post,
+            title: newPostTitle,
+            content: newPostContent,
+            category: newPostCategories,
+          }
+          : post
+      )
+    )
+
+    // フォームをリセット
+    setNewPostTitle("")
+    setNewPostContent("")
+    setNewPostCategories([])
+    setEditingPost(null)
+    setIsEditPostDialogOpen(false)
+
+    toast.success("投稿を更新しました")
+  }
+
+  // 投稿詳細を表示
+  const handleViewPost = (post: Post) => {
+    setSelectedPost(post)
+    setIsPostDetailDialogOpen(true)
+
+    // 閲覧数を増加
+    setPosts(prev => prev.map(p =>
+      p.id === post.id ? { ...p, views: p.views + 1 } : p
+    ))
+  }
+
+  // コメントを追加
+  const handleAddComment = () => {
+    if (!selectedPost || !newCommentContent.trim()) {
+      toast.error("コメント内容を入力してください")
+      return
+    }
+
+    const userEmail = localStorage.getItem("currentUserEmail") || "user@example.com"
+    const username = userEmail.split("@")[0]
+
+    const newComment: Comment = {
+      id: Date.now().toString(),
+      postId: selectedPost.id,
+      content: newCommentContent,
+      author: username,
+      authorEmail: userEmail,
+      createdAt: new Date().toISOString(),
+      likes: 0,
+    }
+
+    setComments(prev => [...prev, newComment])
+
+    // 投稿のコメント数を更新
+    setPosts(prev => prev.map(post =>
+      post.id === selectedPost.id
+        ? { ...post, comments: post.comments + 1 }
+        : post
+    ))
+
+    setNewCommentContent("")
+    toast.success("コメントを投稿しました")
+  }
+
+  // コメントにいいね
+  const handleLikeComment = (commentId: string) => {
+    setComments(prev => prev.map(comment =>
+      comment.id === commentId
+        ? { ...comment, likes: comment.likes + 1 }
+        : comment
+    ))
+    toast.success("コメントにいいねしました")
+  }
+
+  // 選択された投稿のコメントを取得
+  const getPostComments = (postId: string) => {
+    return comments
+      .filter(comment => comment.postId === postId)
+      .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
+  }
+
+  // 投稿の削除
+  const handleDeletePost = () => {
+    if (!deletingPostId) return
+
+    setPosts((prev) => prev.filter((post) => post.id !== deletingPostId))
+    setDeletingPostId(null)
+    setIsDeleteDialogOpen(false)
+
+    toast.success("投稿を削除しました")
+  }
+
+  // 削除ダイアログを開く
+  const openDeleteDialog = (postId: string) => {
+    setDeletingPostId(postId)
+    setIsDeleteDialogOpen(true)
+  }
+
+  // 現在のユーザーが投稿者かチェック
+  const isPostOwner = (post: Post) => {
+    return post.authorEmail === currentUserEmail
+  }
+
   // いいねの処理
   const handleLike = (postId: string) => {
     setPosts((prev) => prev.map((post) => (post.id === postId ? { ...post, likes: post.likes + 1 } : post)))
@@ -335,8 +578,8 @@ export default function BoardPage() {
   };
 
   // 投稿リストのレンダリング
-  const renderPostList = (posts: Post[]) => {
-    if (posts.length === 0) {
+  const renderPostList = (postsToRender: Post[]) => {
+    if (postsToRender.length === 0) {
       return (
         <div className="text-center py-10">
           <MessageSquare className="mx-auto h-12 w-12 text-muted-foreground opacity-50" />
@@ -351,79 +594,125 @@ export default function BoardPage() {
 
     return (
       <div className="space-y-4">
-        {posts.map((post) => (
-          <Card key={post.id} className="hover:shadow-md transition-shadow">
-            <CardHeader className="pb-2">
-              <div className="flex justify-between items-start">
-                {/* カンマ区切りではなくそれぞれ単独の表示に変更 */}
-                <div className="flex flex-wrap gap-1 mb-2">
-                  {(post.category || []).map(categoryValue => {
-                    const categoryInfo = BOARD_CATEGORIES.find(cat => cat.value === categoryValue);
-                    return (
-                      <Badge key={categoryValue}
-                        variant="outline"
-                        className={`text-xs ${getCategoryColor(categoryValue)}`}
-                      >
-                        {categoryInfo?.label || categoryValue}
-                      </Badge>
-                    );
-                  })}
+        {postsToRender.map((post) => {
+          const isLiked = likedPostIds.includes(post.id);
+          return (
+            <Card key={post.id} className="hover:shadow-md transition-shadow">
+              <CardHeader className="pb-2">
+                <div className="flex justify-between items-start">
+                  <div className="flex flex-wrap gap-1 mb-2">
+                    {(post.category || []).map(categoryValue => {
+                      const categoryInfo = BOARD_CATEGORIES.find(cat => cat.value === categoryValue);
+                      return (
+                        <Badge key={categoryValue}
+                          variant="outline"
+                          className={`text-xs ${getCategoryColor(categoryValue)}`}
+                        >
+                          {categoryInfo?.label || categoryValue}
+                        </Badge>
+                      );
+                    })}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="text-sm text-muted-foreground">
+                      {format(new Date(post.createdAt), "yyyy年MM月dd日", { locale: ja })}
+                    </div>
+                    {isPostOwner(post) && (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="sm">
+                            <MoreVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => handleEditPost(post)}>
+                            <Edit className="mr-2 h-4 w-4" />
+                            編集
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
+                            onClick={() => openDeleteDialog(post.id)}
+                            className="text-red-600"
+                          >
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            削除
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    )}
+                  </div>
                 </div>
-                <div className="text-sm text-muted-foreground">
-                  {format(new Date(post.createdAt), "yyyy年MM月dd日", { locale: ja })}
+                <CardTitle className="text-xl cursor-pointer hover:text-blue-600"
+                  onClick={() => handleViewPost(post)}>
+                  {post.title}
+                </CardTitle>
+                <div className="flex items-center mt-2">
+                  <Avatar className="h-6 w-6 mr-2">
+                    <AvatarFallback className="text-xs">{getUserInitial(post.authorEmail)}</AvatarFallback>
+                  </Avatar>
+                  <CardDescription>{post.author}</CardDescription>
+                  {isPostOwner(post) && (
+                    <Badge variant="secondary" className="ml-2 text-xs">
+                      自分の投稿
+                    </Badge>
+                  )}
                 </div>
-              </div>
-              <CardTitle className="text-xl">{post.title}</CardTitle>
-              <div className="flex items-center mt-2">
-                <Avatar className="h-6 w-6 mr-2">
-                  <AvatarFallback className="text-xs">{getUserInitial(post.authorEmail)}</AvatarFallback>
-                </Avatar>
-                <CardDescription>{post.author}</CardDescription>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <p className="line-clamp-3">{post.content}</p>
-            </CardContent>
-            <CardFooter className="flex justify-between pt-2">
-              <div className="flex space-x-4 text-sm text-muted-foreground">
-                <div className="flex items-center">
-                  <ThumbsUp className="mr-1 h-4 w-4" />
-                  <span>{post.likes}</span>
+              </CardHeader>
+              <CardContent>
+                <p className="line-clamp-3 cursor-pointer hover:text-gray-700"
+                  onClick={() => handleViewPost(post)}>
+                  {post.content}
+                </p>
+              </CardContent>
+              <CardFooter className="flex justify-between pt-2">
+                <div className="flex space-x-4 text-sm text-muted-foreground">
+                  <div className="flex items-center">
+                    <ThumbsUp className="mr-1 h-4 w-4" />
+                    <span>{post.likes}</span>
+                  </div>
+                  <div className="flex items-center">
+                    <MessageCircle className="mr-1 h-4 w-4" />
+                    <span>{post.comments}</span>
+                  </div>
+                  <div className="flex items-center">
+                    <Eye className="mr-1 h-4 w-4" />
+                    <span>{post.views}</span>
+                  </div>
                 </div>
-                <div className="flex items-center">
-                  <MessageCircle className="mr-1 h-4 w-4" />
-                  <span>{post.comments}</span>
+                <div className="flex space-x-2">
+                  <Button variant="ghost" size="sm" onClick={() => handleLike(post.id)}>
+                    <Heart className="mr-1 h-4 w-4" />
+                    いいね
+                  </Button>
+                  <Button variant="ghost" size="sm" onClick={() => toggleBookmark(post.id)}>
+                    {bookmarkedPosts.includes(post.id) ? (
+                      <BookmarkCheck className="mr-1 h-4 w-4 text-blue-600" />
+                    ) : (
+                      <Bookmark className="mr-1 h-4 w-4" />
+                    )}
+                    ブックマーク
+                  </Button>
+                  <Button variant="ghost" size="sm" onClick={() => handleViewPost(post)}>
+                    <MessageSquare className="mr-1 h-4 w-4" />
+                    詳細
+                  </Button>
                 </div>
-                <div className="flex items-center">
-                  <Clock className="mr-1 h-4 w-4" />
-                  <span>{post.views} 閲覧</span>
-                </div>
-              </div>
-              <div className="flex space-x-2">
-                <Button variant="ghost" size="sm" onClick={() => handleLike(post.id)}>
-                  <Heart className="mr-1 h-4 w-4" />
-                  いいね
-                </Button>
-                <Button variant="ghost" size="sm">
-                  <MessageSquare className="mr-1 h-4 w-4" />
-                  コメント
-                </Button>
-              </div>
-            </CardFooter>
-          </Card>
-        ))}
+              </CardFooter>
+            </Card>
+          );
+        })}
       </div>
     )
   }
 
   return (
-    <div className="container max-w-4xl py-6 space-y-6">
+    <div className="container max-auto py-6 space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold">掲示板</h1>
           <p className="text-muted-foreground">お金の管理や貯金のコツ、投資の経験などを共有しましょう</p>
         </div>
-        <Button onClick={() => setIsNewPostDialogOpen(true)}>
+        <Button onClick={() => setIsNewPostDialogOpen(true)}> {/* この onClick を修正 */}
           <Plus className="mr-2 h-4 w-4" />
           新規投稿
         </Button>
@@ -544,6 +833,226 @@ export default function BoardPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* 編集ダイアログ */}
+      <Dialog open={isEditPostDialogOpen} onOpenChange={setIsEditPostDialogOpen}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>投稿を編集</DialogTitle>
+            <DialogDescription>
+              投稿の内容を編集できます。
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="edit-title">タイトル</Label>
+              <Input
+                id="edit-title"
+                value={newPostTitle}
+                onChange={(e) => setNewPostTitle(e.target.value)}
+                placeholder="投稿のタイトルを入力"
+                maxLength={100}
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label>カテゴリー</Label>
+              <div className="flex flex-wrap gap-2">
+                {BOARD_CATEGORIES.map((category) => (
+                  <Badge
+                    key={category.value}
+                    variant={newPostCategories.includes(category.value) ? "default" : "outline"}
+                    className={`cursor-pointer ${newPostCategories.includes(category.value)
+                      ? getCategoryColor(category.value)
+                      : ""
+                      }`}
+                    onClick={() => toggleCategory(category.value)}
+                  >
+                    {category.label}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="edit-content">内容</Label>
+              <Textarea
+                id="edit-content"
+                value={newPostContent}
+                onChange={(e) => setNewPostContent(e.target.value)}
+                placeholder="投稿の内容を入力"
+                rows={8}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsEditPostDialogOpen(false)}>
+              キャンセル
+            </Button>
+            <Button onClick={handleSaveEdit}>更新する</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* 投稿詳細ダイアログ */}
+      <Dialog open={isPostDetailDialogOpen} onOpenChange={setIsPostDetailDialogOpen}>
+        <DialogContent className="sm:max-w-[800px] max-h-[80vh] overflow-y-auto">
+          {selectedPost && (
+            <>
+              <DialogHeader>
+                <div className="flex flex-wrap gap-1 mb-2">
+                  {selectedPost.category.map(categoryValue => {
+                    const categoryInfo = BOARD_CATEGORIES.find(cat => cat.value === categoryValue);
+                    return (
+                      <Badge key={categoryValue}
+                        variant="outline"
+                        className={`text-xs ${getCategoryColor(categoryValue)}`}
+                      >
+                        {categoryInfo?.label || categoryValue}
+                      </Badge>
+                    );
+                  })}
+                </div>
+                <DialogTitle className="text-xl">{selectedPost.title}</DialogTitle>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center">
+                    <Avatar className="h-8 w-8 mr-2">
+                      <AvatarFallback>{getUserInitial(selectedPost.authorEmail)}</AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <p className="font-medium">{selectedPost.author}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {format(new Date(selectedPost.createdAt), "yyyy年MM月dd日 HH:mm", { locale: ja })}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-4 text-sm text-muted-foreground">
+                    <div className="flex items-center">
+                      <ThumbsUp className="mr-1 h-4 w-4" />
+                      <span>{selectedPost.likes}</span>
+                    </div>
+                    <div className="flex items-center">
+                      <MessageCircle className="mr-1 h-4 w-4" />
+                      <span>{selectedPost.comments}</span>
+                    </div>
+                    <div className="flex items-center">
+                      <Eye className="mr-1 h-4 w-4" />
+                      <span>{selectedPost.views}</span>
+                    </div>
+                  </div>
+                </div>
+              </DialogHeader>
+
+              <div className="py-4">
+                <div className="whitespace-pre-wrap text-gray-700 mb-6">
+                  {selectedPost.content}
+                </div>
+
+                <div className="flex space-x-2 mb-6">
+                  <Button variant="outline" onClick={() => handleLike(selectedPost.id)}>
+                    <Heart className="mr-1 h-4 w-4" />
+                    いいね ({selectedPost.likes})
+                  </Button>
+                  <Button variant="outline" onClick={() => toggleBookmark(selectedPost.id)}>
+                    {bookmarkedPosts.includes(selectedPost.id) ? (
+                      <BookmarkCheck className="mr-1 h-4 w-4 text-blue-600" />
+                    ) : (
+                      <Bookmark className="mr-1 h-4 w-4" />
+                    )}
+                    ブックマーク
+                  </Button>
+                </div>
+
+                {/* コメントセクション */}
+                <div className="border-t pt-4">
+                  <h3 className="font-medium mb-4">コメント ({getPostComments(selectedPost.id).length})</h3> {/* コメント数を動的に */}
+
+                  {/* 新しいコメントを追加 */}
+                  <div className="mb-4">
+                    <div className="flex space-x-2">
+                      <Avatar className="h-8 w-8">
+                        <AvatarFallback>{getUserInitial(currentUserEmail)}</AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1">
+                        <Textarea
+                          value={newCommentContent}
+                          onChange={(e) => setNewCommentContent(e.target.value)}
+                          placeholder="コメントを入力..."
+                          rows={3}
+                        />
+                        <div className="flex justify-end mt-2">
+                          <Button size="sm" onClick={handleAddComment}>
+                            <Send className="mr-1 h-4 w-4" />
+                            投稿
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* コメント一覧 */}
+                  <div className="space-y-4">
+                    {getPostComments(selectedPost.id).map((comment) => {
+                      const isOwnComment = comment.authorEmail === currentUserEmail;
+                      return (
+                        <div key={comment.id} className="flex space-x-2">
+                          <Avatar className="h-8 w-8">
+                            <AvatarFallback>{getUserInitial(comment.authorEmail)}</AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1">
+                            <div className={`rounded-lg p-3 ${isOwnComment ? "bg-muted" : "bg-gray-100 dark:bg-gray-700"}`}> {/* 背景色を条件分岐 */}
+                              <div className="flex items-center justify-between mb-1">
+                                <span className="font-medium text-sm">{comment.author} {isOwnComment && <span className="text-xs text-blue-500">(自分)</span>}</span>
+                                <span className="text-xs text-muted-foreground">
+                                  {format(new Date(comment.createdAt), "MM月dd日 HH:mm", { locale: ja })}
+                                </span>
+                              </div>
+                              <p className="text-sm text-foreground">{comment.content}</p> {/* text-gray-700 から text-foreground に */}
+                            </div>
+                            <div className="flex items-center mt-1">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleLikeComment(comment.id)} // handleLikeComment は未実装の可能性あり
+                                className="h-6 px-2 text-xs"
+                              >
+                                <ThumbsUp className="mr-1 h-3 w-3" />
+                                {comment.likes}
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                    {getPostComments(selectedPost.id).length === 0 && (
+                      <p className="text-sm text-muted-foreground">まだコメントはありません。</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* 削除確認ダイアログ */}
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>投稿を削除しますか？</AlertDialogTitle>
+            <AlertDialogDescription>
+              この操作は取り消すことができません。投稿とそのすべてのコメントが完全に削除されます。
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>キャンセル</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeletePost}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              削除する
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* フィルターダイアログ */}
       <Dialog open={isFilterDialogOpen} onOpenChange={setIsFilterDialogOpen}>
