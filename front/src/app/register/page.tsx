@@ -106,7 +106,7 @@ export default function RegisterPage() {
 
     try {
       // Google認証の処理
-      window.location.href = 'http://localhost:3000/api/v1/auth/google';
+      window.location.href = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/auth/google`;
 
     } catch (error) {
       setError("Google認証中にエラーが発生しました。後でもう一度お試しください。")
