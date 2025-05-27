@@ -1,7 +1,7 @@
 class ApplicationController < ActionController::API
-    include ExceptionHandler
+  include ExceptionHandler
   
-  before_action :authorize_request, except: :google_callback
+  before_action :authorize_request
   
   def encode_token(payload)
     JWT.encode(payload, ENV['JWT_SECRET'] || 'my_secret')
@@ -41,15 +41,27 @@ class ApplicationController < ActionController::API
   
   def authorize_request
     header = request.headers['Authorization']
-    header = header.split(' ').last if header
+    token = header.split(' ').last if header
     
     begin
-      @decoded = JsonWebToken.decode(header)
-      @current_user = User.find(@decoded[:user_id])
+      if token
+        @decoded = JsonWebToken.decode(token)
+        if @decoded
+          @current_user = User.find(@decoded[:user_id])
+        else
+          render json: { error: 'Invalid token payload' }, status: :unauthorized
+        end
+      else
+       render json: { error: 'Authorization token not provided' }, status: :unauthorized
+      end
     rescue ActiveRecord::RecordNotFound => e
-      render json: { error: e.message }, status: :unauthorized
+      render json: { error: "User not found: #{e.message}" }, status: :unauthorized
+    rescue JWT::ExpiredSignature => e
+      render json: { error: "Token has expired: #{e.message}" }, status: :unauthorized
     rescue JWT::DecodeError => e
-      render json: { error: e.message }, status: :unauthorized
+      render json: { error: "Invalid token: #{e.message}" }, status: :unauthorized
+    # `begin`に対する`end`は、`rescue`があれば省略可能だが、
+    # メソッド定義やクラス定義の`end`は必須
     end
   end
 end
