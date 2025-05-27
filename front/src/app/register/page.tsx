@@ -49,13 +49,35 @@ export default function RegisterPage() {
     }
 
     try {
-      // 実際のアプリではAPIを呼び出します
-      // このデモでは、ローカルストレージに保存するだけです
-      await new Promise((resolve) => setTimeout(resolve, 1500))
+      const apiUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/users`;
+      const response = await fetch(apiUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          user: {
+            username: username,
+            email: email,
+            password: password,
+            password_confirmation: confirmPassword,
+          }
+        }),
+      });
 
-      // ユーザー情報をローカルストレージに保存
-      localStorage.setItem("isLoggedIn", "true")
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "登録に失敗しました。");
+      }
+
+      const data = await response.json();
+
+      // ユーザー情報をローカルストレージに保存 (トークンなど)
+      localStorage.setItem("isLoggedIn", "true");
       localStorage.setItem("currentUserEmail", email)
+      if (data.token) {
+        localStorage.setItem("authToken", data.token)
+      }
       localStorage.setItem("tutorialSeen", "false")
 
       // 成功メッセージを表示
@@ -64,41 +86,30 @@ export default function RegisterPage() {
       })
 
       // ダッシュボードにリダイレクト
-      router.push("/dashboard")
+      router.push("/dashboard");
+
     } catch (error) {
-      setError("登録中にエラーが発生しました。後でもう一度お試しください。")
+      if (error instanceof Error) {
+        setError(error.message);
+      } else {
+        setError("登録中にエラーが発生しました。後でもう一度お試しください。");
+      }
+      console.error("Registration error:", error);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleGoogleRegister = async () => {
     setError(null)
     setIsGoogleLoading(true)
 
     try {
-      // 実際のアプリではGoogle OAuth認証を行います
-      // このデモでは、シミュレーションのみ行います
-      await new Promise((resolve) => setTimeout(resolve, 1500))
+      // Google認証の処理
+      window.location.href = 'http://localhost:3000/api/v1/auth/google';
 
-      // ダミーのGoogleアカウント情報
-      const googleEmail = "user@gmail.com"
-
-      // ユーザー情報をローカルストレージに保存
-      localStorage.setItem("isLoggedIn", "true")
-      localStorage.setItem("currentUserEmail", googleEmail)
-      localStorage.setItem("tutorialSeen", "false")
-
-      // 成功メッセージを表示
-      toast.success("Google認証完了", {
-        description: "Googleアカウントでログインしました。",
-      })
-
-      // ダッシュボードにリダイレクト
-      router.push("/dashboard")
     } catch (error) {
       setError("Google認証中にエラーが発生しました。後でもう一度お試しください。")
-    } finally {
       setIsGoogleLoading(false)
     }
   }
@@ -216,7 +227,7 @@ export default function RegisterPage() {
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             ) : (
               <Image
-                src="/placeholder.svg?height=20&width=20&text=G"
+                src="/Google.svg"
                 alt="Google"
                 width={20}
                 height={20}
@@ -241,7 +252,7 @@ export default function RegisterPage() {
           </div>
           <div className="text-sm text-center">
             すでにアカウントをお持ちですか？{" "}
-            <Link href="/login" className="text-red-400 hover:text-red-700 underline underline-offset-4 hover:text-primary">
+            <Link href="/login" className="text-red-400 hover:text-primary underline underline-offset-4">
               ログイン
             </Link>
           </div>

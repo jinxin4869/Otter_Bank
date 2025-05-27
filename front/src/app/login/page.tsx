@@ -26,25 +26,36 @@ export default function LoginPage() {
     setError(null)
 
     try {
-      // In a real app, this would call an API
-      // Simulate API call with validation
-      await new Promise((resolve, reject) => {
-        setTimeout(() => {
-          // Demo validation - in a real app this would be server-side
-          if (email === "demo@example.com" && password === "password") {
-            resolve(true)
-          } else if (email === "" || password === "") {
-            reject(new Error("メールアドレスとパスワードを入力してください"))
-          } else {
-            reject(new Error("メールアドレスまたはパスワードが正しくありません"))
-          }
-        }, 1000)
-      })
+      const apiUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/sessions`;
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: email,
+          password: password,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "ログインに失敗しました。");
+      }
+
+      const data = await response.json();
 
       // Success case
       toast.success("ログイン成功", {
         description: "ダッシュボードにリダイレクトします",
-      })
+      });
+
+      // トークンを保存
+      if (data.token) {
+        localStorage.setItem("authToken", data.token);
+        localStorage.setItem("isLoggedIn", "true");
+        localStorage.setItem("currentUserEmail", email); // またはdata.user.email
+      }
 
       router.push("/dashboard")
     } catch (error) {
