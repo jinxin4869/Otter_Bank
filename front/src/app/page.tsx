@@ -63,7 +63,7 @@ export default function Home() {
             </div>
             <div className="absolute right-0 top-20 w-80 h-80 rotate-6">
               <Image
-                src="/画像7.svg"
+                src="/算数が苦手なカワウソ.svg"
                 alt="App Preview"
                 fill
                 className="object-contain rounded-2xl shadow-2xl"
@@ -71,7 +71,7 @@ export default function Home() {
             </div>
             <div className="absolute right-20 bottom-10 w-64 h-64 -rotate-3">
               <Image
-                src="/画像7.svg"
+                src="/傘をさしているカワウソ.png"
                 alt="Savings Chart"
                 fill
                 className="object-contain rounded-2xl shadow-xl"
@@ -524,7 +524,7 @@ export default function Home() {
                 <div className="relative rounded-xl overflow-hidden h-64 md:h-auto bg-gradient-to-br from-primary/10 to-primary/5">
                   <div className="absolute inset-0 flex items-center justify-center">
                     <Image
-                      src="/画像7.svg"
+                      src="/メガネをかけているカワウソ.svg"
                       alt="Happy Otter"
                       width={200}
                       height={200}
