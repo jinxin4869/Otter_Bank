@@ -6,7 +6,7 @@ class Api::V1::LikesController < ApplicationController
 
     if like.save
       post.increment!(:likes_count)
-      render json: { status: 'success', message: 'Post liked', like:like likes_count: post.likes_count }, status: :created
+      render json: { status: 'success', message: 'Post liked', like:like, likes_count: post.likes_count }, status: :created
     else
       render json: { status: 'error', error: like.errors.full_messages }, status: :unprocessable_entity
     end
