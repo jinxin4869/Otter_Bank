@@ -13,7 +13,6 @@ class Api::V1::PostsController < ApplicationController
 
   def create
     @post = current_api_v1_user.posts.new(post_params)
-    @post = Post.new(post_params)
     @post.likes_count ||= 0
     @post.comments_count ||= 0
     @post.views_count ||= 0
