@@ -252,36 +252,35 @@ export default function BoardPage() {
       setLikedPostIds(JSON.parse(storedLikedPosts));
     }
 
-    // いいねの処理を更新
-    const handleLike = (postId: string) => {
-      let updatedLikedPostIds: string[];
-      const isCurrentlyLiked = likedPostIds.includes(postId);
-
-      if (isCurrentlyLiked) {
-        // いいね解除
-        updatedLikedPostIds = likedPostIds.filter(id => id !== postId);
-        setPosts((prev) =>
-          prev.map((post) =>
-            post.id === postId ? { ...post, likes: Math.max(0, post.likes - 1) } : post
-          )
-        );
-        toast.success("いいねを取り消しました");
-      } else {
-        // いいねする
-        updatedLikedPostIds = [...likedPostIds, postId];
-        setPosts((prev) =>
-          prev.map((post) =>
-            post.id === postId ? { ...post, likes: post.likes + 1 } : post
-          )
-        );
-        toast.success("いいねしました");
-      }
-      setLikedPostIds(updatedLikedPostIds);
-      localStorage.setItem("likedPostIds", JSON.stringify(updatedLikedPostIds));
-    }
-
-
   }, [router])
+
+  // いいねの処理を更新
+  const handleLike = (postId: string) => {
+    let updatedLikedPostIds: string[];
+    const isCurrentlyLiked = likedPostIds.includes(postId);
+
+    if (isCurrentlyLiked) {
+      // いいね解除
+      updatedLikedPostIds = likedPostIds.filter(id => id !== postId);
+      setPosts((prev) =>
+        prev.map((post) =>
+          post.id === postId ? { ...post, likes: Math.max(0, post.likes - 1) } : post
+        )
+      );
+      toast.success("いいねを取り消しました");
+    } else {
+      // いいねする
+      updatedLikedPostIds = [...likedPostIds, postId];
+      setPosts((prev) =>
+        prev.map((post) =>
+          post.id === postId ? { ...post, likes: post.likes + 1 } : post
+        )
+      );
+      toast.success("いいねしました");
+    }
+    setLikedPostIds(updatedLikedPostIds);
+    localStorage.setItem("likedPostIds", JSON.stringify(updatedLikedPostIds));
+  }
 
   // 投稿のフィルタリングとソート - useCallbackでメモ化
   const filterAndSortPosts = useCallback(() => {
@@ -547,15 +546,6 @@ export default function BoardPage() {
   // 現在のユーザーが投稿者かチェック
   const isPostOwner = (post: Post) => {
     return post.authorEmail === currentUserEmail
-  }
-
-  // いいねの処理
-  const handleLike = (postId: string) => {
-    setPosts((prev) => prev.map((post) => (post.id === postId ? { ...post, likes: post.likes + 1 } : post)))
-
-    toast.success("いいねしました", {
-      description: "投稿にいいねを追加しました。",
-    })
   }
 
   // ユーザーのイニシャルを取得
