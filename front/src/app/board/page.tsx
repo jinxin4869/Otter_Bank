@@ -532,10 +532,13 @@ export default function BoardPage() {
 
     setPosts((prev) => prev.filter((post) => post.id !== deletingPostId))
     setDeletingPostId(null)
-    setIsDeleteDialogOpen(false)
 
     toast.success("投稿を削除しました")
   }
+
+  setTimeout(() => {
+    setIsDeleteDialogOpen(false)
+  }, 100)
 
   // 削除ダイアログを開く
   const openDeleteDialog = (postId: string) => {

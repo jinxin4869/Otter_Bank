@@ -3,138 +3,89 @@
 import { useState, useEffect } from "react"
 import { useTheme } from "next-themes"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Check } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Check, Sun, Moon } from "lucide-react"
 
 // テーマの設定オプション - 各テーマの名前、色、説明を定義
 const THEMES = [
   {
     id: "light",
     name: "ライト",
-    bgColor: "bg-[#FFFFFF]",
-    primaryColor: "bg-[#6A9FBF]",
-    description: "明るい標準テーマ",
-  },
-  {
-    id: "light-coral",
-    name: "コーラル",
-    bgColor: "bg-[#FFF5F5]",
-    primaryColor: "bg-[#F87171]",
-    description: "柔らかい赤色のモダンテーマ",
-  },
-  {
-    id: "light-emerald",
-    name: "エメラルド",
-    bgColor: "bg-[#F0FDF4]",
-    primaryColor: "bg-[#34D399]",
-    description: "爽やかな緑色のモダンテーマ",
-  },
-  {
-    id: "light-amber",
-    name: "アンバー",
-    bgColor: "bg-[#FFFBEB]",
-    primaryColor: "bg-[#F59E0B]",
-    description: "温かみのある黄色のモダンテーマ",
-  },
-  {
-    id: "light-indigo",
-    name: "インディゴ",
-    bgColor: "bg-[#F5F3FF]",
-    primaryColor: "bg-[#818CF8]",
-    description: "落ち着いた紫色のモダンテーマ",
+    icon: <Sun className="h-5 w-5" />,
+    description: "明るく見やすい標準テーマです。",
   },
   {
     id: "dark",
     name: "ダーク",
-    bgColor: "bg-[#121212]",
-    primaryColor: "bg-[#3B82F6]",
-    description: "目に優しい暗いテーマ",
+    icon: <Moon className="h-5 w-5" />,
+    description: "目に優しく、暗い場所での利用に適したテーマです。",
   },
 ]
 
 export function ThemeSelector() {
-  // テーマの状態管理 - 現在のテーマと選択されたカラーテーマを管理
   const { theme, setTheme } = useTheme()
-  const [selectedColorTheme, setSelectedColorTheme] = useState<string>("light")
+  // themeがundefinedの場合のフォールバックとして'light'を設定
+  const [mounted, setMounted] = useState(false)
 
-  // コンポーネントマウント時に現在のテーマを検出して設定
   useEffect(() => {
-    // ダークテーマの場合
-    if (theme === "dark") {
-      setSelectedColorTheme("dark")
-    } else {
-      // カラーテーマ属性があるか確認
-      const colorTheme = document.documentElement.getAttribute("data-color-theme")
-      if (colorTheme) {
-        setSelectedColorTheme(colorTheme)
-      } else {
-        setSelectedColorTheme("light")
-      }
-    }
-  }, [theme])
+    setMounted(true)
+  }, [])
 
-  // テーマ変更ハンドラー - ユーザーがテーマを選択したときに呼び出される
-  const handleColorThemeChange = (themeId: string) => {
-    setSelectedColorTheme(themeId)
-
-    if (themeId === "dark") {
-      // ダークテーマの設定
-      document.documentElement.removeAttribute("data-color-theme")
-      setTheme("dark")
-    } else if (themeId === "light") {
-      // 標準ライトテーマの設定
-      document.documentElement.removeAttribute("data-color-theme")
-      setTheme("light")
-    } else {
-      // カラーバリアントのあるライトテーマの設定
-      document.documentElement.setAttribute("data-color-theme", themeId)
-      setTheme("light")
-    }
+  // themeが確定するまで何もレンダリングしないか、ローディング表示をする
+  if (!mounted || !theme) {
+    return (
+      <Card className="w-full max-w-md mx-auto">
+        <CardHeader>
+          <CardTitle>テーマ設定</CardTitle>
+          <CardDescription>アプリの表示モードを選択できます。</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="h-24 flex items-center justify-center text-muted-foreground">読み込み中...</div>
+        </CardContent>
+      </Card>
+    )
   }
 
+  const currentSelectedTheme = THEMES.find(t => t.id === theme) || THEMES[0];
+
   return (
-    <Card className="w-full max-w-md mx-auto">
-      <CardHeader>
-        <CardTitle>テーマ設定</CardTitle>
-        <CardDescription>アプリの表示モードとカラーテーマを選択できます</CardDescription>
+    <Card className="w-full max-w-md mx-auto shadow-lg border dark:border-slate-700">
+      <CardHeader className="border-b dark:border-slate-700">
+        <CardTitle className="text-xl">テーマ設定</CardTitle>
+        <CardDescription>アプリの表示モードを選択してください。</CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="text-sm font-medium mb-2">テーマを選択</div>
-        {/* テーマ選択グリッド - 各テーマのプレビューとラベルを表示 */}
-        <div className="grid grid-cols-2 gap-3">
-          {THEMES.map((colorTheme) => (
-            <div
-              key={colorTheme.id}
+      <CardContent className="pt-6 space-y-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {THEMES.map((themeOption) => (
+            <Button
+              key={themeOption.id}
+              variant={theme === themeOption.id ? "default" : "outline"}
               className={`
-                relative cursor-pointer rounded-lg p-1 ring-2 transition-all
-                ${
-                  selectedColorTheme === colorTheme.id
-                    ? "ring-primary"
-                    : "ring-transparent hover:ring-muted-foreground/20"
+                w-full h-auto py-4 px-4 flex flex-col items-center justify-center space-y-2 
+                rounded-lg transition-all duration-200
+                ${theme === themeOption.id
+                  ? "ring-2 ring-primary ring-offset-2 ring-offset-background dark:ring-offset-slate-900"
+                  : "hover:bg-muted/50 dark:hover:bg-slate-800"
                 }
               `}
-              onClick={() => handleColorThemeChange(colorTheme.id)}
+              onClick={() => setTheme(themeOption.id)}
             >
-              <div className="flex flex-col gap-1">
-                {/* テーマのカラープレビュー */}
-                <div className={`h-16 rounded-md ${colorTheme.bgColor} flex items-center justify-center`}>
-                  <div className={`h-6 w-24 rounded ${colorTheme.primaryColor}`}></div>
-                </div>
-                {/* テーマ名と選択状態の表示 */}
-                <div className="flex justify-between items-center px-1">
-                  <span className="text-sm">{colorTheme.name}</span>
-                  {selectedColorTheme === colorTheme.id && <Check className="h-4 w-4 text-primary" />}
-                </div>
+              <div className="flex items-center justify-center h-10 w-10 rounded-full bg-muted dark:bg-slate-700 mb-2 text-foreground dark:text-slate-200">
+                {themeOption.icon}
               </div>
-            </div>
+              <span className="text-sm font-medium text-foreground dark:text-slate-200">{themeOption.name}</span>
+              {theme === themeOption.id && <Check className="h-4 w-4 text-primary absolute top-2 right-2" />}
+            </Button>
           ))}
         </div>
-        {/* 選択されたテーマの説明 */}
-        <p className="text-xs text-muted-foreground mt-2">
-          {THEMES.find((t) => t.id === selectedColorTheme)?.description}
+        <p className="text-xs text-muted-foreground dark:text-slate-400 pt-2 text-center">
+          {currentSelectedTheme.description}
         </p>
       </CardContent>
-      <CardFooter className="flex justify-between">
-        <p className="text-xs text-muted-foreground">設定はブラウザに保存されます</p>
+      <CardFooter className="border-t dark:border-slate-700 pt-4">
+        <p className="text-xs text-muted-foreground dark:text-slate-500 w-full text-center">
+          選択したテーマは自動的に保存されます。
+        </p>
       </CardFooter>
     </Card>
   )

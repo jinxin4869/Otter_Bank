@@ -5,245 +5,236 @@ import { useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { ArrowRight, Wallet, Trophy, MessageCircle, Sparkles } from 'lucide-react'
+import { ArrowRight, ArrowLeft, Wallet, Trophy, MessageCircle, Sparkles, CheckCircle2 } from 'lucide-react'
 import Image from "next/image"
 
-export default function TutorialPage() {
-  const router = useRouter()
-  const [isLoggedIn, setIsLoggedIn] = useState(false)
-
-  // ログイン状態を確認 - ローカルストレージのみをチェックして厳密に判定
-  useEffect(() => {
-    // ログイン状態をチェック - セッションストレージは使わず、ローカルストレージのみで判定
-    const loggedIn = localStorage.getItem("isLoggedIn") === "true"
-    setIsLoggedIn(loggedIn)
-  }, [])
-
-  // ダッシュボードに戻るボタンのハンドラー
-  const handleBackToDashboard = () => {
-    router.push("/dashboard")
+const tutorialSteps = [
+  {
+    id: "dashboard",
+    icon: <Wallet className="h-6 w-6 text-primary" />,
+    title: "マイページの使い方",
+    description: "家計簿の記録と分析を行うメインページです。",
+    imageSrc: "/placeholder.svg?height=240&width=420&text=Dashboard+Preview",
+    altText: "マイページプレビュー",
+    features: [
+      "収入と支出を記録できます。",
+      "カテゴリー別に支出を分類できます。",
+      "日別・月別・年別で表示を切り替えられます。",
+      "収支バランスに応じてカワウソの様子が変わります。",
+      "グラフで支出パターンを可視化できます。",
+    ],
+    howTo: {
+      title: "取引の追加方法",
+      steps: [
+        "「新規取引」カードで金額を入力します。",
+        "「収入」または「支出」を選択します。",
+        "適切なカテゴリーを選択します。",
+        "必要に応じて詳細を入力します。",
+        "日付を選択（デフォルトは今日）。",
+        "「追加」ボタンをクリックします。",
+      ],
+    }
+  },
+  {
+    id: "collection",
+    icon: <Trophy className="h-6 w-6 text-primary" />,
+    title: "図鑑の使い方",
+    description: "貯金や継続利用などの目標を達成すると、特別な実績が解放されます。",
+    imageSrc: "/placeholder.svg?height=240&width=420&text=Collection+Preview",
+    altText: "図鑑プレビュー",
+    features: [
+      "実績カテゴリー: 貯金、節約、継続、特別。",
+      "貯金額に応じた実績や、支出削減に関する実績などがあります。",
+    ],
+    howTo: {
+      title: "実績の解放方法",
+      steps: [
+        "一定額の貯金を達成する。",
+        "支出を前月より一定割合削減する。",
+        "アプリを連続で使用する。",
+        "特定の条件を満たす（詳細は実績ページで確認）。",
+      ],
+    }
+  },
+  {
+    id: "board",
+    icon: <MessageCircle className="h-6 w-6 text-primary" />,
+    title: "掲示板の使い方",
+    description: "お金の管理や貯金のコツ、投資の経験などを共有できるコミュニティです。",
+    imageSrc: "/placeholder.svg?height=240&width=420&text=Board+Preview",
+    altText: "掲示板プレビュー",
+    features: [
+      "経験や質問を投稿できます。",
+      "カテゴリーでトピックを整理できます。",
+      "他のユーザーの投稿にコメントできます。",
+      "役立つ投稿に「いいね」を付けられます。",
+      "投稿を検索したり、並べ替えたりできます。",
+    ],
+    howTo: {
+      title: "投稿のポイント",
+      steps: [
+        "具体的な金額や期間を含めると参考になります。",
+        "適切なカテゴリーを選択しましょう。",
+        "質問は明確に、回答は丁寧に書きましょう。",
+        "成功体験だけでなく、失敗から学んだことも共有しましょう。",
+        "個人情報は投稿しないよう注意してください。",
+      ],
+    }
+  },
+  {
+    id: "features",
+    icon: <Sparkles className="h-6 w-6 text-primary" />,
+    title: "獭獭銀行の主な特徴",
+    description: "楽しく続けられる、新しいお金管理体験を提供します。",
+    imageSrc: "/placeholder.svg?height=240&width=420&text=App+Features+Overview",
+    altText: "アプリ特徴概要",
+    features: [
+      "ゲーム感覚の金融マネジメント: 貯金するほどカワウソが喜び、様々な実績を解放できます。",
+      "わかりやすい収支分析: グラフやチャートで支出パターンを可視化し、お金の流れを直感的に把握できます。",
+      "カスタマイズ要素: 貯金額に応じてカワウソの生活環境を変えたり、テーマカラーも自由に選べます。",
+      "コミュニティ機能: 掲示板で他のユーザーと情報交換。貯金のコツや投資の経験を共有できます。",
+    ],
   }
+];
+
+export default function TutorialPage() {
+  const router = useRouter();
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [currentStep, setCurrentStep] = useState(0);
+
+  useEffect(() => {
+    const loggedIn = localStorage.getItem("isLoggedIn") === "true";
+    setIsLoggedIn(loggedIn);
+  }, []);
+
+  const handleNext = () => {
+    if (currentStep < tutorialSteps.length - 1) {
+      setCurrentStep(currentStep + 1);
+    } else {
+      // 最後のステップなら登録ページへ
+      router.push("/register");
+    }
+  };
+
+  const handlePrev = () => {
+    if (currentStep > 0) {
+      setCurrentStep(currentStep - 1);
+    }
+  };
+
+  const stepData = tutorialSteps[currentStep];
 
   return (
-    <div className="space-y-8 max-w-4xl mx-auto">
-      {/* ヘッダーセクション - アプリの紹介と戻るボタン */}
-      <div className="text-center">
-        <h1 className="text-3xl font-bold mb-4">獭獭銀行へようこそ！</h1>
-        <p className="text-xl text-muted-foreground">
-          このアプリでは、楽しく簡単にお金の管理ができます。カワウソと一緒に貯金の習慣を身につけましょう！
-        </p>
-        {/* ログイン済みの場合のみダッシュボードに戻るボタンを表示 */}
-        {isLoggedIn && (
-          <Button onClick={handleBackToDashboard} className="mt-4">
-            ダッシュボードに戻る
-          </Button>
-        )}
-      </div>
+    <div className="container mx-auto py-8 px-4 sm:px-6 lg:px-8 max-w-3xl">
+      <Card className="overflow-hidden shadow-xl">
+        <CardHeader className="bg-muted/30 p-6">
+          <div className="flex items-center space-x-3 mb-2">
+            {stepData.icon}
+            <CardTitle className="text-2xl font-bold">{stepData.title}</CardTitle>
+          </div>
+          <CardDescription className="text-md">{stepData.description}</CardDescription>
+        </CardHeader>
 
-      {/* タブナビゲーション - 各機能の使い方を分類して表示 */}
-      <Tabs defaultValue="dashboard" className="w-full">
-        <TabsList className="grid grid-cols-4 mb-8">
-          <TabsTrigger value="dashboard">マイページ</TabsTrigger>
-          <TabsTrigger value="collection">図鑑</TabsTrigger>
-          <TabsTrigger value="board">掲示板</TabsTrigger>
-          <TabsTrigger value="features">機能紹介</TabsTrigger>
-        </TabsList>
-
-        {/* マイページの使い方タブ */}
-        <TabsContent value="dashboard" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Wallet className="h-5 w-5 text-primary" />
-                マイページの使い方
-              </CardTitle>
-              <CardDescription>家計簿の記録と分析を行うメインページです</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid md:grid-cols-2 gap-6">
-                <div>
-                  <h3 className="text-lg font-medium mb-2">基本機能</h3>
-                  <ul className="space-y-2 list-disc pl-5">
-                    <li>収入と支出を記録できます</li>
-                    <li>カテゴリー別に支出を分類できます</li>
-                    <li>日別・月別・年別で表示を切り替えられます</li>
-                    <li>収支バランスに応じてカワウソの様子が変わります</li>
-                    <li>グラフで支出パターンを可視化できます</li>
-                  </ul>
-                </div>
-                <div className="relative h-60 rounded-lg overflow-hidden border">
-                  <Image
-                    src="/placeholder.svg?height=240&width=320&text=Dashboard+Preview"
-                    alt="Dashboard Preview"
-                    fill
-                    className="object-cover"
-                  />
-                </div>
-              </div>
-
-              <div className="border-t pt-4">
-                <h3 className="text-lg font-medium mb-2">取引の追加方法</h3>
-                <ol className="space-y-2 list-decimal pl-5">
-                  <li>「新規取引」カードで金額を入力</li>
-                  <li>「収入」または「支出」を選択</li>
-                  <li>適切なカテゴリーを選択</li>
-                  <li>必要に応じて詳細を入力</li>
-                  <li>日付を選択（デフォルトは今日）</li>
-                  <li>「追加」ボタンをクリック</li>
-                </ol>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* 図鑑の使い方タブ */}
-        <TabsContent value="collection" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Trophy className="h-5 w-5 text-primary" />
-                図鑑の使い方
-              </CardTitle>
-              <CardDescription>貯金や継続利用などの目標を達成すると、特別な実績が解放されます</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid md:grid-cols-2 gap-6">
-                <div>
-                  <h3 className="text-lg font-medium mb-2">実績カテゴリー</h3>
-                  <ul className="space-y-2 list-disc pl-5">
-                    <li>
-                      <span className="font-medium">貯金</span>: 貯金額に応じた実績
-                    </li>
-                    <li>
-                      <span className="font-medium">節約</span>: 支出削減に関する実績
-                    </li>
-                    <li>
-                      <span className="font-medium">継続</span>: アプリの継続利用に関する実績
-                    </li>
-                    <li>
-                      <span className="font-medium">特別</span>: その他の特別な実績
-                    </li>
-                  </ul>
-                </div>
-                <div className="relative h-60 rounded-lg overflow-hidden border">
-                  <Image
-                    src="/placeholder.svg?height=240&width=320&text=Collection+Preview"
-                    alt="Collection Preview"
-                    fill
-                    className="object-cover"
-                  />
-                </div>
-              </div>
-
-              <div className="border-t pt-4">
-                <h3 className="text-lg font-medium mb-2">実績の解放方法</h3>
-                <p className="mb-2">実績は以下の方法で解放されます：</p>
-                <ul className="space-y-2 list-disc pl-5">
-                  <li>一定額の貯金を達成する</li>
-                  <li>支出を前月より一定割合削減する</li>
-                  <li>アプリを連続で使用する</li>
-                  <li>特定の条件を満たす（詳細は実績ページで確認）</li>
-                </ul>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* 掲示板の使い方タブ */}
-        <TabsContent value="board" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <MessageCircle className="h-5 w-5 text-primary" />
-                掲示板の使い方
-              </CardTitle>
-              <CardDescription>お金の管理や貯金のコツ、投資の経験などを共有できるコミュニティ</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid md:grid-cols-2 gap-6">
-                <div>
-                  <h3 className="text-lg font-medium mb-2">基本機能</h3>
-                  <ul className="space-y-2 list-disc pl-5">
-                    <li>経験や質問を投稿できます</li>
-                    <li>カテゴリーでトピックを整理できます</li>
-                    <li>他のユーザーの投稿にコメントできます</li>
-                    <li>役立つ投稿に「いいね」を付けられます</li>
-                    <li>投稿を検索したり、並べ替えたりできます</li>
-                  </ul>
-                </div>
-                <div className="relative h-60 rounded-lg overflow-hidden border">
-                  <Image
-                    src="/placeholder.svg?height=240&width=320&text=Board+Preview"
-                    alt="Board Preview"
-                    fill
-                    className="object-cover"
-                  />
-                </div>
-              </div>
-
-              <div className="border-t pt-4">
-                <h3 className="text-lg font-medium mb-2">投稿のポイント</h3>
-                <ul className="space-y-2 list-disc pl-5">
-                  <li>具体的な金額や期間を含めると参考になります</li>
-                  <li>適切なカテゴリーを選択しましょう</li>
-                  <li>質問は明確に、回答は丁寧に書きましょう</li>
-                  <li>成功体験だけでなく、失敗から学んだことも共有しましょう</li>
-                  <li>個人情報は投稿しないよう注意してください</li>
-                </ul>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* 機能紹介タブ */}
-        <TabsContent value="features" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Sparkles className="h-5 w-5 text-primary" />
-                機能紹介
-              </CardTitle>
-              <CardDescription>獭獭銀行の主な機能と特徴</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid md:grid-cols-2 gap-6">
-                <div className="space-y-4">
-                  <div>
-                    <h3 className="text-lg font-medium mb-2">ゲーム感覚の金融マネジメント</h3>
-                    <p>
-                      貯金するほどカワウソが喜び、様々な実績を解放できます。楽しみながら貯金習慣を身につけましょう。
-                    </p>
+        <CardContent className="p-6 space-y-6">
+          {stepData.id === "features" ? (
+            <div className="space-y-4">
+              {stepData.features?.map((featureText, index) => {
+                const parts = featureText.split(': ');
+                const featureTitle = parts[0];
+                const featureDescription = parts.length > 1 ? parts.slice(1).join(': ') : '';
+                return (
+                  <div key={index} className="p-4 border rounded-lg bg-background shadow-sm">
+                    <div className="flex items-start space-x-3">
+                      <CheckCircle2 className="h-5 w-5 text-primary mt-1 flex-shrink-0" />
+                      <div>
+                        <h4 className="font-semibold text-md text-primary">{featureTitle}</h4>
+                        {featureDescription && <p className="text-sm text-muted-foreground mt-1">{featureDescription}</p>}
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="text-lg font-medium mb-2">わかりやすい収支分析</h3>
-                    <p>グラフやチャートで支出パターンを可視化。お金の流れを直感的に把握できます。</p>
-                  </div>
-                </div>
-                <div className="space-y-4">
-                  <div>
-                    <h3 className="text-lg font-medium mb-2">カスタマイズ要素</h3>
-                    <p>貯金額に応じてカワウソの生活環境を変えられます。テーマカラーも自由に選べます。</p>
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-medium mb-2">コミュニティ機能</h3>
-                    <p>掲示板で他のユーザーと情報交換。貯金のコツや投資の経験を共有できます。</p>
-                  </div>
-                </div>
+                );
+              })}
+            </div>
+          ) : (
+            stepData.imageSrc && (
+              <div className="relative aspect-[16/9] w-full rounded-lg overflow-hidden border">
+                <Image
+                  src={stepData.imageSrc}
+                  alt={stepData.altText || 'チュートリアル画像'}
+                  fill
+                  className="object-cover"
+                  priority={currentStep === 0}
+                />
               </div>
-            </CardContent>
-            {/* 重複ボタンを削除し、非ログイン時のみボタンを表示 */}
-            {!isLoggedIn && (
-              <CardFooter>
-                <Button onClick={() => router.push("/register")} className="w-full">
-                  アプリを始める
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
-              </CardFooter>
+            )
+          )}
+
+          {stepData.id !== "features" && stepData.features && (
+            <div>
+              <h3 className="text-lg font-semibold mb-2 text-primary">主なポイント</h3>
+              <ul className="space-y-1 list-disc list-inside text-muted-foreground">
+                {stepData.features.map((feature, index) => (
+                  <li key={index}>{feature}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {stepData.howTo && (
+            <div>
+              <h3 className="text-lg font-semibold mb-2 text-primary">{stepData.howTo.title}</h3>
+              <ol className="space-y-1 list-decimal list-inside text-muted-foreground">
+                {stepData.howTo.steps.map((s, index) => (
+                  <li key={index}>{s}</li>
+                ))}
+              </ol>
+            </div>
+          )}
+        </CardContent>
+
+        <CardFooter className="bg-muted/30 p-6 flex flex-col sm:flex-row items-center justify-between space-y-4 sm:space-y-0">
+          <div className="flex items-center space-x-2">
+            {tutorialSteps.map((_, index) => (
+              <button
+                key={index}
+                onClick={() => setCurrentStep(index)}
+                className={`h-2.5 w-2.5 rounded-full transition-colors ${currentStep === index ? "bg-primary scale-125" : "bg-gray-300 hover:bg-gray-400"
+                  }`}
+                aria-label={`ステップ ${index + 1} へ移動`}
+              />
+            ))}
+          </div>
+          <div className="flex space-x-3 w-full sm:w-auto">
+            {currentStep > 0 && (
+              <Button variant="outline" onClick={handlePrev} className="w-full sm:w-auto">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                前へ
+              </Button>
             )}
-          </Card>
-        </TabsContent>
-      </Tabs>
-    </div>
-  )
-}
+            <Button onClick={handleNext} className="w-full sm:w-auto bg-primary hover:bg-primary/90">
+              {currentStep < tutorialSteps.length - 1 ? (
+                <>
+                  次へ
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </>
+              ) : (
+                <>
+                  アプリを始める
+                  <CheckCircle2 className="ml-2 h-4 w-4" />
+                </>
+              )}
+            </Button>
+          </div>
+        </CardFooter>
+      </Card>
 
+      {!isLoggedIn && currentStep === tutorialSteps.length - 1 && (
+        <div className="mt-6 text-center">
+          <p className="text-sm text-muted-foreground">
+            すでにアカウントをお持ちですか？ <a href="/login" className="text-primary hover:underline font-medium">ログイン</a>
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
