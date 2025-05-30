@@ -1,391 +1,190 @@
 "use client"
 
-import { useState, useEffect } from "react"
 import Link from "next/link"
-import Image from "next/image"
-import { useRouter } from "next/navigation"
-import {
-  Menu,
-  Home,
-  BookOpen,
-  MessageSquare,
-  Settings,
-  LogIn,
-  UserPlus,
-  Info,
-  Shield,
-  FileText,
-  HelpCircle,
-  LogOut,
-} from "lucide-react"
+import { useTheme } from "next-themes"
 import { Button } from "@/components/ui/button"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { usePathname } from "next/navigation"
-import { cn } from "@/lib/utils"
-import { useMobile } from "@/hooks/use-mobile"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { ThemeSelector } from "@/components/theme-selector"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { Sun, Moon, Menu, Settings, LogIn, LogOut, UserPlus, Home, BookOpen, MessageSquare, UserCircle, Award, Palette, Check } from "lucide-react"
+import Image from "next/image"
+import { usePathname, useRouter } from 'next/navigation'
+import { useEffect, useState } from "react"
 
 export default function Header() {
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const [isThemeDialogOpen, setIsThemeDialogOpen] = useState(false)
-  const [hasTutorialSeen, setHasTutorialSeen] = useState(false)
+  const { theme, setTheme } = useTheme()
   const pathname = usePathname()
-  const isMobile = useMobile()
   const router = useRouter()
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [mounted, setMounted] = useState(false)
 
-  // Check if tutorial has been seen
   useEffect(() => {
-    const tutorialSeen = localStorage.getItem("tutorialSeen")
-    setHasTutorialSeen(tutorialSeen === "true")
-  }, [])
+    setMounted(true)
+    const loggedInStatus = localStorage.getItem("isLoggedIn") === "true"
+    setIsLoggedIn(loggedInStatus)
 
-  const toggleMenu = () => {
-    setIsMenuOpen(!isMenuOpen)
-  }
+    const handleStorageChange = () => {
+      const newLoggedInStatus = localStorage.getItem("isLoggedIn") === "true";
+      if (isLoggedIn !== newLoggedInStatus) {
+        setIsLoggedIn(newLoggedInStatus);
+        if (!newLoggedInStatus && (pathname === "/dashboard" || pathname === "/collection" || pathname === "/board")) {
+          router.push("/");
+        }
+      }
+    };
+    window.addEventListener('storage', handleStorageChange);
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, [isLoggedIn, pathname, router])
 
   const handleLogout = () => {
-    const confirmed = window.confirm("ログアウトしますか?")
-    if (confirmed) {
-      // In a real app, this would call a logout API
-      // Immediately navigate to home page
-      router.push("/")
-    }
+    localStorage.removeItem("isLoggedIn");
+    setIsLoggedIn(false);
+    router.push("/");
+  };
+
+  const commonLinks = [
+    { href: "/tutorial", label: "使い方", icon: <BookOpen className="mr-2 h-4 w-4" /> },
+  ];
+
+  const loggedOutLinks = [
+    { href: "/", label: "ホーム", icon: <Home className="mr-2 h-4 w-4" /> },
+    { href: "/login", label: "ログイン", icon: <LogIn className="mr-2 h-4 w-4" /> },
+    { href: "/register", label: "新規登録", icon: <UserPlus className="mr-2 h-4 w-4" /> },
+    ...commonLinks,
+  ];
+
+  const loggedInLinks = [
+    { href: "/dashboard", label: "マイページ", icon: <UserCircle className="mr-2 h-4 w-4" /> },
+    { href: "/collection", label: "実績", icon: <Award className="mr-2 h-4 w-4" /> },
+    { href: "/board", label: "掲示板", icon: <MessageSquare className="mr-2 h-4 w-4" /> },
+    ...commonLinks,
+  ];
+
+  const navLinks = isLoggedIn ? loggedInLinks : loggedOutLinks;
+
+  if (!mounted) {
+    return (
+      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 dark:border-slate-800">
+        <div className="container flex h-16 items-center justify-between">
+          <Link href="/" className="flex items-center gap-2">
+            <Image src="/logo.png" alt="Otter Bank Logo" width={36} height={36} className="rounded-full" />
+            <span className="font-bold text-lg">Otter Bank</span>
+          </Link>
+          <div className="h-8 w-8 bg-muted rounded-md animate-pulse"></div>
+        </div>
+      </header>
+    )
   }
 
-  // Check if user is logged in (this would be replaced with actual auth check)
-  const isLoggedIn = pathname.includes("/dashboard") || pathname.includes("/collection") || pathname.includes("/board")
-
   return (
-    <header>
-      <div className="container mx-auto px-4 py-4">
-        <div className="flex justify-between items-center">
-          <div className="flex items-center">
-            <Link href={isLoggedIn ? "/dashboard" : "/"} className="flex items-center">
-              <div className="relative w-10 h-10 mr-2">
-                <Image
-                  src="/画像5.svg"
-                  alt="Otter Bank"
-                  fill
-                  className="object-contain"
-                />
-              </div>
-              <h1 className="text-xl font-bold">獭獭銀行</h1>
-            </Link>
-          </div>
+    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 dark:border-slate-800 dark:bg-slate-900/95 shadow-sm">
+      <div className="container flex h-16 items-center justify-between">
+        <Link href="/" className="flex items-center gap-2 mr-auto">
+          <Image src="/logo.png" alt="Otter Bank Logo" width={36} height={36} className="rounded-full transition-transform hover:scale-110" />
+          <span className="font-bold text-lg hidden sm:inline-block text-primary dark:text-primary-foreground">Otter Bank</span>
+        </Link>
 
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-4">
-            {isLoggedIn ? (
-              <>
-                <Link
-                  href="/dashboard"
-                  className={cn(
-                    "flex items-center text-white hover:text-white/80 border-b-2",
-                    pathname === "/dashboard" ? "border-white font-bold" : "border-transparent",
-                  )}
-                >
-                  <Home className="mr-1 h-4 w-4" />
-                  マイページ
-                </Link>
-                <Link
-                  href="/collection"
-                  className={cn(
-                    "flex items-center text-white hover:text-white/80 border-b-2",
-                    pathname === "/collection" ? "border-white font-bold" : "border-transparent",
-                  )}
-                >
-                  <BookOpen className="mr-1 h-4 w-4" />
-                  図鑑
-                </Link>
-                <Link
-                  href="/board"
-                  className={cn(
-                    "flex items-center text-white hover:text-white/80 border-b-2",
-                    pathname === "/board" ? "border-white font-bold" : "border-transparent",
-                  )}
-                >
-                  <MessageSquare className="mr-1 h-4 w-4" />
-                  掲示板
-                </Link>
-                <Link
-                  href="/tutorial"
-                  className={cn(
-                    "flex items-center text-white hover:text-white/80 border-b-2",
-                    pathname === "/tutorial" ? "border-white font-bold" : "border-transparent",
-                  )}
-                >
-                  <HelpCircle className="mr-1 h-4 w-4" />
-                  使い方
-                </Link>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="text-white hover:text-white/80 flex items-center">
-                      <Settings className="mr-1 h-4 w-4" />
-                      設定
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onSelect={() => setIsThemeDialogOpen(true)}>テーマ設定</DropdownMenuItem>
-                    <DropdownMenuItem>
-                      <Link href="/privacy" className="w-full">
-                        プライバシーについて
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem>
-                      <Link href="/terms" className="w-full">
-                        利用規約
-                      </Link>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-                <Button variant="ghost" className="text-white hover:text-white/80" onClick={handleLogout}>
-                  <LogOut className="mr-1 h-4 w-4" />
-                  ログアウト
-                </Button>
-              </>
-            ) : (
-              <>
-                <Link
-                  href="/login"
-                  className={cn(
-                    "flex items-center text-white hover:text-white/80 border-b-2",
-                    pathname === "/login" ? "border-white font-bold" : "border-transparent",
-                  )}
-                >
-                  <LogIn className="mr-1 h-4 w-4" />
-                  ログイン
-                </Link>
-                <Link
-                  href="/register"
-                  className={cn(
-                    "flex items-center text-white hover:text-white/80 border-b-2",
-                    pathname === "/register" ? "border-white font-bold" : "border-transparent",
-                  )}
-                >
-                  <UserPlus className="mr-1 h-4 w-4" />
-                  新規登録
-                </Link>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="text-white hover:text-white/80 flex items-center">
-                      <Info className="mr-1 h-4 w-4" />
-                      設定
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onSelect={() => setIsThemeDialogOpen(true)}>テーマ設定</DropdownMenuItem>
-                    <DropdownMenuItem>
-                      <Link href="/privacy" className="w-full">
-                        プライバシーについて
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem>
-                      <Link href="/terms" className="w-full">
-                        利用規約
-                      </Link>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </>
-            )}
-          </div>
-
-          {/* Mobile Navigation */}
-          <div className="flex md:hidden items-center space-x-2">
-            {isLoggedIn ? (
-              <>
-                <Link
-                  href="/dashboard"
-                  className={cn(
-                    "flex items-center text-white hover:text-white/80 border-b-2 px-1",
-                    pathname === "/dashboard" ? "border-white" : "border-transparent",
-                  )}
-                >
-                  <Home className="h-5 w-5" />
-                  <span className="ml-1 text-xs">マイページ</span>
-                </Link>
-                <Link
-                  href="/collection"
-                  className={cn(
-                    "flex items-center text-white hover:text-white/80 border-b-2 px-1",
-                    pathname === "/collection" ? "border-white" : "border-transparent",
-                  )}
-                >
-                  <BookOpen className="h-5 w-5" />
-                  <span className="ml-1 text-xs">図鑑</span>
-                </Link>
-                <Link
-                  href="/board"
-                  className={cn(
-                    "flex items-center text-white hover:text-white/80 border-b-2 px-1",
-                    pathname === "/board" ? "border-white" : "border-transparent",
-                  )}
-                >
-                  <MessageSquare className="h-5 w-5" />
-                  <span className="ml-1 text-xs">掲示板</span>
-                </Link>
-              </>
-            ) : (
-              <>
-                <Link
-                  href="/login"
-                  className={cn(
-                    "flex items-center text-white hover:text-white/80 border-b-2 px-1",
-                    pathname === "/login" ? "border-white" : "border-transparent",
-                  )}
-                >
-                  <LogIn className="h-5 w-5" />
-                  <span className="ml-1 text-xs">ログイン</span>
-                </Link>
-                <Link
-                  href="/register"
-                  className={cn(
-                    "flex items-center text-white hover:text-white/80 border-b-2 px-1",
-                    pathname === "/register" ? "border-white" : "border-transparent",
-                  )}
-                >
-                  <UserPlus className="h-5 w-5" />
-                  <span className="ml-1 text-xs">新規登録</span>
-                </Link>
-              </>
-            )}
+        {/* デスクトップ表示のナビゲーション */}
+        <nav className="hidden md:flex items-center gap-1">
+          {navLinks.map(link => (
+            <Button
+              key={link.href}
+              variant={pathname === link.href ? "secondary" : "ghost"}
+              asChild
+              size="sm"
+              className="rounded-full px-3"
+            >
+              <Link href={link.href} className="flex items-center">
+                {link.icon}
+                {link.label}
+              </Link>
+            </Button>
+          ))}
+          {isLoggedIn && (
             <Button
               variant="ghost"
-              size="icon"
-              aria-label="Toggle menu"
-              className="text-white hover:text-white/80"
-              onClick={toggleMenu}
+              size="sm"
+              className="rounded-full px-3 text-red-500 hover:bg-red-500/10 hover:text-red-600 dark:text-red-400 dark:hover:bg-red-400/10 dark:hover:text-red-500"
+              onClick={handleLogout}
             >
-              <Menu className="h-6 w-6" />
+              <LogOut className="mr-2 h-4 w-4" />
+              ログアウト
             </Button>
-          </div>
-        </div>
+          )}
+        </nav>
 
-        {/* Mobile Menu */}
-        {isMenuOpen && isMobile && (
-          <nav className="mt-4 pb-2">
-            <ul className="flex flex-col space-y-2">
-              {isLoggedIn ? (
+        <div className="flex items-center gap-2 ml-4">
+          {/* モバイル表示のハンバーガーメニュー */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="icon" className="md:hidden rounded-full">
+                <Menu className="h-5 w-5" />
+                <span className="sr-only">ナビゲーションを開く</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="md:hidden w-48">
+              <DropdownMenuLabel>メニュー</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              {navLinks.map(link => (
+                <DropdownMenuItem key={link.href} asChild>
+                  <Link href={link.href} className={`flex items-center ${pathname === link.href ? "bg-muted dark:bg-slate-700 font-semibold" : ""}`}>
+                    {link.icon}
+                    {link.label}
+                  </Link>
+                </DropdownMenuItem>
+              ))}
+              {isLoggedIn && (
                 <>
-                  <li>
-                    <Link href="/dashboard" className="flex items-center py-2" onClick={() => setIsMenuOpen(false)}>
-                      <Home className="mr-2 h-4 w-4" />
-                      マイページ
-                    </Link>
-                  </li>
-                  <li>
-                    <Link href="/collection" className="flex items-center py-2" onClick={() => setIsMenuOpen(false)}>
-                      <BookOpen className="mr-2 h-4 w-4" />
-                      図鑑
-                    </Link>
-                  </li>
-                  <li>
-                    <Link href="/board" className="flex items-center py-2" onClick={() => setIsMenuOpen(false)}>
-                      <MessageSquare className="mr-2 h-4 w-4" />
-                      掲示板
-                    </Link>
-                  </li>
-                  <li>
-                    <Link href="/tutorial" className="flex items-center py-2" onClick={() => setIsMenuOpen(false)}>
-                      <HelpCircle className="mr-2 h-4 w-4" />
-                      設定
-                    </Link>
-                  </li>
-                  <li>
-                    <Button
-                      variant="ghost"
-                      className="text-white hover:text-white/80 p-0 h-auto font-normal flex items-center"
-                      onClick={() => {
-                        setIsThemeDialogOpen(true)
-                        setIsMenuOpen(false)
-                      }}
-                    >
-                      <Settings className="mr-2 h-4 w-4" />
-                      テーマ設定
-                    </Button>
-                  </li>
-                  <li>
-                    <Link href="/privacy" className="flex items-center py-2" onClick={() => setIsMenuOpen(false)}>
-                      <Shield className="mr-2 h-4 w-4" />
-                      プライバシーについて
-                    </Link>
-                  </li>
-                  <li>
-                    <Link href="/terms" className="flex items-center py-2" onClick={() => setIsMenuOpen(false)}>
-                      <FileText className="mr-2 h-4 w-4" />
-                      利用規約
-                    </Link>
-                  </li>
-                  <li>
-                    <Button
-                      variant="ghost"
-                      className="text-white hover:text-white/80 p-0 h-auto font-normal"
-                      onClick={() => {
-                        handleLogout()
-                        setIsMenuOpen(false)
-                      }}
-                    >
-                      ログアウト
-                    </Button>
-                  </li>
-                </>
-              ) : (
-                <>
-                  <li>
-                    <Link href="/login" className="flex items-center py-2" onClick={() => setIsMenuOpen(false)}>
-                      <LogIn className="mr-2 h-4 w-4" />
-                      ログイン
-                    </Link>
-                  </li>
-                  <li>
-                    <Link href="/register" className="flex items-center py-2" onClick={() => setIsMenuOpen(false)}>
-                      <UserPlus className="mr-2 h-4 w-4" />
-                      新規登録
-                    </Link>
-                  </li>
-                  <li>
-                    <Button
-                      variant="ghost"
-                      className="text-white hover:text-white/80 p-0 h-auto font-normal flex items-center"
-                      onClick={() => {
-                        setIsThemeDialogOpen(true)
-                        setIsMenuOpen(false)
-                      }}
-                    >
-                      <Settings className="mr-2 h-4 w-4" />
-                      テーマ設定
-                    </Button>
-                  </li>
-                  <li>
-                    <Link href="/privacy" className="flex items-center py-2" onClick={() => setIsMenuOpen(false)}>
-                      <Shield className="mr-2 h-4 w-4" />
-                      プライバシーについて
-                    </Link>
-                  </li>
-                  <li>
-                    <Link href="/terms" className="flex items-center py-2" onClick={() => setIsMenuOpen(false)}>
-                      <FileText className="mr-2 h-4 w-4" />
-                      利用規約
-                    </Link>
-                  </li>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    onClick={handleLogout}
+                    className="flex items-center text-red-500 hover:!bg-red-500/10 hover:!text-red-600 dark:text-red-400 dark:hover:!bg-red-400/10 dark:hover:!text-red-500"
+                  >
+                    <LogOut className="mr-2 h-4 w-4" />
+                    ログアウト
+                  </DropdownMenuItem>
                 </>
               )}
-            </ul>
-          </nav>
-        )}
+            </DropdownMenuContent>
+          </DropdownMenu>
 
-        {/* Theme Dialog */}
-        <Dialog open={isThemeDialogOpen} onOpenChange={setIsThemeDialogOpen}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>テーマ設定</DialogTitle>
-            </DialogHeader>
-            <ThemeSelector />
-          </DialogContent>
-        </Dialog>
+          {/* テーマ変更ボタン */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="icon" className="rounded-full">
+                <Palette className="h-5 w-5 transition-transform group-hover:rotate-12" />
+                <span className="sr-only">テーマを切り替える</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>背景色を選択</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => setTheme("light")} className="flex items-center gap-2">
+                <Sun className="h-4 w-4" />
+                ライト
+                {theme === "light" && <Check className="h-4 w-4 ml-auto text-primary" />}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setTheme("dark")} className="flex items-center gap-2">
+                <Moon className="h-4 w-4" />
+                ダーク
+                {theme === "dark" && <Check className="h-4 w-4 ml-auto text-primary" />}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setTheme("system")} className="flex items-center gap-2">
+                <Settings className="h-4 w-4" />
+                システム
+                {theme === "system" && <Check className="h-4 w-4 ml-auto text-primary" />}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
     </header>
   )
 }
-
