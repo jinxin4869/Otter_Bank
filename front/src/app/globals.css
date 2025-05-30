@@ -7,17 +7,17 @@
 
 @layer base {
   :root {
-    --background: 210 40% 98%;
-    --foreground: 222.2 84% 4.9%;
+    --background: 210 40% 98%; /* 明るい背景 (ライトテーマのデフォルト) */
+    --foreground: 222.2 84% 4.9%; /* 暗いテキスト */
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%; /* カード背景 (白) */
+    --card-foreground: 222.2 84% 4.9%; /* カードテキスト */
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%; /* ポップオーバー背景 (白) */
+    --popover-foreground: 222.2 84% 4.9%; /* ポップオーバーテキスト */
 
-    --primary: 210 70% 58%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 210 70% 58%; /* プライマリーカラー (青系) */
+    --primary-foreground: 210 40% 98%; /* プライマリーカラー上のテキスト (明るい) */
 
     --secondary: 210 40% 96.1%;
     --secondary-foreground: 222.2 47.4% 11.2%;
@@ -35,106 +35,28 @@
     --input: 214.3 31.8% 91.4%;
     --ring: 222.2 84% 4.9%;
 
-    --radius: 0.75rem;
+    --radius: 0.75rem; /* ボーダー半径 */
 
-    --header-bg: 210 70% 58%;
-    --header-fg: 0 0% 100%;
-    --footer-bg: 210 70% 58%;
-    --footer-fg: 0 0% 100%;
-  }
-
-  /* コーラルテーマ */
-  [data-color-theme="light-coral"] {
-    --background: 0 100% 98%;
-    --foreground: 0 10% 20%;
-
-    --primary: 0 90% 70%;
-    --primary-foreground: 0 0% 100%;
-
-    --card: 0 0% 100%;
-    --card-foreground: 0 10% 20%;
-
-    --header-bg: 0 90% 70%;
-    --header-fg: 0 0% 100%;
-    --footer-bg: 0 80% 65%;
-    --footer-fg: 0 0% 100%;
-
-    --border: 0 30% 90%;
-    --input: 0 30% 90%;
-  }
-
-  /* エメラルドテーマ */
-  [data-color-theme="light-emerald"] {
-    --background: 160 100% 98%;
-    --foreground: 160 10% 20%;
-
-    --primary: 160 84% 50%;
-    --primary-foreground: 0 0% 100%;
-
-    --card: 0 0% 100%;
-    --card-foreground: 160 10% 20%;
-
-    --header-bg: 160 84% 50%;
-    --header-fg: 0 0% 100%;
-    --footer-bg: 160 70% 45%;
-    --footer-fg: 0 0% 100%;
-
-    --border: 160 30% 90%;
-    --input: 160 30% 90%;
-  }
-
-  /* アンバーテーマ */
-  [data-color-theme="light-amber"] {
-    --background: 45 100% 98%;
-    --foreground: 45 10% 20%;
-
-    --primary: 45 93% 50%;
-    --primary-foreground: 0 0% 100%;
-
-    --card: 0 0% 100%;
-    --card-foreground: 45 10% 20%;
-
-    --header-bg: 45 93% 50%;
-    --header-fg: 0 0% 100%;
-    --footer-bg: 45 80% 45%;
-    --footer-fg: 0 0% 100%;
-
-    --border: 45 30% 90%;
-    --input: 45 30% 90%;
-  }
-
-  /* インディゴテーマ */
-  [data-color-theme="light-indigo"] {
-    --background: 240 100% 98%;
-    --foreground: 240 10% 20%;
-
-    --primary: 240 80% 70%;
-    --primary-foreground: 0 0% 100%;
-
-    --card: 0 0% 100%;
-    --card-foreground: 240 10% 20%;
-
-    --header-bg: 240 80% 70%;
-    --header-fg: 0 0% 100%;
-    --footer-bg: 240 70% 65%;
-    --footer-fg: 0 0% 100%;
-
-    --border: 240 30% 90%;
-    --input: 240 30% 90%;
+    /* ヘッダーとフッターのテーマ変数 (ライト) */
+    --header-bg: var(--primary);
+    --header-fg: var(--primary-foreground);
+    --footer-bg: 222.2 84% 4.9%; /* 例: ダークなフッター */
+    --footer-fg: 210 40% 98%; /* 例: 明るいフッターテキスト */
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
+    --background: 222.2 84% 4.9%; /* 暗い背景 (ダークテーマのデフォルト) */
+    --foreground: 210 40% 98%; /* 明るいテキスト */
 
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%; /* カード背景 (ダーク) */
+    --card-foreground: 210 40% 98%; /* カードテキスト (明るい) */
 
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%; /* ポップオーバー背景 (ダーク) */
+    --popover-foreground: 210 40% 98%; /* ポップオーバーテキスト (明るい) */
 
-    --primary: 210 70% 58%;
-    --primary-foreground: 0 0% 100%;
+    /* ダークテーマのプライマリは、ライトテーマのプライマリより明るくするか、コントラストを考慮した色に */
+    --primary: 210 70% 65%; /* ライトのプライマリより少し明るい青 */
+    --primary-foreground: 222.2 84% 4.9%; /* プライマリーカラー上のテキスト (暗い) */
 
     --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 210 40% 98%;
@@ -152,16 +74,17 @@
     --input: 217.2 32.6% 17.5%;
     --ring: 212.7 26.8% 83.9%;
 
-    --header-bg: 215 28% 17%;
-    --header-fg: 210 40% 98%;
-    --footer-bg: 215 28% 17%;
-    --footer-fg: 210 40% 98%;
+    /* ヘッダーとフッターのテーマ変数 (ダーク) */
+    --header-bg: 215 28% 17%; /* 既存のダークテーマのヘッダー背景 */
+    --header-fg: 210 40% 98%; /* 既存のダークテーマのヘッダーテキスト */
+    --footer-bg: 215 28% 17%; /* 既存のダークテーマのフッター背景 */
+    --footer-fg: 210 40% 98%; /* 既存のダークテーマのフッターテキスト */
   }
 }
 
 @layer base {
   * {
-    @apply border-border;
+    @apply border-border outline-ring/50;
   }
   body {
     @apply bg-background text-foreground;
@@ -235,82 +158,3 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
 }
-
-:root {
-  --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.129 0.042 264.695);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.129 0.042 264.695);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.129 0.042 264.695);
-  --primary: oklch(0.208 0.042 265.755);
-  --primary-foreground: oklch(0.984 0.003 247.858);
-  --secondary: oklch(0.968 0.007 247.896);
-  --secondary-foreground: oklch(0.208 0.042 265.755);
-  --muted: oklch(0.968 0.007 247.896);
-  --muted-foreground: oklch(0.554 0.046 257.417);
-  --accent: oklch(0.968 0.007 247.896);
-  --accent-foreground: oklch(0.208 0.042 265.755);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.929 0.013 255.508);
-  --input: oklch(0.929 0.013 255.508);
-  --ring: oklch(0.704 0.04 256.788);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.984 0.003 247.858);
-  --sidebar-foreground: oklch(0.129 0.042 264.695);
-  --sidebar-primary: oklch(0.208 0.042 265.755);
-  --sidebar-primary-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-accent: oklch(0.968 0.007 247.896);
-  --sidebar-accent-foreground: oklch(0.208 0.042 265.755);
-  --sidebar-border: oklch(0.929 0.013 255.508);
-  --sidebar-ring: oklch(0.704 0.04 256.788);
-}
-
-.dark {
-  --background: oklch(0.129 0.042 264.695);
-  --foreground: oklch(0.984 0.003 247.858);
-  --card: oklch(0.208 0.042 265.755);
-  --card-foreground: oklch(0.984 0.003 247.858);
-  --popover: oklch(0.208 0.042 265.755);
-  --popover-foreground: oklch(0.984 0.003 247.858);
-  --primary: oklch(0.929 0.013 255.508);
-  --primary-foreground: oklch(0.208 0.042 265.755);
-  --secondary: oklch(0.279 0.041 260.031);
-  --secondary-foreground: oklch(0.984 0.003 247.858);
-  --muted: oklch(0.279 0.041 260.031);
-  --muted-foreground: oklch(0.704 0.04 256.788);
-  --accent: oklch(0.279 0.041 260.031);
-  --accent-foreground: oklch(0.984 0.003 247.858);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.551 0.027 264.364);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.208 0.042 265.755);
-  --sidebar-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-accent: oklch(0.279 0.041 260.031);
-  --sidebar-accent-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.551 0.027 264.364);
-}
-
-@layer base {
-  * {
-    @apply border-border outline-ring/50;
-  }
-  body {
-    @apply bg-background text-foreground;
-  }
-}
-
