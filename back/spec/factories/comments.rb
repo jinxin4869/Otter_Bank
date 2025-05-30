@@ -1,9 +1,9 @@
 FactoryBot.define do
   factory :comment do
-    post { nil }
-    content { "MyText" }
-    author { "MyString" }
-    author_email { "MyString" }
-    likes_count { 1 }
+    association :post
+    sequence(:content) { |n| "これはコメントです。#{n}" }
+    sequence(:author) { |n| "コメントユーザー#{n}" }
+    sequence(:author_email) { |n| "comment_user#{n}@example.com" }
+    likes_count { 0 }
   end
 end
