@@ -33,7 +33,7 @@ RSpec.describe Post, type: :model do
     let(:post) { create(:post, views_count: 5) }
     
     it "increments the views count" do
-      expect { post.increment!(:views_count) }.to change { post.views_count }.by(1)
+      expect { post.increment_views! }.to change { post.views_count }.by(1)
     end
   end
 end
