@@ -6,35 +6,36 @@ import { ArrowRight, PiggyBank, TrendingUp, BadgeCheck, Sparkles, HelpCircle } f
 
 export default function Home() {
   return (
-    <div className="space-y-12 dark:bg-slate-900"> {/* ダークモードの基本背景色 */}
+    <div className="space-y-12 bg-orange-50 dark:bg-slate-800"> {/* ライトモードの基本背景を暖色系に、ダークモードの背景を少し明るく */}
       {/* ヘッダーセクション */}
-      <section className="relative min-h-[80vh] flex items-center overflow-hidden bg-[#FAFBFF] dark:bg-slate-900">
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-100/20 via-transparent to-indigo-100/10 dark:from-blue-900/20 dark:via-transparent dark:to-indigo-900/10 z-0" />
-        <div className="absolute -right-20 top-20 w-96 h-96 bg-cyan-100/30 dark:bg-cyan-800/20 rounded-full blur-3xl" />
-        <div className="absolute left-10 bottom-20 w-72 h-72 bg-indigo-100/20 dark:bg-indigo-800/10 rounded-full blur-3xl" />
+      {/* ヘッダーセクション */}
+      <section className="relative min-h-[80vh] flex items-center overflow-hidden bg-amber-50 dark:bg-slate-800"> {/* ライトモードの背景を暖色系に */}
+        <div className="absolute inset-0 bg-gradient-to-br from-orange-100/30 via-transparent to-yellow-100/20 dark:from-indigo-900/20 dark:via-transparent dark:to-blue-900/10 z-0" /> {/* グラデーションも暖色系に */}
+        <div className="absolute -right-20 top-20 w-96 h-96 bg-orange-200/30 dark:bg-cyan-800/20 rounded-full blur-3xl" /> {/* 暖色系のアクセント */}
+        <div className="absolute left-10 bottom-20 w-72 h-72 bg-yellow-100/20 dark:bg-indigo-800/10 rounded-full blur-3xl" /> {/* 暖色系のアクセント */}
 
         <div className="container mx-auto grid md:grid-cols-2 gap-8 items-center z-10">
           <div className="space-y-6">
             <span className="bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary-foreground px-4 py-2 rounded-full text-sm font-medium">
               お金管理が楽しくなる新アプリ
             </span>
-            <h1 className="text-5xl md:text-6xl font-bold tracking-tight mt-4 text-slate-900 dark:text-slate-50">
-              <span className="block text-primary">Otter Bank</span>
+            <h1 className="text-5xl md:text-6xl font-bold tracking-tight mt-4 text-slate-800 dark:text-slate-50"> {/* ライトモードのテキスト色調整 */}
+              <span className="block text-orange-600 dark:text-primary">Otter Bank</span> {/* ライトモードのアクセントカラーをオレンジ系に */}
             </h1>
-            <p className="text-xl text-muted-foreground dark:text-slate-400 max-w-md">
+            <p className="text-xl text-slate-600 dark:text-slate-400 max-w-md"> {/* ライトモードのテキスト色調整 */}
               カワウソと一緒にお金を貯めよう！支出を記録するたびに、可愛いカワウソがリアクションします。
             </p>
 
             <div className="flex flex-wrap gap-4 pt-4">
-              <Button size="lg" className="rounded-full px-8">
+              <Button size="lg" className="rounded-full px-8 bg-orange-500 hover:bg-orange-600 text-white dark:bg-primary dark:hover:bg-primary/90 dark:text-primary-foreground"> {/* ライトモードのボタンスタイル */}
                 <Link href="/register" className="flex items-center gap-2">
                   無料で始める <ArrowRight className="h-4 w-4" />
                 </Link>
               </Button>
-              <Button asChild variant="outline" size="lg" className="rounded-full px-8 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-slate-100">
+              <Button asChild variant="outline" size="lg" className="rounded-full px-8 border-orange-300 text-orange-700 hover:bg-orange-100 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-slate-100">
                 <Link href="/login">ログイン</Link>
               </Button>
-              <Button asChild variant="outline" size="lg" className="gap-2 border-2 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-slate-100">
+              <Button asChild variant="outline" size="lg" className="gap-2 border-2 border-orange-300 text-orange-700 hover:bg-orange-100 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-slate-100">
                 <Link href="/tutorial">
                   <HelpCircle className="h-4 w-4" />
                   使い方
@@ -49,7 +50,7 @@ export default function Home() {
           </div>
 
           <div className="relative h-[500px] hidden md:block">
-            <div className="absolute inset-0 bg-gradient-to-br from-background to-transparent z-10 rounded-xl opacity-20" />
+            <div className="absolute inset-0 bg-gradient-to-br from-orange-50 to-transparent z-10 rounded-xl opacity-20 dark:from-background" /> {/* ライトモードの背景調整 */}
             <div className="absolute -left-12 bottom-0 w-96 h-80">
               <Image
                 src="/画像7.svg"
