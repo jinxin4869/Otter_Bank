@@ -6,27 +6,21 @@ import { ThemeProvider } from "@/components/theme-provider"
 import Header from "@/components/header"
 import Footer from "@/components/footer"
 
-const inter = Inter({ subsets: ["latin"] })
+const inter = Inter({ subsets: ["latin"], variable: '--font-inter' })
 
 export const metadata: Metadata = {
   title: "水獭银行 (Otter Bank)",
   description: "お金の管理をするためアプリ - カワウソがあなたの出費に応じてリアクションを反応してくれます！",
 }
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode
-}>) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="ja" suppressHydrationWarning>
-      <body className={inter.className}>
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-          <div className="flex flex-col min-h-screen">
-            <Header />
-            <main className="flex-grow container mx-auto px-4 py-8">{children}</main>
-            <Footer />
-          </div>
+      <body>
+        <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
+          <Header />
+          <main>{children}</main>
+          <Footer />
         </ThemeProvider>
       </body>
     </html>

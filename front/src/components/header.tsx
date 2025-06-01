@@ -11,7 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Sun, Moon, Menu, Settings, LogIn, LogOut, UserPlus, Home, BookOpen, MessageSquare, UserCircle, Award, Palette, Check } from "lucide-react"
+import { Sun, Moon, Menu, LogIn, LogOut, UserPlus, Home, BookOpen, MessageSquare, UserCircle, Award, Palette, Check } from "lucide-react"
 import Image from "next/image"
 import { usePathname, useRouter } from 'next/navigation'
 import { useEffect, useState } from "react"
@@ -27,6 +27,11 @@ export default function Header() {
     setMounted(true)
     const loggedInStatus = localStorage.getItem("isLoggedIn") === "true"
     setIsLoggedIn(loggedInStatus)
+
+    // デバッグ用ログ追加 (開発環境のみ出力)
+    if (process.env.NODE_ENV === "development") {
+      console.log("Header mounted, current theme:", theme);
+    }
 
     const handleStorageChange = () => {
       const newLoggedInStatus = localStorage.getItem("isLoggedIn") === "true";
@@ -158,28 +163,29 @@ export default function Header() {
           {/* テーマ変更ボタン */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="icon" className="rounded-full">
-                <Palette className="h-5 w-5 transition-transform group-hover:rotate-12" />
+              <Button variant="outline" size="icon" className="rounded-full border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800">
+                <Palette className="h-5 w-5 transition-transform group-hover:rotate-12 text-slate-600 dark:text-slate-400" />
                 <span className="sr-only">テーマを切り替える</span>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>背景色を選択</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => setTheme("light")} className="flex items-center gap-2">
-                <Sun className="h-4 w-4" />
+            <DropdownMenuContent align="end" className="w-40 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-lg rounded-md">
+              <DropdownMenuLabel className="px-2 py-1.5 text-sm font-semibold text-slate-700 dark:text-slate-200">背景色を選択</DropdownMenuLabel>
+              <DropdownMenuSeparator className="bg-slate-200 dark:bg-slate-700" />
+              <DropdownMenuItem
+                onClick={() => setTheme("light")}
+                className="flex items-center gap-2 px-2 py-1.5 text-sm text-slate-700 dark:text-slate-300 hover:!bg-orange-100 dark:hover:!bg-slate-700 rounded-sm cursor-pointer"
+              >
+                <Sun className="h-4 w-4 text-orange-500" />
                 ライト
-                {theme === "light" && <Check className="h-4 w-4 ml-auto text-primary" />}
+                {theme === "light" && <Check className="h-4 w-4 ml-auto text-orange-500 dark:text-orange-400" />}
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setTheme("dark")} className="flex items-center gap-2">
-                <Moon className="h-4 w-4" />
+              <DropdownMenuItem
+                onClick={() => setTheme("dark")}
+                className="flex items-center gap-2 px-2 py-1.5 text-sm text-slate-700 dark:text-slate-300 hover:!bg-orange-100 dark:hover:!bg-slate-700 rounded-sm cursor-pointer"
+              >
+                <Moon className="h-4 w-4 text-indigo-500" />
                 ダーク
-                {theme === "dark" && <Check className="h-4 w-4 ml-auto text-primary" />}
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setTheme("system")} className="flex items-center gap-2">
-                <Settings className="h-4 w-4" />
-                システム
-                {theme === "system" && <Check className="h-4 w-4 ml-auto text-primary" />}
+                {theme === "dark" && <Check className="h-4 w-4 ml-auto text-indigo-500 dark:text-indigo-400" />}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
