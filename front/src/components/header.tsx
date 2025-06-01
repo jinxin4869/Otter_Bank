@@ -28,8 +28,10 @@ export default function Header() {
     const loggedInStatus = localStorage.getItem("isLoggedIn") === "true"
     setIsLoggedIn(loggedInStatus)
 
-    // デバッグ用ログ追加
-    console.log("Header mounted, current theme:", theme)
+    // デバッグ用ログ追加 (開発環境のみ出力)
+    if (process.env.NODE_ENV === "development") {
+      console.log("Header mounted, current theme:", theme);
+    }
 
     const handleStorageChange = () => {
       const newLoggedInStatus = localStorage.getItem("isLoggedIn") === "true";
