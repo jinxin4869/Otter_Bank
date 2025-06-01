@@ -1,33 +1,32 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import Image from "next/image"
 import { ArrowRight, PiggyBank, TrendingUp, BadgeCheck, Sparkles, HelpCircle } from "lucide-react"
 
 export default function Home() {
   return (
-    <div className="space-y-12 bg-orange-50 dark:bg-slate-800"> {/* ライトモードの基本背景を暖色系に、ダークモードの背景を少し明るく */}
+    <div className="space-y-12 bg-orange-50 dark:bg-gradient-to-br dark:from-slate-800 dark:to-indigo-900 transition-colors duration-500">
       {/* ヘッダーセクション */}
-      {/* ヘッダーセクション */}
-      <section className="relative min-h-[80vh] flex items-center overflow-hidden bg-amber-50 dark:bg-slate-800"> {/* ライトモードの背景を暖色系に */}
-        <div className="absolute inset-0 bg-gradient-to-br from-orange-100/30 via-transparent to-yellow-100/20 dark:from-indigo-900/20 dark:via-transparent dark:to-blue-900/10 z-0" /> {/* グラデーションも暖色系に */}
-        <div className="absolute -right-20 top-20 w-96 h-96 bg-orange-200/30 dark:bg-cyan-800/20 rounded-full blur-3xl" /> {/* 暖色系のアクセント */}
-        <div className="absolute left-10 bottom-20 w-72 h-72 bg-yellow-100/20 dark:bg-indigo-800/10 rounded-full blur-3xl" /> {/* 暖色系のアクセント */}
+      <section className="relative min-h-[80vh] flex items-center overflow-hidden bg-amber-50 dark:bg-gradient-to-br dark:from-slate-800 dark:to-indigo-900 transition-colors duration-500">
+        <div className="absolute inset-0 bg-gradient-to-br from-orange-100/30 via-transparent to-yellow-100/20 dark:from-indigo-900/30 dark:via-transparent dark:to-blue-900/20 z-0" />
+        <div className="absolute -right-20 top-20 w-96 h-96 bg-orange-200/30 dark:bg-cyan-800/30 rounded-full blur-3xl" />
+        <div className="absolute left-10 bottom-20 w-72 h-72 bg-yellow-100/20 dark:bg-indigo-800/20 rounded-full blur-3xl" />
 
         <div className="container mx-auto grid md:grid-cols-2 gap-8 items-center z-10">
           <div className="space-y-6">
             <span className="bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary-foreground px-4 py-2 rounded-full text-sm font-medium">
               お金管理が楽しくなる新アプリ
             </span>
-            <h1 className="text-5xl md:text-6xl font-bold tracking-tight mt-4 text-slate-800 dark:text-slate-50"> {/* ライトモードのテキスト色調整 */}
-              <span className="block text-orange-600 dark:text-primary">Otter Bank</span> {/* ライトモードのアクセントカラーをオレンジ系に */}
+            <h1 className="text-5xl md:text-6xl font-bold tracking-tight mt-4 text-slate-800 dark:text-slate-50">
+              <span className="block text-orange-600 dark:text-primary">Otter Bank</span>
             </h1>
-            <p className="text-xl text-slate-600 dark:text-slate-400 max-w-md"> {/* ライトモードのテキスト色調整 */}
+            <p className="text-xl text-slate-600 dark:text-slate-400 max-w-md">
               カワウソと一緒にお金を貯めよう！支出を記録するたびに、可愛いカワウソがリアクションします。
             </p>
 
             <div className="flex flex-wrap gap-4 pt-4">
-              <Button size="lg" className="rounded-full px-8 bg-orange-500 hover:bg-orange-600 text-white dark:bg-primary dark:hover:bg-primary/90 dark:text-primary-foreground"> {/* ライトモードのボタンスタイル */}
+              <Button size="lg" className="rounded-full px-8 bg-blue-500 hover:bg-blue-600 text-white dark:bg-primary dark:hover:bg-primary/90 dark:text-primary-foreground">
                 <Link href="/register" className="flex items-center gap-2">
                   無料で始める <ArrowRight className="h-4 w-4" />
                 </Link>
@@ -35,25 +34,20 @@ export default function Home() {
               <Button asChild variant="outline" size="lg" className="rounded-full px-8 border-orange-300 text-orange-700 hover:bg-orange-100 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-slate-100">
                 <Link href="/login">ログイン</Link>
               </Button>
-              <Button asChild variant="outline" size="lg" className="gap-2 border-2 border-orange-300 text-orange-700 hover:bg-orange-100 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-slate-100">
-                <Link href="/tutorial">
+              <Button asChild variant="outline" size="lg" className="rounded-full border-2 border-orange-300 text-orange-700 hover:bg-orange-100 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-slate-100">
+                <Link href="/tutorial" className="flex items-center gap-2">
                   <HelpCircle className="h-4 w-4" />
                   使い方
                 </Link>
               </Button>
             </div>
-
-            <div className="pt-8 flex items-center gap-4">
-              <div className="flex -space-x-2">
-              </div>
-            </div>
           </div>
 
           <div className="relative h-[500px] hidden md:block">
-            <div className="absolute inset-0 bg-gradient-to-br from-orange-50 to-transparent z-10 rounded-xl opacity-20 dark:from-background" /> {/* ライトモードの背景調整 */}
+            <div className="absolute inset-0 bg-gradient-to-br from-orange-50 to-transparent z-10 rounded-xl opacity-20 dark:from-background" />
             <div className="absolute -left-12 bottom-0 w-96 h-80">
               <Image
-                src="/画像7.svg"
+                src="/otter_bank.svg"
                 alt="Happy Otter with Money"
                 fill
                 className="object-contain"
@@ -61,7 +55,7 @@ export default function Home() {
             </div>
             <div className="absolute right-0 top-20 w-80 h-80 rotate-6">
               <Image
-                src="/傘をさしているカワウソ.png"
+                src="/otter_umbrella.png"
                 alt="App Preview"
                 fill
                 className="object-contain rounded-2xl shadow-2xl"
@@ -69,7 +63,7 @@ export default function Home() {
             </div>
             <div className="absolute right-20 bottom-10 w-64 h-64 -rotate-3">
               <Image
-                src="/算数が苦手なカワウソ.svg"
+                src="/otter_mathtest.svg"
                 alt="Savings Chart"
                 fill
                 className="object-contain rounded-2xl shadow-xl"
@@ -131,9 +125,8 @@ export default function Home() {
       </div>*/}
 
 
-      { /* 特徴セクションの改善 - アニメーションと視覚効果の追加 */}
-      {/* 特徴セクションの改善 */}
-      <section className="py-20 dark:bg-slate-900">
+      {/* 特徴セクション */}
+      <section className="py-20 bg-orange-50 dark:bg-gradient-to-br dark:from-slate-900 dark:to-indigo-900 transition-colors duration-500">
         <div className="container mx-auto">
           <div className="text-center mb-16">
             <span className="bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary-foreground px-4 py-2 rounded-full text-sm font-medium">
@@ -151,36 +144,36 @@ export default function Home() {
                 icon: <PiggyBank className="h-12 w-12" />,
                 title: "楽しく貯金",
                 description: "貯金するほどカワウソが喜び、環境が豊かになります",
-                color: "from-blue-500 to-indigo-500",
-                darkColor: "dark:from-blue-700 dark:to-indigo-700"
+                color: "from-blue-300 to-indigo-200",
+                darkColor: "dark:from-blue-500 dark:to-indigo-400"
               },
               {
                 icon: <BadgeCheck className="h-12 w-12" />,
                 title: "実績システム",
                 description: "目標を達成して特別なバッジやアイテムを獲得しよう",
-                color: "from-green-500 to-emerald-500",
-                darkColor: "dark:from-green-700 dark:to-emerald-700"
+                color: "from-green-300 to-emerald-200",
+                darkColor: "dark:from-green-500 dark:to-emerald-400"
               },
               {
                 icon: <TrendingUp className="h-12 w-12" />,
                 title: "わかりやすい分析",
                 description: "グラフやチャートで支出パターンを可視化",
-                color: "from-orange-500 to-amber-500",
-                darkColor: "dark:from-orange-600 dark:to-amber-600"
+                color: "from-orange-300 to-amber-200",
+                darkColor: "dark:from-orange-400 dark:to-amber-300"
               },
               {
                 icon: <Sparkles className="h-12 w-12" />,
                 title: "豊富なカスタマイズ",
                 description: "カワウソの環境や見た目を自分好みにアレンジ",
-                color: "from-pink-500 to-rose-500",
-                darkColor: "dark:from-pink-600 dark:to-rose-600"
+                color: "from-pink-300 to-rose-200",
+                darkColor: "dark:from-pink-400 dark:to-rose-300"
               }
             ].map((feature) => (
               <div
                 key={feature.title}
-                className="relative group bg-background dark:bg-slate-800 border dark:border-slate-700 rounded-xl p-6 hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
+                className="relative group bg-white dark:bg-slate-800 border border-orange-100 dark:border-slate-700 rounded-xl p-6 hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
               >
-                <div className={`absolute inset-0 bg-gradient-to-br ${feature.color} ${feature.darkColor} opacity-0 group-hover:opacity-10 rounded-xl transition-opacity duration-300`} />
+                <div className={`absolute inset-0 bg-gradient-to-br ${feature.color} ${feature.darkColor} opacity-0 group-hover:opacity-30 rounded-xl transition-opacity duration-300`} />
                 <div className="p-4 bg-primary/5 dark:bg-primary/10 rounded-full inline-block mb-4 text-primary dark:text-primary-foreground">
                   {feature.icon}
                 </div>
@@ -193,9 +186,9 @@ export default function Home() {
       </section>
 
       {/* 紹介セクション */}
-      <section className="py-20 bg-muted/30 dark:bg-slate-800/30">
+      <section className="py-20 bg-orange-100/60 dark:bg-slate-800/60 transition-colors duration-500">
         <div className="container mx-auto">
-          <div className="relative rounded-2xl overflow-hidden shadow-2xl bg-gradient-to-br from-background to-muted dark:from-slate-800 dark:to-slate-700">
+          <div className="relative rounded-2xl overflow-hidden shadow-2xl bg-gradient-to-br from-orange-50 to-yellow-50 dark:from-slate-800 dark:to-slate-700">
             <div className="absolute top-0 right-0 w-full h-full bg-gradient-to-bl from-primary/10 to-transparent dark:from-primary/20 opacity-50" />
 
             <div className="grid md:grid-cols-2 gap-8 p-8 md:p-12 relative z-10">
@@ -224,8 +217,8 @@ export default function Home() {
                     }
                   ].map((step, i) => (
                     <div key={i} className="flex items-start gap-4 group">
-                      <div className="flex-shrink-0 w-12 h-12 rounded-full bg-primary/10 dark:bg-primary/20 flex items-center justify-center group-hover:bg-primary group-hover:text-primary-foreground transition-colors duration-300">
-                        <span className="font-bold text-primary dark:text-primary-foreground group-hover:text-primary-foreground">{step.number}</span>
+                      <div className="flex-shrink-0 w-12 h-12 rounded-full bg-primary/10 dark:bg-primary/20 flex items-center justify-center transition-colors duration-300 group-hover:bg-blue-500 group-hover:text-white">
+                        <span className="font-bold text-primary dark:text-primary-foreground group-hover:text-white">{step.number}</span>
                       </div>
                       <div>
                         <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100">{step.title}</h3>
@@ -254,18 +247,14 @@ export default function Home() {
                           <div className="w-3 h-3 rounded-full bg-[#f4bf4f]"></div>
                           <div className="w-3 h-3 rounded-full bg-[#61c554]"></div>
                         </div>
-                        <div className="flex items-center space-x-2 text-gray-500 dark:text-slate-400">
-                          {/* SVG Icons */}
-                        </div>
+                        <div className="flex items-center space-x-2 text-gray-500 dark:text-slate-400"></div>
                         <div className="flex-1 mx-2">
                           <div className="bg-white dark:bg-slate-500 border border-gray-200 dark:border-slate-400 rounded-full px-4 py-1 text-xs text-gray-600 dark:text-slate-300 flex items-center">
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 mr-2 text-gray-400 dark:text-slate-400" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" /></svg>
                             <span>otterbank.app/dashboard</span>
                           </div>
                         </div>
-                        <div className="flex space-x-2 text-gray-500 dark:text-slate-400">
-                          {/* SVG Icons */}
-                        </div>
+                        <div className="flex space-x-2 text-gray-500 dark:text-slate-400"></div>
                       </div>
                       <div className="h-9 bg-[#f1f3f4] dark:bg-slate-600 flex items-center px-3 text-xs text-gray-700 dark:text-slate-300 border-b border-gray-200 dark:border-slate-500">
                         <div className="flex items-center bg-white dark:bg-slate-700 rounded-t-lg px-3 py-1.5 border-t border-l border-r border-gray-200 dark:border-slate-500">
@@ -276,8 +265,6 @@ export default function Home() {
                           <span className="mr-2">+</span>
                         </div>
                       </div>
-
-                      {/* タブバー - Chrome風 */}
                       <div className="h-9 bg-[#f1f3f4] flex items-center px-3 text-xs text-gray-700 border-b border-gray-200">
                         <div className="flex items-center bg-white rounded-t-lg px-3 py-1.5 border-t border-l border-r border-gray-200">
                           <span className="mr-2">OtterBank - ホーム</span>
@@ -287,25 +274,18 @@ export default function Home() {
                           <span className="mr-2">+</span>
                         </div>
                       </div>
-
-                      {/* スワイプ可能なコンテンツエリア - カルーセル */}
                       <div className="relative h-[calc(100%-19px-10px)] flex overflow-hidden">
-                        {/* インジケーター（ドット）*/}
                         <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-20 flex space-x-2">
                           <div className="w-2 h-2 rounded-full bg-primary"></div>
                           <div className="w-2 h-2 rounded-full bg-gray-300"></div>
                           <div className="w-2 h-2 rounded-full bg-gray-300"></div>
                         </div>
-
-                        {/* 左右のナビゲーションボタン */}
                         <button className="absolute left-2 top-1/2 transform -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-white/80 shadow-md flex items-center justify-center">
                           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
                         </button>
                         <button className="absolute right-2 top-1/2 transform -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-white/80 shadow-md flex items-center justify-center">
                           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
                         </button>
-
-                        {/* スライド1: ダッシュボード */}
                         <div className="flex-shrink-0 w-full h-full relative">
                           <Image
                             src="/app-top.png"
@@ -319,34 +299,27 @@ export default function Home() {
                                 <PiggyBank className="h-5 w-5 text-primary" />
                               </div>
                               <div className="text-sm">
-                                <div className="font-medium">今月の貯金額</div>
+                                <div className="font-medium text-primary">今月の貯金額</div>
                                 <div className="text-primary font-bold">¥12,500</div>
                               </div>
                             </div>
                           </div>
                         </div>
-
-                        {/* スライド2と3は隠れている状態 */}
                       </div>
                     </div>
                   </div>
-
-                  {/* カワウソアイコンは独立して表示 */}
                   <div className="absolute -bottom-20 right-20 w-40 h-40 z-10">
                     <Image
-                      src="/画像5.svg"
+                      src="/otter_logo.svg"
                       alt="Happy Otter"
                       fill
                       className="object-contain animate-bounce"
                     />
                   </div>
-
-                  {/* 吹き出し */}
                   <div className="absolute bottom-48 right-28 bg-white p-3 rounded-xl shadow-lg z-10 max-w-[200px] transform rotate-3">
                     <p className="text-sm">楽しく貯金できるね！今月も頑張ろう！</p>
                     <div className="absolute -bottom-2 right-6 w-4 h-4 bg-white transform rotate-45"></div>
                   </div>
-
                 </div>
               </div>
             </div>
@@ -354,8 +327,8 @@ export default function Home() {
         </div >
       </section >
 
-      {/* ロードマップセクション - シンプルカードデザイン */}
-      <section className="py-16 bg-gradient-to-br from-blue-50/30 to-indigo-50/30 dark:from-slate-800/30 dark:to-indigo-800/30 rounded-3xl">
+      {/* ロードマップセクション */}
+      <section className="py-16 bg-gradient-to-br from-blue-50/30 to-indigo-50/30 dark:from-slate-800/30 dark:to-indigo-800/30 rounded-3xl transition-colors duration-500">
         <div className="container mx-auto">
           <div className="text-center mb-8">
             <span className="bg-blue-100/50 text-blue-700 dark:bg-blue-800/50 dark:text-blue-300 px-4 py-2 rounded-full text-sm font-medium">
@@ -363,7 +336,7 @@ export default function Home() {
             </span>
             <h2 className="text-3xl font-bold mt-4 text-slate-900 dark:text-slate-50">本リリースへのロードマップ</h2>
             <p className="text-muted-foreground dark:text-slate-400 mt-3 max-w-2xl mx-auto">
-              計画している主な開発マイルストーンです。開発状況(本人の仕事の都合)により<br></br>変更の可能性があります。
+              計画している主な開発マイルストーンです。開発状況(本人の仕事の都合)により<br />変更の可能性があります。
             </p>
           </div>
 
@@ -474,8 +447,8 @@ export default function Home() {
         </div>
       </section >
 
-      {/* お願いセクション - ユーザーへのメッセージとフィードバック依頼 */}
-      < section className="py-12" >
+      {/* お願いセクション */}
+      <section className="py-12 bg-orange-50 dark:bg-slate-900 transition-colors duration-500">
         <div className="container mx-auto">
           <h2 className="text-3xl font-bold mb-6">皆さんへのお願い</h2>
           <Card className="overflow-hidden">
@@ -500,9 +473,9 @@ export default function Home() {
                         今すぐ始める
                       </Link>
                     </Button>
-                    <Button asChild variant="outline" className="bg-blue-500 hover:bg-blue-600">
+                    <Button asChild variant="outline" className="border-blue-300 text-blue-700 hover:bg-blue-100 dark:border-blue-700 dark:text-blue-300 dark:hover:bg-slate-800">
                       <a
-                        href={process.env.NEXT_PUBLIC_CONTACT_FORM_URL} // ここに実際のGoogleフォームのURLを入力
+                        href={process.env.NEXT_PUBLIC_CONTACT_FORM_URL}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="flex items-center gap-2"
@@ -518,31 +491,19 @@ export default function Home() {
                 <div className="relative rounded-xl overflow-hidden h-64 md:h-auto bg-gradient-to-br from-primary/10 to-primary/5">
                   <div className="absolute inset-0 flex items-center justify-center">
                     <Image
-                      src="/メガネをかけているカワウソ.svg"
+                      src="/otter_glasses.svg"
                       alt="Happy Otter"
                       width={200}
                       height={200}
                       className="object-contain"
                     />
-                    <div className="absolute inset-0 flex items-end justify-end p-6">
-                      <div className="bg-background/80 backdrop-blur-sm p-4 rounded-lg max-w-xs">
-                        <p className="text-sm italic">
-                          「皆さんの声を聞かせてください！より良いアプリづくりのために」
-                        </p>
-                      </div>
-                    </div>
                   </div>
                 </div>
               </div>
             </CardContent>
           </Card>
         </div>
-      </section >
-
-
-
-
-    </div >
+      </section>
+    </div>
   )
 }
-

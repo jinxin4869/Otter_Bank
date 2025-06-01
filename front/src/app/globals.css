@@ -87,7 +87,22 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-orange-50 dark:bg-slate-900 text-slate-900 dark:text-slate-50;
+  }
+
+  /* 各ページのメインコンテンツエリアの背景調整が必要な場合 */
+  .main-content-area {
+    @apply bg-orange-50 dark:bg-slate-800; /* 例: page.tsx のルート div など */
+  }
+
+  /* ライトモードのCardコンポーネントの背景を調整 */
+  .light .card-custom-bg {
+    @apply bg-amber-50; /* または bg-orange-100 など、より具体的な暖色 */
+  }
+
+  /* ダークモードのCardコンポーネントの背景を調整 */
+  .dark .card-custom-bg {
+    @apply dark:bg-slate-800; /* または dark:bg-indigo-900/50 など */
   }
 
   header {

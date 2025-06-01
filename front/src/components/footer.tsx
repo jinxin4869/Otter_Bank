@@ -27,7 +27,7 @@ export default function Footer() {
 
           <div className="flex items-center gap-3">
             <a
-              href="https://github.com/jinxin4869" // あなたのGitHubリポジトリへのリンクに置き換えてください
+              href="https://github.com/jinxin4869"
               target="_blank"
               rel="noopener noreferrer"
               aria-label="GitHub"
@@ -35,7 +35,7 @@ export default function Footer() {
             >
               <Github className="h-5 w-5" />
             </a>
-            {/* 他のSNSリンクや関連リンクをここに追加できます */}
+            {/* 他のSNSリンクや関連リンク */}
             {/*
             <a href="#" target="_blank" rel="noopener noreferrer" aria-label="Twitter" className="text-muted-foreground hover:text-primary transition-colors">
               <Twitter className="h-5 w-5" />

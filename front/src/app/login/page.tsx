@@ -71,7 +71,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex justify-center items-center min-h-[calc(100vh-200px)]">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-orange-50 dark:bg-slate-900 p-4">
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle className="text-2xl text-center">ログイン</CardTitle>
