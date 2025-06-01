@@ -87,7 +87,20 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply antialiased;
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+  }
+
+  /* 各ページのメインコンテンツエリアの背景調整が必要な場合 */
+  .main-content-area {
+    background-color: hsl(var(--background))
+  }
+
+  /* カードコンポーネントの背景 */
+  .card-custom-bg {
+    background-color: hsl(var(--card));
+    color: hsl(var(--card-foreground));
   }
 
   header {
