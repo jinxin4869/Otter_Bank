@@ -15,8 +15,6 @@ import { Sun, Moon, Menu, LogIn, LogOut, UserPlus, Home, BookOpen, MessageSquare
 import Image from "next/image"
 import { usePathname, useRouter } from 'next/navigation'
 import { useEffect, useState } from "react"
-import { is } from "date-fns/locale"
-
 export default function Header() {
   const { theme, setTheme } = useTheme()
   const pathname = usePathname()
