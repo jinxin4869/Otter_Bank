@@ -37,6 +37,15 @@
 
     --radius: 0.75rem; /* ボーダー半径 */
 
+    --z-dropdown: 100;
+    --z-sticky: 200;
+    --z-fixed: 300;
+    --z-modal-backdrop: 400;
+    --z-modal: 500;
+    --z-popover: 600;
+    --z-tooltip: 700;
+    --z-toast: 800;
+
     /* ヘッダーとフッターのテーマ変数 (ライト) */
     --header-bg: var(--primary);
     --header-fg: var(--primary-foreground);
@@ -81,9 +90,7 @@
     --footer-fg: 210 40% 98%; /* 既存のダークテーマのフッターテキスト */
   }
   /* グローバルなスタイル */
-  * {
-    @apply border-border outline-ring/50;
-  }
+
   body {
     @apply antialiased;
     background-color: hsl(var(--background));
@@ -162,6 +169,48 @@
 
   .dark .select-item-custom:hover {
     background-color: #92400e !important; /* ダークモードのホバー */
+  }
+
+  /* ダイアログのオーバーレイを調整 - 重複削除して統一 */
+  [data-radix-dialog-overlay] {
+    background-color: hsla(
+      25,
+      50%,
+      20%,
+      0.3
+    ) !important; /* より薄い暖色系オーバーレイ */
+    z-index: var(--z-modal-backdrop) !important;
+  }
+
+  .dark [data-radix-dialog-overlay] {
+    background-color: rgba(
+      0,
+      0,
+      0,
+      0.4
+    ) !important; /* ダークモードでもより薄く */
+  }
+
+  /* AlertDialogのオーバーレイも同様に */
+  [data-radix-alert-dialog-overlay] {
+    background-color: hsla(25, 50%, 20%, 0.3) !important;
+  }
+
+  .dark [data-radix-alert-dialog-overlay] {
+    background-color: rgba(0, 0, 0, 0.4) !important;
+  }
+
+  /* ダイアログコンテンツのz-indexも統一 */
+  [data-radix-dialog-content] {
+    z-index: var(--z-modal) !important;
+    background-color: hsl(var(--background)) !important;
+    border: 1px solid hsl(var(--border)) !important;
+  }
+
+  [data-radix-alert-dialog-content] {
+    z-index: var(--z-modal) !important;
+    background-color: hsl(var(--background)) !important;
+    border: 1px solid hsl(var(--border)) !important;
   }
 }
 
