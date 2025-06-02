@@ -7,17 +7,17 @@
 
 @layer base {
   :root {
-    --background: 210 40% 98%; /* 明るい背景 (ライトテーマのデフォルト) */
-    --foreground: 222.2 84% 4.9%; /* 暗いテキスト */
+    --background: 25 100% 96%; /* 柔らかいオレンジ色 */
+    --foreground: 25 50% 30%; /* 濃い茶色 */
 
-    --card: 0 0% 100%; /* カード背景 (白) */
-    --card-foreground: 222.2 84% 4.9%; /* カードテキスト */
+    --card: 30 100% 98%; /* 背景より少し明るいオレンジがかった白 */
+    --card-foreground: 25 50% 25%; /* 文字色より少し濃い茶色 */
 
-    --popover: 0 0% 100%; /* ポップオーバー背景 (白) */
-    --popover-foreground: 222.2 84% 4.9%; /* ポップオーバーテキスト */
+    --popover: 30 100% 98%; /* カード背景に合わせる */
+    --popover-foreground: 25 50% 25%; /* カード文字色に合わせる */
 
-    --primary: 210 70% 58%; /* プライマリーカラー (青系) */
-    --primary-foreground: 210 40% 98%; /* プライマリーカラー上のテキスト (明るい) */
+    --primary: 15 80% 55%; /* 温かみのあるオレンジ色 */
+    --primary-foreground: 25 100% 98%; /* 明るいクリーム色 */
 
     --secondary: 210 40% 96.1%;
     --secondary-foreground: 222.2 47.4% 11.2%;
@@ -37,11 +37,20 @@
 
     --radius: 0.75rem; /* ボーダー半径 */
 
+    --z-dropdown: 100;
+    --z-sticky: 200;
+    --z-fixed: 300;
+    --z-modal-backdrop: 400;
+    --z-modal: 500;
+    --z-popover: 600;
+    --z-tooltip: 700;
+    --z-toast: 800;
+
     /* ヘッダーとフッターのテーマ変数 (ライト) */
     --header-bg: var(--primary);
     --header-fg: var(--primary-foreground);
-    --footer-bg: 222.2 84% 4.9%; /* 例: ダークなフッター */
-    --footer-fg: 210 40% 98%; /* 例: 明るいフッターテキスト */
+    --footer-bg: 25 50% 20%; /* 例: 濃い茶系のフッター */
+    --footer-fg: 25 100% 96%; /* 例: 明るいフッターテキスト */
   }
 
   .dark {
@@ -80,12 +89,8 @@
     --footer-bg: 215 28% 17%; /* 既存のダークテーマのフッター背景 */
     --footer-fg: 210 40% 98%; /* 既存のダークテーマのフッターテキスト */
   }
-}
+  /* グローバルなスタイル */
 
-@layer base {
-  * {
-    @apply border-border outline-ring/50;
-  }
   body {
     @apply antialiased;
     background-color: hsl(var(--background));
@@ -94,7 +99,7 @@
 
   /* 各ページのメインコンテンツエリアの背景調整が必要な場合 */
   .main-content-area {
-    background-color: hsl(var(--background))
+    background-color: hsl(var(--background));
   }
 
   /* カードコンポーネントの背景 */
@@ -111,6 +116,101 @@
   footer {
     background-color: hsl(var(--footer-bg));
     color: hsl(var(--footer-fg));
+  }
+
+  /* 取引履歴カテゴリーアイコン */
+  .transaction-history-icon {
+    color: #0f172a !important; /* ライトモードで非常に濃い色 */
+  }
+
+  .dark .transaction-history-icon {
+    color: #ffffff !important; /* ダークモードで白色 */
+  }
+
+  /* 暖色背景用アイコン */
+  .warm-bg-icon {
+    color: #0c0a09 !important; /* ライトモードで非常に濃い茶色 */
+  }
+
+  .dark .warm-bg-icon {
+    color: #ffffff !important; /* ダークモードで白色 */
+  }
+
+  /* 収入カテゴリーのカスタムスタイル */
+  .income-category-item {
+    @apply flex items-center gap-2 text-blue-700 dark:text-blue-300;
+  }
+
+  /* 支出カテゴリーのカスタムスタイル */
+  .expense-category-item {
+    @apply flex items-center gap-2 text-rose-700 dark:text-rose-300;
+  }
+
+  /* カテゴリードロップダウンメニューのスタイル */
+  .category-dropdown-menu {
+    background-color: #fef7ed !important; /* 暖色系のクリーム色 */
+  }
+
+  .dark .category-dropdown-menu {
+    border-color: #92400e !important;
+  }
+
+  /* ドロップダウンアイテムの基本スタイル */
+  .select-item-custom {
+    padding: 8px 12px !important;
+    cursor: pointer !important;
+    border-radius: 4px !important;
+    margin: 2px 4px !important;
+  }
+
+  .select-item-custom:hover {
+    background-color: #fed7aa !important; /* ホバー時の明るいオレンジ */
+  }
+
+  .dark .select-item-custom:hover {
+    background-color: #92400e !important; /* ダークモードのホバー */
+  }
+
+  /* ダイアログのオーバーレイを調整 - 重複削除して統一 */
+  [data-radix-dialog-overlay] {
+    background-color: hsla(
+      25,
+      50%,
+      20%,
+      0.3
+    ) !important; /* より薄い暖色系オーバーレイ */
+    z-index: var(--z-modal-backdrop) !important;
+  }
+
+  .dark [data-radix-dialog-overlay] {
+    background-color: rgba(
+      0,
+      0,
+      0,
+      0.4
+    ) !important; /* ダークモードでもより薄く */
+  }
+
+  /* AlertDialogのオーバーレイも同様に */
+  [data-radix-alert-dialog-overlay] {
+    background-color: hsla(25, 50%, 20%, 0.3) !important;
+  }
+
+  .dark [data-radix-alert-dialog-overlay] {
+    background-color: rgba(0, 0, 0, 0.4) !important;
+  }
+
+  /* ダイアログコンテンツのz-indexも統一 */
+  [data-radix-dialog-content] {
+    z-index: var(--z-modal) !important;
+    background-color: hsl(var(--background)) !important;
+    border: 1px solid hsl(var(--border)) !important;
+  }
+
+  [data-radix-alert-dialog-content] {
+    z-index: var(--z-modal) !important;
+    background-color: hsl(var(--background)) !important;
+    border: 1px solid hsl(var(--border)) !important;
   }
 }
 

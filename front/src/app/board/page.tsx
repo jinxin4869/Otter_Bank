@@ -578,7 +578,7 @@ export default function BoardPage() {
           <MessageSquare className="mx-auto h-12 w-12 text-muted-foreground opacity-50" />
           <h3 className="mt-4 text-lg font-medium">投稿がありません</h3>
           <p className="mt-2 text-muted-foreground">検索条件に一致する投稿がないか、まだ投稿がありません。</p>
-          <Button className="mt-4" onClick={() => setIsNewPostDialogOpen(true)}>
+          <Button className="mt-4 bg-blue-400 hover:bg-blue-400" onClick={() => setIsNewPostDialogOpen(true)}>
             最初の投稿を作成
           </Button>
         </div>
@@ -699,20 +699,22 @@ export default function BoardPage() {
   }
 
   return (
-    <div className="container max-auto py-6 space-y-6">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+    <div className="container max-auto max-w-6xl py-6 px-4 md:px-6 lg:px-8">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
         <div>
           <h1 className="text-3xl font-bold">掲示板</h1>
           <p className="text-muted-foreground">お金の管理や貯金のコツ、投資の経験などを共有しましょう</p>
         </div>
-        <Button onClick={() => setIsNewPostDialogOpen(true)}> {/* この onClick を修正 */}
+        <Button onClick={() => setIsNewPostDialogOpen(true)}
+          className="bg-primary hover:bg-primary/90 text-primary-foreground"
+        >
           <Plus className="mr-2 h-4 w-4" />
           新規投稿
         </Button>
       </div>
 
       {/* 検索とフィルター */}
-      <div className="flex flex-col sm:flex-row gap-2">
+      <div className="flex flex-col sm:flex-row gap-2 mb-6">
         <div className="relative flex-1">
           <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
@@ -727,7 +729,7 @@ export default function BoardPage() {
             <SelectTrigger className="w-[130px]">
               <SelectValue placeholder="並び替え" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="bg-white">
               {SORT_OPTIONS.map((option) => (
                 <SelectItem key={option.value} value={option.value}>
                   {option.label}
@@ -744,7 +746,7 @@ export default function BoardPage() {
 
       {/* カテゴリータブ */}
       <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="w-full flex flex-wrap">
+        <TabsList className="w-full flex flex-wrap justify-center">
           <TabsTrigger value="all">すべて</TabsTrigger>
           {BOARD_CATEGORIES.map((category) => (
             <TabsTrigger
@@ -770,7 +772,7 @@ export default function BoardPage() {
 
       {/* 新規投稿ダイアログ */}
       <Dialog open={isNewPostDialogOpen} onOpenChange={setIsNewPostDialogOpen}>
-        <DialogContent className="sm:max-w-[600px]">
+        <DialogContent className="sm:max-w-[600px] bg-white">
           <DialogHeader>
             <DialogTitle>新規投稿</DialogTitle>
             <DialogDescription>
@@ -829,7 +831,7 @@ export default function BoardPage() {
 
       {/* 編集ダイアログ */}
       <Dialog open={isEditPostDialogOpen} onOpenChange={setIsEditPostDialogOpen}>
-        <DialogContent className="sm:max-w-[600px]">
+        <DialogContent className="sm:max-w-[600px] bg-white">
           <DialogHeader>
             <DialogTitle>投稿を編集</DialogTitle>
             <DialogDescription>
@@ -887,7 +889,7 @@ export default function BoardPage() {
 
       {/* 投稿詳細ダイアログ */}
       <Dialog open={isPostDetailDialogOpen} onOpenChange={setIsPostDetailDialogOpen}>
-        <DialogContent className="sm:max-w-[800px] max-h-[80vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-[800px] max-h-[80vh] overflow-y-auto bg-white">
           {selectedPost && (
             <>
               <DialogHeader>
@@ -1049,7 +1051,7 @@ export default function BoardPage() {
 
       {/* フィルターダイアログ */}
       <Dialog open={isFilterDialogOpen} onOpenChange={setIsFilterDialogOpen}>
-        <DialogContent className="sm:max-w-[500px]">
+        <DialogContent className="sm:max-w-[500px] bg-white">
           <DialogHeader>
             <DialogTitle>投稿のフィルター</DialogTitle>
           </DialogHeader>
@@ -1081,10 +1083,10 @@ export default function BoardPage() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setSelectedCategories([])}>
+            <Button variant="outline" className="text-red-300 hover:text-red-400" onClick={() => setSelectedCategories([])}>
               リセット
             </Button>
-            <Button onClick={() => setIsFilterDialogOpen(false)}>適用</Button>
+            <Button className=" hover:bg-blue-400" onClick={() => setIsFilterDialogOpen(false)}>適用</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
