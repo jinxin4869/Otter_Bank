@@ -368,7 +368,7 @@ export default function CollectionPage() {
   })
 
   return (
-    <div className="space-y-6">
+    <div className="container mx-auto px-4 py-6 md:px-6 md:py-8 lg:px-8 lg:py-10 space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold">図鑑</h1>

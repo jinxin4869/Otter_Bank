@@ -115,7 +115,7 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-orange-50 dark:bg-slate-900 p-4">
+    <div className="flex min-h-screen flex-col items-center justify-center p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl text-center">アカウント作成</CardTitle>
@@ -206,37 +206,38 @@ export default function RegisterPage() {
           </form>
         </CardContent>
 
-        <div className="relative">
-          <div className="absolute inset-0 flex items-center">
-            <span className="w-full border-t" />
-          </div>
-          <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-background px-2 text-muted-foreground">または</span>
+        <div className="px-7 py-4">
+          <div className="flex items-center">
+            <div className="flex-grow border-t border-muted-foreground/30"></div> {/* 左側の線 */}
+            <span className="mx-4 flex-shrink text-xs text-muted-foreground">または</span>
+            <div className="flex-grow border-t border-muted-foreground/30"></div> {/* 右側の線 */}
           </div>
         </div>
 
         {/* Googleで登録ボタン */}
-        <div className="space-y-2">
-          <Button
-            variant="outline"
-            onClick={handleGoogleRegister}
-            disabled={isGoogleLoading || isLoading}
-            className="w-full flex items-center justify-center"
-          >
-            {isGoogleLoading ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            ) : (
-              <Image
-                src="/Google.svg"
-                alt="Google"
-                width={20}
-                height={20}
-                className="mr-2"
-              />
-            )}
-            Googleで登録
-          </Button>
-        </div>
+        <CardContent className="pb-4">
+          <div className="space-y-2">
+            <Button
+              variant="outline"
+              onClick={handleGoogleRegister}
+              disabled={isGoogleLoading || isLoading}
+              className="w-full flex items-center justify-center py-2"
+            >
+              {isGoogleLoading ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Image
+                  src="/Google.svg"
+                  alt="Google"
+                  width={20}
+                  height={20}
+                  className="mr-2"
+                />
+              )}
+              Googleでログイン
+            </Button>
+          </div>
+        </CardContent>
 
         <CardFooter className="flex flex-col space-y-2">
           <div className="text-sm text-center text-muted-foreground">

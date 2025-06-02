@@ -26,9 +26,9 @@ export default function Home() {
             </p>
 
             <div className="flex flex-wrap gap-4 pt-4">
-              <Button size="lg" className="rounded-full px-8">
+              <Button size="lg" className="rounded-full px-8 bg-blue-400 hover:bg-blue-600 text-white">
                 <Link href="/register" className="flex items-center gap-2">
-                  無料で始める <ArrowRight className="h-4 w-4" />
+                  今すぐ始める <ArrowRight className="h-4 w-4" />
                 </Link>
               </Button>
               <Button asChild variant="outline" size="lg" className="rounded-full px-8">
@@ -126,7 +126,7 @@ export default function Home() {
 
 
       {/* 特徴セクション */}
-      <section className="py-20 bg-card/30 transition-colors duration-500">
+      <section className="py-20 bg-muted/30 transition-colors duration-500">
         <div className="container mx-auto">
           <div className="text-center mb-16">
             <span className="bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-medium">
@@ -224,10 +224,10 @@ export default function Home() {
                   ))}
                 </div>
 
-                <Button asChild>
+                <Button asChild className="bg-blue-400 hover:bg-blue-600 text-white">
                   <Link href="/register" className="flex items-center gap-2">
-                    <ArrowRight className="h-4 w-4" />
                     今すぐ始める
+                    <ArrowRight className="h-4 w-4" />
                   </Link>
                 </Button>
               </div>
@@ -385,7 +385,7 @@ export default function Home() {
                 </div>
                 <div className="text-3xl mb-4">{phase.emoji}</div>
                 <h3 className="text-xl font-bold mb-2 text-foreground">{phase.title}</h3>
-                <div className="text-sm text-muted-foreground mb-4 inline-block px-3 py-1 rounded-full bg-primary/10 text-primary">
+                <div className="text-sm text-muted-foreground mb-4 inline-block px-3 py-1 rounded-full bg-primary/10">
                   {phase.timeframe}
                 </div>
                 <ul className="space-y-2 relative z-10">
@@ -429,7 +429,7 @@ export default function Home() {
       </section>
 
       {/* お願いセクション */}
-      <section className="py-12 bg-background transition-colors duration-500">
+      <section className="py-12 bg-muted/30 transition-colors duration-500">
         <div className="container mx-auto">
           <h2 className="text-3xl font-bold mb-6 text-foreground">皆さんへのお願い</h2>
           <Card className="overflow-hidden">
@@ -448,10 +448,10 @@ export default function Home() {
                     皆さんがより良く自分のお金を管理できるよう、全力でサポートします。
                   </p>
                   <div className="flex flex-col sm:flex-row gap-4 pt-4">
-                    <Button asChild>
+                    <Button asChild className="bg-blue-400 hover:bg-blue-600 text-white">
                       <Link href="/register" className="flex items-center gap-2">
-                        <ArrowRight className="h-4 w-4" />
                         今すぐ始める
+                        <ArrowRight className="h-4 w-4" />
                       </Link>
                     </Button>
                     <Button asChild variant="outline">
@@ -459,7 +459,7 @@ export default function Home() {
                         href={process.env.NEXT_PUBLIC_CONTACT_FORM_URL}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center gap-2"
+                        className="flex items-center gap-2 bg-black-500 hover:bg-blue-600"
                       >
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-message-square">
                           <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
@@ -474,8 +474,8 @@ export default function Home() {
                     <Image
                       src="/otter_glasses.svg"
                       alt="Happy Otter"
-                      width={200}
-                      height={200}
+                      width={300}
+                      height={300}
                       className="object-contain"
                     />
                   </div>

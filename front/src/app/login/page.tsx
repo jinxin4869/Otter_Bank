@@ -71,7 +71,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-orange-50 dark:bg-slate-900 p-4">
+    <div className="flex min-h-screen flex-col items-center justify-center p-4">
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle className="text-2xl text-center">ログイン</CardTitle>
@@ -92,7 +92,7 @@ export default function LoginPage() {
               <Input
                 id="email"
                 type="email"
-                placeholder="example@example.com"
+                placeholder="例: example@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -103,6 +103,7 @@ export default function LoginPage() {
               <Input
                 id="password"
                 type="password"
+                placeholder="パスワードを入力"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
@@ -128,16 +129,15 @@ export default function LoginPage() {
             </Button>
           </form>
 
-          <div className="relative my-6">
-            <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t" />
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-background px-2 text-muted-foreground">または</span>
+          <div className="px-2 py-4">
+            <div className="flex items-center">
+              <div className="flex-grow border-t border-muted-foreground/30"></div> {/* 左側の線 */}
+              <span className="mx-4 flex-shrink text-xs uppercase text-muted-foreground">または</span>
+              <div className="flex-grow border-t border-muted-foreground/30"></div> {/* 右側の線 */}
             </div>
           </div>
 
-          <Button variant="outline" className="w-full" disabled={isLoading}>
+          <Button variant="outline" className="w-full " disabled={isLoading}>
             ゲストでログイン
           </Button>
 
