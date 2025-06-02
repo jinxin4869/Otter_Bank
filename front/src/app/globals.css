@@ -80,9 +80,7 @@
     --footer-bg: 215 28% 17%; /* 既存のダークテーマのフッター背景 */
     --footer-fg: 210 40% 98%; /* 既存のダークテーマのフッターテキスト */
   }
-}
-
-@layer base {
+  /* グローバルなスタイル */
   * {
     @apply border-border outline-ring/50;
   }
@@ -111,6 +109,59 @@
   footer {
     background-color: hsl(var(--footer-bg));
     color: hsl(var(--footer-fg));
+  }
+
+  /* 取引履歴カテゴリーアイコン */
+  .transaction-history-icon {
+    color: #0f172a !important; /* ライトモードで非常に濃い色 */
+  }
+
+  .dark .transaction-history-icon {
+    color: #ffffff !important; /* ダークモードで白色 */
+  }
+
+  /* 暖色背景用アイコン */
+  .warm-bg-icon {
+    color: #0c0a09 !important; /* ライトモードで非常に濃い茶色 */
+  }
+
+  .dark .warm-bg-icon {
+    color: #ffffff !important; /* ダークモードで白色 */
+  }
+
+  /* 収入カテゴリーのカスタムスタイル */
+  .income-category-item {
+    @apply flex items-center gap-2 text-blue-700 dark:text-blue-300;
+  }
+
+  /* 支出カテゴリーのカスタムスタイル */
+  .expense-category-item {
+    @apply flex items-center gap-2 text-rose-700 dark:text-rose-300;
+  }
+
+  /* カテゴリードロップダウンメニューのスタイル */
+  .category-dropdown-menu {
+    background-color: #fef7ed !important; /* 暖色系のクリーム色 */
+  }
+
+  .dark .category-dropdown-menu {
+    border-color: #92400e !important;
+  }
+
+  /* ドロップダウンアイテムの基本スタイル */
+  .select-item-custom {
+    padding: 8px 12px !important;
+    cursor: pointer !important;
+    border-radius: 4px !important;
+    margin: 2px 4px !important;
+  }
+
+  .select-item-custom:hover {
+    background-color: #fed7aa !important; /* ホバー時の明るいオレンジ */
+  }
+
+  .dark .select-item-custom:hover {
+    background-color: #92400e !important; /* ダークモードのホバー */
   }
 }
 

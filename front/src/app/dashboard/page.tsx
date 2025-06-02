@@ -253,7 +253,14 @@ export default function DashboardPage() {
 
   const getCategoryIcon = (categoryValue: string, type: "income" | "expense") => {
     const categories = type === "income" ? INCOME_CATEGORIES : EXPENSE_CATEGORIES
-    return categories.find((c) => c.value === categoryValue)?.icon || <HelpCircle className="h-4 w-4" />
+    const categoryData = categories.find((c) => c.value === categoryValue)
+
+    if (categoryData) {
+      const IconComponent = categoryData.icon.type
+      return <IconComponent className="h-4 w-4 transition-history-icon warm-bg-icon" />
+    }
+
+    return <HelpCircle className="h-4 w-4 transaction-history-icon warm-bg-icon" />
   }
 
   const getViewTitle = () => {
@@ -440,8 +447,8 @@ export default function DashboardPage() {
                           className={cn(
                             "w-10 h-10 rounded-full flex items-center justify-center",
                             transaction.type === "income"
-                              ? "bg-blue-100/70 text-blue-500 dark:bg-blue-900/30 dark:text-blue-300"
-                              : "bg-rose-100/70 text-rose-500 dark:bg-rose-900/30 dark:text-rose-300",
+                              ? "bg-amber-600/70 text-blue-200 dark:bg-blue-900/30 dark:text-blue-300"
+                              : "bg-purple-600/70 text-rose-200 dark:bg-rose-900/30 dark:text-rose-300",
                           )}
                         >
                           {getCategoryIcon(transaction.category, transaction.type)}
@@ -535,15 +542,27 @@ export default function DashboardPage() {
                 </div>
               </div>
 
+              {/* カテゴリー選択ドロップダウンメニューのスタイル調整 */}
+              {/* ライトモードうまくいってない */}
               <div className="space-y-2">
                 <Label htmlFor="category">カテゴリー</Label>
                 <Select value={category} onValueChange={setCategory} required>
-                  <SelectTrigger id="category">
+                  <SelectTrigger className="w-full bg-orange-200">
                     <SelectValue placeholder="カテゴリーを選択" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent
+                    className="category-dropdown-menu"
+                    position="item-aligned"
+                    align="start"
+                    side="bottom"
+                    sideOffset={5}
+                  >
                     {(type === "income" ? INCOME_CATEGORIES : EXPENSE_CATEGORIES).map((cat) => (
-                      <SelectItem key={cat.value} value={cat.value} className="flex items-center gap-2">
+                      <SelectItem
+                        key={cat.value}
+                        value={cat.value}
+                        className={`select-item-custom ${type === "income" ? "income-category-item" : "expense-category-item"}`}
+                      >
                         <div className="flex items-center gap-2">
                           {cat.icon}
                           <span>{cat.label}</span>
