@@ -7,17 +7,17 @@
 
 @layer base {
   :root {
-    --background: 210 40% 98%; /* 明るい背景 (ライトテーマのデフォルト) */
-    --foreground: 222.2 84% 4.9%; /* 暗いテキスト */
+    --background: 25 100% 96%; /* 柔らかいオレンジ色 */
+    --foreground: 25 50% 30%; /* 濃い茶色 */
 
-    --card: 0 0% 100%; /* カード背景 (白) */
-    --card-foreground: 222.2 84% 4.9%; /* カードテキスト */
+    --card: 30 100% 98%; /* 背景より少し明るいオレンジがかった白 */
+    --card-foreground: 25 50% 25%; /* 文字色より少し濃い茶色 */
 
-    --popover: 0 0% 100%; /* ポップオーバー背景 (白) */
-    --popover-foreground: 222.2 84% 4.9%; /* ポップオーバーテキスト */
+    --popover: 30 100% 98%; /* カード背景に合わせる */
+    --popover-foreground: 25 50% 25%; /* カード文字色に合わせる */
 
-    --primary: 210 70% 58%; /* プライマリーカラー (青系) */
-    --primary-foreground: 210 40% 98%; /* プライマリーカラー上のテキスト (明るい) */
+    --primary: 15 80% 55%; /* 温かみのあるオレンジ色 */
+    --primary-foreground: 25 100% 98%; /* 明るいクリーム色 */
 
     --secondary: 210 40% 96.1%;
     --secondary-foreground: 222.2 47.4% 11.2%;
@@ -40,8 +40,8 @@
     /* ヘッダーとフッターのテーマ変数 (ライト) */
     --header-bg: var(--primary);
     --header-fg: var(--primary-foreground);
-    --footer-bg: 222.2 84% 4.9%; /* 例: ダークなフッター */
-    --footer-fg: 210 40% 98%; /* 例: 明るいフッターテキスト */
+    --footer-bg: 25 50% 20%; /* 例: 濃い茶系のフッター */
+    --footer-fg: 25 100% 96%; /* 例: 明るいフッターテキスト */
   }
 
   .dark {
@@ -94,7 +94,7 @@
 
   /* 各ページのメインコンテンツエリアの背景調整が必要な場合 */
   .main-content-area {
-    background-color: hsl(var(--background))
+    background-color: hsl(var(--background));
   }
 
   /* カードコンポーネントの背景 */

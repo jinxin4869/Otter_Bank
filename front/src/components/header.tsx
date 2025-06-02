@@ -15,6 +15,7 @@ import { Sun, Moon, Menu, LogIn, LogOut, UserPlus, Home, BookOpen, MessageSquare
 import Image from "next/image"
 import { usePathname, useRouter } from 'next/navigation'
 import { useEffect, useState } from "react"
+import { is } from "date-fns/locale"
 
 export default function Header() {
   const { theme, setTheme } = useTheme()
@@ -22,6 +23,7 @@ export default function Header() {
   const router = useRouter()
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [mounted, setMounted] = useState(false)
+  const logoHref = isLoggedIn ? "/dashboard" : "/";
 
   useEffect(() => {
     setMounted(true)
@@ -78,8 +80,8 @@ export default function Header() {
     return (
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 dark:border-slate-800">
         <div className="container flex h-16 items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
-            <Image src="/logo.png" alt="Otter Bank Logo" width={36} height={36} className="rounded-full" />
+          <Link href={logoHref} className="flex items-center gap-2">
+            <Image src="/logo.png" alt="Otter Bank Logo" width={32} height={32} className="rounded-full" />
             <span className="font-bold text-lg">Otter Bank</span>
           </Link>
           <div className="h-8 w-8 bg-muted rounded-md animate-pulse"></div>
