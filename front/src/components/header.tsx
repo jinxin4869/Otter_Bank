@@ -46,7 +46,7 @@ export default function Header() {
     return () => {
       window.removeEventListener('storage', handleStorageChange);
     };
-  }, [isLoggedIn, pathname, router])
+  }, [isLoggedIn, pathname, router, theme])
 
   const handleLogout = () => {
     localStorage.removeItem("isLoggedIn");

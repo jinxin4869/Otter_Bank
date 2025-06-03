@@ -11,6 +11,8 @@ import {
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { ArrowRight, ArrowLeft, Check, PlusCircle, Wallet, PieChart, Calendar, Trophy } from "lucide-react"
+import Image from "next/image"
+import { setSeconds } from "date-fns"
 
 export function Tutorial() {
   const [open, setOpen] = useState(false)
@@ -106,10 +108,12 @@ export function Tutorial() {
 
         <div className="py-4">
           <div className="relative w-full h-[200px] mb-4 rounded-lg overflow-hidden">
-            <img
-              src={currentStepData.image || "/placeholder.svg"}
-              alt={currentStepData.title}
-              className="w-full h-full object-cover"
+            <Image
+              src={steps[currentStep].image}
+              alt={steps[currentStep].title}
+              width={400}
+              height={192}
+              className="w-full h-48 object-cover rounded-lg mb-4"
             />
           </div>
 
