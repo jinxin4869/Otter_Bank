@@ -12,12 +12,14 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { toast } from "sonner"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { AlertCircle, Loader2 } from "lucide-react"
+import Image from "next/image"
 
 export default function LoginPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false)
   const router = useRouter()
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -67,6 +69,20 @@ export default function LoginPage() {
       }
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  const handleGoogleRegister = async () => {
+    setError(null)
+    setIsGoogleLoading(true)
+
+    try {
+      // Google認証の処理
+      window.location.href = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/auth/google`;
+
+    } catch (error) {
+      setError("Google認証中にエラーが発生しました。後でもう一度お試しください。")
+      setIsGoogleLoading(false)
     }
   }
 
@@ -131,19 +147,35 @@ export default function LoginPage() {
 
           <div className="px-2 py-4">
             <div className="flex items-center">
-              <div className="flex-grow border-t border-muted-foreground/30"></div> {/* 左側の線 */}
+              <div className="flex-grow border-t border-muted-foreground/30"></div>
               <span className="mx-4 flex-shrink text-xs uppercase text-muted-foreground">または</span>
-              <div className="flex-grow border-t border-muted-foreground/30"></div> {/* 右側の線 */}
+              <div className="flex-grow border-t border-muted-foreground/30"></div>
             </div>
           </div>
 
-          <Button variant="outline" className="w-full " disabled={isLoading}>
-            ゲストでログイン
-          </Button>
-
-          <div className="mt-4 text-center text-sm text-muted-foreground">
-            <p>ログインせずに内容を確認してみたい方向け</p>
+          {/* Googleログインボタン */}
+          <div className="space-y-2">
+            <Button
+              variant="outline"
+              onClick={handleGoogleRegister}
+              disabled={isGoogleLoading || isLoading}
+              className="w-full flex items-center justify-center"
+            >
+              {isGoogleLoading ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Image
+                  src="/Google.svg"
+                  alt="Google"
+                  width={20}
+                  height={20}
+                  className="mr-2"
+                />
+              )}
+              Googleでログイン
+            </Button>
           </div>
+
         </CardContent>
         <CardFooter className="flex justify-center">
           <p className="text-sm text-center">

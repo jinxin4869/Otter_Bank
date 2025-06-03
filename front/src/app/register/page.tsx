@@ -12,7 +12,6 @@ import { Label } from "@/components/ui/label"
 import { toast } from "sonner"
 import { Loader2, Mail, Lock, User, AlertCircle } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import Image from "next/image"
 
 export default function RegisterPage() {
   const router = useRouter()
@@ -22,7 +21,6 @@ export default function RegisterPage() {
   const [username, setUsername] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [isGoogleLoading, setIsGoogleLoading] = useState(false)
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -99,20 +97,6 @@ export default function RegisterPage() {
       setIsLoading(false);
     }
   };
-
-  const handleGoogleRegister = async () => {
-    setError(null)
-    setIsGoogleLoading(true)
-
-    try {
-      // Google認証の処理
-      window.location.href = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/auth/google`;
-
-    } catch (error) {
-      setError("Google認証中にエラーが発生しました。後でもう一度お試しください。")
-      setIsGoogleLoading(false)
-    }
-  }
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center p-4">
@@ -192,7 +176,7 @@ export default function RegisterPage() {
             <Button
               type="submit"
               className="w-full bg-blue-400 hover:bg-blue-600 text-white"
-              disabled={isLoading || isGoogleLoading}>
+              disabled={isLoading}>
 
               {isLoading ? (
                 <>
@@ -204,39 +188,6 @@ export default function RegisterPage() {
               )}
             </Button>
           </form>
-        </CardContent>
-
-        <div className="px-7 py-4">
-          <div className="flex items-center">
-            <div className="flex-grow border-t border-muted-foreground/30"></div> {/* 左側の線 */}
-            <span className="mx-4 flex-shrink text-xs text-muted-foreground">または</span>
-            <div className="flex-grow border-t border-muted-foreground/30"></div> {/* 右側の線 */}
-          </div>
-        </div>
-
-        {/* Googleで登録ボタン */}
-        <CardContent className="pb-4">
-          <div className="space-y-2">
-            <Button
-              variant="outline"
-              onClick={handleGoogleRegister}
-              disabled={isGoogleLoading || isLoading}
-              className="w-full flex items-center justify-center py-2"
-            >
-              {isGoogleLoading ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : (
-                <Image
-                  src="/Google.svg"
-                  alt="Google"
-                  width={20}
-                  height={20}
-                  className="mr-2"
-                />
-              )}
-              Googleでログイン
-            </Button>
-          </div>
         </CardContent>
 
         <CardFooter className="flex flex-col space-y-2">

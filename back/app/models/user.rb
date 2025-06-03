@@ -25,39 +25,45 @@ class User < ApplicationRecord
 
   # OAuthからユーザーを作成または検索
   def self.find_or_create_from_oauth(auth)
-    # 既存のOAuthプロバイダーを検索
-    oauth = OauthProvider.find_by(provider: auth.provider, uid: auth.uid)
-    return oauth.user if oauth.present?
+    return nil unless auth&.info&.email
+
+    # 既存のOAuthプロバイダーをチェック
+    oauth_provider = OauthProvider.find_by(provider: auth.provider, uid: auth.uid)
     
-    # メールアドレスでユーザーを検索
+    if oauth_provider
+      return oauth_provider.user
+    end
+
+    # 既存のユーザーをメールアドレスで検索
     user = User.find_by(email: auth.info.email)
     
-    if user
-      # 既存ユーザーにOAuthプロバイダーを追加
-      user.oauth_providers.create(
-        provider: auth.provider,
-        uid: auth.uid,
-        access_token: auth.credentials.token,
-        refresh_token: auth.credentials.refresh_token,
-        expires_at: auth.credentials.expires_at ? Time.at(auth.credentials.expires_at) : nil
-      )
-    else
-      # 新規ユーザーを作成
-      user = User.create!(
+    unless user
+      username = generate_username_from_email(auth.info.email)
+      
+      user = User.new(
         email: auth.info.email,
-        name: auth.info.name,
-        password: SecureRandom.hex(10) # ランダムパスワード
+        username: username,
+        name: auth.info.name || username
       )
-      user.oauth_providers.create(
+      
+      user.save!(validate: false)
+    end
+
+    # OAuthプロバイダーの関連付けを作成（重複チェック）
+    unless user.oauth_providers.exists?(provider: auth.provider, uid: auth.uid)
+      user.oauth_providers.create!(
         provider: auth.provider,
-        uid: auth.uid,
-        access_token: auth.credentials.token,
-        refresh_token: auth.credentials.refresh_token,
-        expires_at: auth.credentials.expires_at ? Time.at(auth.credentials.expires_at) : nil
+        uid: auth.uid
       )
     end
-    
+
     user
+  rescue ActiveRecord::RecordInvalid => e
+    Rails.logger.error "OAuth ユーザー作成エラー: #{e.message}"
+    nil
+  rescue => e
+    Rails.logger.error "OAuth 予期しないエラー: #{e.message}"
+    nil
   end
 
   private
@@ -66,5 +72,20 @@ class User < ApplicationRecord
     # OAuth認証の場合はパスワードを必須にしない
     return false if oauth_only?
     true
+  end
+
+  def self.generate_username_from_email(email)
+    base_username = email.split('@').first
+    username = base_username
+    counter = 1
+    
+    # ユニークなusernameを生成
+    while User.exists?(username: username)
+      username = "#{base_username}#{counter}"
+      counter += 1
+    end
+    
+    # 最低3文字を保証
+    username.length >= 3 ? username : "#{username}#{SecureRandom.hex(2)}"
   end
 end
