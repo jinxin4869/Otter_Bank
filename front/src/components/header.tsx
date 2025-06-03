@@ -91,7 +91,7 @@ export default function Header() {
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 dark:border-slate-800 dark:bg-slate-900/95 shadow-sm">
       <div className="container flex h-16 items-center justify-between">
-        <Link href="/" className="flex items-center gap-2 mr-auto">
+        <Link href={logoHref} className="flex items-center gap-2 mr-auto">
           <Image src="/logo.png" alt="Otter Bank Logo" width={36} height={36} className="rounded-full transition-transform hover:scale-110" />
           <span className="font-bold text-lg hidden sm:inline-block text-primary dark:text-primary-foreground">Otter Bank</span>
         </Link>

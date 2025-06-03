@@ -1,8 +1,4 @@
 Rails.application.routes.draw do
-  # OmniAuth routes - 名前空間の外に配置
-  get '/auth/google_oauth2/callback', to: 'api/v1/auth#google_callback'
-  get '/auth/failure', to: 'api/v1/auth#auth_failure'
-  
   namespace :api do
     namespace :v1 do
       get 'likes/create_post_like'
@@ -37,7 +33,7 @@ Rails.application.routes.draw do
       get 'posts/index'
       get 'posts/show'
       get 'posts/create'
-      get 'auth/google', to: 'auth#google'
+      get 'auth/google_callback'
 
       # ユーザー関連
       resources :users, only: [:create, :update, :destroy]
@@ -55,8 +51,10 @@ Rails.application.routes.draw do
       # ゲストログイン用ルート
       post 'guest_login', to: 'guest_sessions#create'
 
-      # Auth関連 - 重複を削除
+      # Auth関連
       get 'auth/google', to: 'auth#google'
+      get 'auth/google/callback', to: 'auth#google_callback'
+
       get 'health', to: 'health#index'
     end
   end
