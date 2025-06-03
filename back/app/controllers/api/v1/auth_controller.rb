@@ -1,7 +1,6 @@
 class Api::V1::AuthController < ApplicationController
   include ActionController::Cookies
-  skip_before_action :authorize_request, only: [:google_callback]
-  
+  skip_before_action :authorize_request, only: [:google, :google_callback]
   
   # Googleログインへのリダイレクト
   def google
