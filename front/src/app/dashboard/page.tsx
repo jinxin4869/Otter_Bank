@@ -32,6 +32,7 @@ import {
   Gift,
   TrendingUp,
   DollarSign,
+  Loader2,
 } from "lucide-react"
 import OtterAnimation from "@/components/otter-animation"
 import ExpensePieChart from "@/components/expense-pie-chart"
@@ -39,6 +40,7 @@ import MonthlyTrend from "@/components/monthly-trend"
 import { Tutorial } from "@/components/tutorial"
 import { cn } from "@/lib/utils"
 import { useRouter } from "next/navigation"
+import { useAuth } from "@/hooks/useAuth" // useAuthフックをインポート
 
 type Transaction = {
   id: string
@@ -81,27 +83,16 @@ export default function DashboardPage() {
   const [currentView, setCurrentView] = useState<"day" | "month" | "year">("month")
   const [currentDate, setCurrentDate] = useState<Date>(new Date())
   const [otterMood, setOtterMood] = useState<"happy" | "neutral" | "sad">("neutral")
-  const [userName, setUserName] = useState<string | null>(null); //ユーザー名取得
   const router = useRouter()
+  const { user, isLoading: authIsLoading, isAuthenticated } = useAuth(); // useAuthフックを使用
 
-  // ログイン状態を確認する処理を追加
+  // ログイン状態を確認する処理をuseAuthに任せる
   useEffect(() => {
-    // ログイン状態をチェック
-    const isLoggedIn = localStorage.getItem("isLoggedIn") === "true"
-    const userEmail = localStorage.getItem("currentUserEmail")
-
-    if (!isLoggedIn) {
-      // ログインしていない場合
-      router.push("/login")
-      return
+    if (!authIsLoading && !isAuthenticated) {
+      // 認証されていなければログインページにリダイレクト
+      router.push("/login");
     }
-
-    if (userEmail) {
-      setUserName(userEmail.split("@")[0]) // メールアドレスからユーザー名を抽出
-    } else {
-      setUserName("ゲスト") // ユーザー名が取得できない場合のデフォルト値
-    }
-  }, [router])
+  }, [authIsLoading, isAuthenticated, router]);
 
   // Load transactions from localStorage on component mount
   useEffect(() => {
@@ -335,6 +326,23 @@ export default function DashboardPage() {
   const balance = calculateBalance()
   const totalIncome = calculateTotalIncome()
   const totalExpense = calculateTotalExpense()
+
+  // authIsLoading中はローディング表示
+  if (authIsLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-12 w-12 animate-spin text-blue-600" />
+      </div>
+    );
+  }
+
+  // 認証されていない場合は何も表示しない（リダイレクト処理中）
+  if (!isAuthenticated) {
+    return null;
+  }
+
+  // ユーザー名を取得 (useAuthから)
+  const userName = user?.name || user?.username || "ユーザー";
 
   return (
     <div className="p-4 md:p-6 lg:p-8 space-y-8"> {/* ページ全体のパディングと要素間のスペースを調整 */}

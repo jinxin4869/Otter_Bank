@@ -17,7 +17,8 @@ services:
     environment:
       RAILS_ENV: development
       TZ: Asia/Tokyo
-    command: bash -c "rm -f tmp/pids/server.pid && bundle exec rails s -b '0.0.0.0'"
+      RAILS_LOG_TO_STDOUT: "true"
+    command: bash -c "rm -f tmp/pids/server.pid && bundle exec rails s -b '0.0.0.0' -p 3000"
     volumes:
       - ./back:/app
     depends_on:
@@ -26,7 +27,6 @@ services:
       - "3000:3000"
     tty: true
     stdin_open: true
-    user: "${UID:-1000}:${GID:-1000}"  # 権限問題の解決
   db:
     image: postgres:16.2
     environment:

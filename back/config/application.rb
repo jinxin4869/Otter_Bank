@@ -33,5 +33,8 @@ module OtterBank
     config.middleware.use ActionDispatch::Cookies
     config.middleware.use ActionDispatch::Session::CookieStore, key: '_otter_bank_session'
     # config.middleware.use ActionDispatch::ContentSecurityPolicy::Middleware
+
+    # OmniAuth用のCSRF設定
+    config.session_store :cookie_store, key: '_otter_bank_session'
   end
 end
