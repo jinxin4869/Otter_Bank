@@ -699,14 +699,14 @@ export default function BoardPage() {
   }
 
   return (
-    <div className="container max-auto max-w-6xl py-6 px-4 md:px-6 lg:px-8">
+    <div className="container mx-auto max-w-6xl py-6 px-4 md:px-6 lg:px-8">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
         <div>
           <h1 className="text-3xl font-bold">掲示板</h1>
           <p className="text-muted-foreground">お金の管理や貯金のコツ、投資の経験などを共有しましょう</p>
         </div>
         <Button onClick={() => setIsNewPostDialogOpen(true)}
-          className="bg-primary hover:bg-primary/90 text-primary-foreground"
+          className="bg-blue-600 hover:bg-blue-700 text-white"
         >
           <Plus className="mr-2 h-4 w-4" />
           新規投稿
