@@ -444,14 +444,14 @@ export default function BoardPage() {
     if (!editingPost) return
 
     // エラーメッセージをリセット（編集ダイアログ用にも必要であれば同様に追加）
-    setTitleError("")
-    setContentError("")
-    setCategoryError("")
+    setEditTitleError("")
+    setEditContentError("")
+    setEditCategoryError("")
 
     let hasError = false
     // 入力検証
     if (!newPostTitle.trim()) {
-      // setTitleError("タイトルを入力してください。") // 必要であれば編集用エラーstateを別途用意
+      setEditTitleError("タイトルを入力してください。")
       toast.error("タイトルが入力されていません")
       hasError = true
     }
