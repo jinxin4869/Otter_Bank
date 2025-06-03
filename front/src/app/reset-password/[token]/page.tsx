@@ -1,49 +1,140 @@
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import Link from "next/link";
+'use client'
 
-export default function NewPassword({ params }: { params: { token: string } }) {
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+
+export default function ResetPasswordPage({
+    params
+}: {
+    params: Promise<{ token: string }>
+}) {
+    const [token, setToken] = useState<string>('');
+    const [password, setPassword] = useState('')
+    const [confirmPassword, setConfirmPassword] = useState('')
+    const [isLoading, setIsLoading] = useState(false)
+    const [message, setMessage] = useState('')
+    const [error, setError] = useState('')
+    const router = useRouter()
+
+    // paramsを非同期で取得
+    useEffect(() => {
+        const getParams = async () => {
+            const resolvedParams = await params;
+            setToken(resolvedParams.token);
+        };
+        getParams();
+    }, [params]);
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault()
+
+        if (password !== confirmPassword) {
+            setError('パスワードが一致しません')
+            return
+        }
+
+        if (password.length < 8) {
+            setError('パスワードは8文字以上である必要があります')
+            return
+        }
+
+        setIsLoading(true)
+        setError('')
+        setMessage('')
+
+        try {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/auth/reset-password`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    token,
+                    password,
+                }),
+            })
+
+            if (response.ok) {
+                setMessage('パスワードがリセットされました。ログインページにリダイレクトします。')
+                setTimeout(() => {
+                    router.push('/login')
+                }, 3000)
+            } else {
+                const errorData = await response.json()
+                setError(errorData.message || 'パスワードのリセットに失敗しました')
+            }
+        } catch (err) {
+            console.error('Password reset error:', err);
+            setError('ネットワークエラーが発生しました')
+        } finally {
+            setIsLoading(false)
+        }
+    }
+
+    // tokenが読み込まれるまでローディング表示
+    if (!token) {
+        return <div>Loading...</div>;
+    }
+
     return (
-        <div className="container mx-auto flex items-center justify-center min-h-screen py-12">
-            <Card className="w-full max-w-md">
-                <CardHeader className="space-y-1">
-                    <CardTitle className="text-2xl font-bold">新しいパスワードを設定</CardTitle>
-                    <CardDescription>
-                        パスワードは8文字以上で、英字、数字、記号を含めるとより安全です。
-                    </CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <div className="space-y-4">
-                        <div className="space-y-2">
-                            <label htmlFor="new-password" className="text-sm font-medium leading-none">
-                                新しいパスワード
-                            </label>
-                            <Input
-                                id="new-password"
-                                type="password"
-                                className="w-full"
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <label htmlFor="confirm-password" className="text-sm font-medium leading-none">
-                                パスワード（確認）
-                            </label>
-                            <Input
-                                id="confirm-password"
-                                type="password"
-                                className="w-full"
-                            />
-                        </div>
-                        <Button className="w-full">パスワードを変更</Button>
-                        <div className="text-center text-sm">
-                            <Link href="/login" className="text-primary hover:underline">
-                                ログイン画面に戻る
-                            </Link>
-                        </div>
+        <div className="min-h-screen flex items-center justify-center bg-gray-50">
+            <div className="max-w-md w-full space-y-8">
+                <div>
+                    <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+                        パスワードリセット
+                    </h2>
+                </div>
+                <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+                    <div>
+                        <label htmlFor="password" className="sr-only">
+                            新しいパスワード
+                        </label>
+                        <input
+                            id="password"
+                            name="password"
+                            type="password"
+                            required
+                            className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                            placeholder="新しいパスワード"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                        />
                     </div>
-                </CardContent>
-            </Card>
+                    <div>
+                        <label htmlFor="confirmPassword" className="sr-only">
+                            パスワード確認
+                        </label>
+                        <input
+                            id="confirmPassword"
+                            name="confirmPassword"
+                            type="password"
+                            required
+                            className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                            placeholder="パスワード確認"
+                            value={confirmPassword}
+                            onChange={(e) => setConfirmPassword(e.target.value)}
+                        />
+                    </div>
+
+                    {error && (
+                        <div className="text-red-600 text-sm text-center">{error}</div>
+                    )}
+
+                    {message && (
+                        <div className="text-green-600 text-sm text-center">{message}</div>
+                    )}
+
+                    <div>
+                        <button
+                            type="submit"
+                            disabled={isLoading}
+                            className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+                        >
+                            {isLoading ? 'リセット中...' : 'パスワードをリセット'}
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
-    );
+    )
 }
