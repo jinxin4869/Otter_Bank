@@ -12,7 +12,6 @@ import {
 import { Button } from "@/components/ui/button"
 import { ArrowRight, ArrowLeft, Check, PlusCircle, Wallet, PieChart, Calendar, Trophy } from "lucide-react"
 import Image from "next/image"
-import { setSeconds } from "date-fns"
 
 export function Tutorial() {
   const [open, setOpen] = useState(false)
