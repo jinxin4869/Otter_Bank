@@ -220,6 +220,9 @@ export default function BoardPage() {
   const [newPostContent, setNewPostContent] = useState("")
   const [newPostCategories, setNewPostCategories] = useState<string[]>([])
   const [newCommentContent, setNewCommentContent] = useState("")
+  const [titleError, setTitleError] = useState("")
+  const [contentError, setContentError] = useState("")
+  const [categoryError, setCategoryError] = useState("")
 
   // 編集・削除対象の投稿
   const [editingPost, setEditingPost] = useState<Post | null>(null)
@@ -365,25 +368,29 @@ export default function BoardPage() {
 
   // 新規投稿の追加
   const handleAddPost = () => {
+    // エラーメッセージをリセット
+    setTitleError("")
+    setContentError("")
+    setCategoryError("")
+
+    let hasError = false
     // 入力検証
     if (!newPostTitle.trim()) {
-      toast.error("タイトルが入力されていません", {
-        description: "投稿のタイトルを入力してください。",
-      })
-      return
+      setTitleError("タイトルを入力してください。")
+      hasError = true
     }
 
     if (!newPostContent.trim()) {
-      toast.error("内容が入力されていません", {
-        description: "投稿の内容を入力してください。",
-      })
-      return
+      setContentError("内容を入力してください。")
+      hasError = true
     }
 
     if (newPostCategories.length === 0) {
-      toast.error("カテゴリーが選択されていません", {
-        description: "投稿のカテゴリーを選択してください。",
-      })
+      setCategoryError("カテゴリーを1つ以上選択してください。")
+      hasError = true
+    }
+
+    if (hasError) {
       return
     }
 
@@ -413,6 +420,10 @@ export default function BoardPage() {
     setNewPostContent("")
     setNewPostCategories([])
     setIsNewPostDialogOpen(false)
+    // エラーメッセージもリセット
+    setTitleError("")
+    setContentError("")
+    setCategoryError("")
 
     toast.success("投稿が完了しました", {
       description: "あなたの投稿が掲示板に追加されました。",
@@ -432,19 +443,32 @@ export default function BoardPage() {
   const handleSaveEdit = () => {
     if (!editingPost) return
 
+    // エラーメッセージをリセット（編集ダイアログ用にも必要であれば同様に追加）
+    setTitleError("")
+    setContentError("")
+    setCategoryError("")
+
+    let hasError = false
     // 入力検証
     if (!newPostTitle.trim()) {
+      // setTitleError("タイトルを入力してください。") // 必要であれば編集用エラーstateを別途用意
       toast.error("タイトルが入力されていません")
-      return
+      hasError = true
     }
 
     if (!newPostContent.trim()) {
+      // setContentError("内容を入力してください。") // 必要であれば編集用エラーstateを別途用意
       toast.error("内容が入力されていません")
-      return
+      hasError = true
     }
 
     if (newPostCategories.length === 0) {
+      // setCategoryError("カテゴリーを1つ以上選択してください。") // 必要であれば編集用エラーstateを別途用意
       toast.error("カテゴリーが選択されていません")
+      hasError = true
+    }
+
+    if (hasError) {
       return
     }
 
@@ -468,6 +492,10 @@ export default function BoardPage() {
     setNewPostCategories([])
     setEditingPost(null)
     setIsEditPostDialogOpen(false)
+    // エラーメッセージもリセット
+    setTitleError("")
+    setContentError("")
+    setCategoryError("")
 
     toast.success("投稿を更新しました")
   }
@@ -604,7 +632,7 @@ export default function BoardPage() {
           <MessageSquare className="mx-auto h-12 w-12 text-muted-foreground opacity-50" />
           <h3 className="mt-4 text-lg font-medium">投稿がありません</h3>
           <p className="mt-2 text-muted-foreground">検索条件に一致する投稿がないか、まだ投稿がありません。</p>
-          <Button className="mt-4 bg-blue-400 hover:bg-blue-400" onClick={() => setIsNewPostDialogOpen(true)}>
+          <Button className="mt-4 text-white bg-blue-400 hover:bg-blue-600" onClick={() => setIsNewPostDialogOpen(true)}>
             最初の投稿を作成
           </Button>
         </div>
@@ -723,6 +751,38 @@ export default function BoardPage() {
     )
   }
 
+  // 新規投稿ダイアログ
+  const handleNewPostDialogChange = (open: boolean) => {
+    setIsNewPostDialogOpen(open)
+    if (!open) {
+      // ダイアログが閉じる時にエラーメッセージをリセット
+      setTitleError("")
+      setContentError("")
+      setCategoryError("")
+      // フォーム内容もリセットした方が良い場合
+      // setNewPostTitle("")
+      // setNewPostContent("")
+      // setNewPostCategories([])
+    }
+  }
+
+  // 編集ダイアログ
+  const handleEditPostDialogChange = (open: boolean) => {
+    setIsEditPostDialogOpen(open)
+    if (!open) {
+      // ダイアログが閉じる時にエラーメッセージをリセット (編集用エラーstateがあればそれも)
+      setTitleError("") // 新規投稿と共用している場合は注意
+      setContentError("")
+      setCategoryError("")
+      setEditingPost(null) // 編集対象もリセット
+      // フォーム内容もリセット
+      // setNewPostTitle("")
+      // setNewPostContent("")
+      // setNewPostCategories([])
+    }
+  }
+
+
   return (
     <div className="container mx-auto max-w-6xl py-6 px-4 md:px-6 lg:px-8">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
@@ -796,7 +856,7 @@ export default function BoardPage() {
       </Tabs>
 
       {/* 新規投稿ダイアログ */}
-      <Dialog open={isNewPostDialogOpen} onOpenChange={setIsNewPostDialogOpen}>
+      <Dialog open={isNewPostDialogOpen} onOpenChange={handleNewPostDialogChange}>
         <DialogContent className="sm:max-w-[600px] bg-white">
           <DialogHeader>
             <DialogTitle>新規投稿</DialogTitle>
@@ -814,6 +874,7 @@ export default function BoardPage() {
                 placeholder="投稿のタイトルを入力"
                 maxLength={100}
               />
+              {titleError && <p className="text-sm text-red-500">{titleError}</p>}
             </div>
           </div>
           <div className="grid gap-2">
@@ -834,7 +895,8 @@ export default function BoardPage() {
                 </Badge>
               ))}
             </div>
-            <div className="grid gap-2">
+            {categoryError && <p className="text-sm text-red-500 mt-1">{categoryError}</p>}
+            <div className="grid gap-2 mt-4"> {/* mt-4 を追加してスペースを調整 */}
               <Label htmlFor="content">内容</Label>
               <Textarea
                 id="content"
@@ -843,10 +905,11 @@ export default function BoardPage() {
                 placeholder="投稿の内容を入力"
                 rows={8}
               />
+              {contentError && <p className="text-sm text-red-500">{contentError}</p>}
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsNewPostDialogOpen(false)}>
+            <Button variant="outline" onClick={() => handleNewPostDialogChange(false)}>
               キャンセル
             </Button>
             <Button onClick={handleAddPost}>投稿する</Button>
@@ -855,7 +918,7 @@ export default function BoardPage() {
       </Dialog>
 
       {/* 編集ダイアログ */}
-      <Dialog open={isEditPostDialogOpen} onOpenChange={setIsEditPostDialogOpen}>
+      <Dialog open={isEditPostDialogOpen} onOpenChange={handleEditPostDialogChange}>
         <DialogContent className="sm:max-w-[600px] bg-white">
           <DialogHeader>
             <DialogTitle>投稿を編集</DialogTitle>
