@@ -81,6 +81,7 @@ export default function LoginPage() {
       window.location.href = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/auth/google`;
 
     } catch (error) {
+      console.error("Google認証エラー:", error);
       setError("Google認証中にエラーが発生しました。後でもう一度お試しください。")
       setIsGoogleLoading(false)
     }

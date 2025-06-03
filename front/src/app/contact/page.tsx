@@ -58,6 +58,7 @@ export default function ContactPage() {
       // ホームページにリダイレクト
       router.push("/")
     } catch (error) {
+      console.error("Contact form submission error:", error);
       // エラーメッセージを表示
       toast.error("エラー", {
         description: "送信に失敗しました。後ほど再度お試しください。",
