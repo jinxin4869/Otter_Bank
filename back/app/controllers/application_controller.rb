@@ -60,8 +60,6 @@ class ApplicationController < ActionController::API
       render json: { error: "Token has expired: #{e.message}" }, status: :unauthorized
     rescue JWT::DecodeError => e
       render json: { error: "Invalid token: #{e.message}" }, status: :unauthorized
-    # `begin`に対する`end`は、`rescue`があれば省略可能だが、
-    # メソッド定義やクラス定義の`end`は必須
     end
   end
 end
