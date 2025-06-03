@@ -23,7 +23,7 @@ class Api::V1::AchievementsController < ApplicationController
       end
 
   def update
-        achievement = current_user.achievements.find_by(original_achievement_id: params[:original_achievement_id])
+        achievement = current_user.achievements.find_by(id: params[:id])
 
         if achievement
           if achievement.update(achievement_params)
