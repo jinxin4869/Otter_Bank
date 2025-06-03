@@ -196,6 +196,7 @@ export default function BoardPage() {
   const router = useRouter()
   const [posts, setPosts] = useState<Post[]>([])
   const [likedPostIds, setLikedPostIds] = useState<string[]>([]); // いいねした投稿IDを管理
+  const [likedCommentIds, setLikedCommentIds] = useState<string[]>([]); // いいねしたコメントIDを管理
   const [comments, setComments] = useState<Comment[]>([])
   const [filteredPosts, setFilteredPosts] = useState<Post[]>([])
   const [bookmarkedPosts, setBookmarkedPosts] = useState<string[]>([])
@@ -250,6 +251,12 @@ export default function BoardPage() {
     const storedLikedPosts = localStorage.getItem("likedPostIds");
     if (storedLikedPosts) {
       setLikedPostIds(JSON.parse(storedLikedPosts));
+    }
+
+    // ローカルストレージからコメントいいね状態を読み込む
+    const storedLikedComments = localStorage.getItem("likedCommentIds");
+    if (storedLikedComments) {
+      setLikedCommentIds(JSON.parse(storedLikedComments));
     }
 
   }, [router])
@@ -511,12 +518,31 @@ export default function BoardPage() {
 
   // コメントにいいね
   const handleLikeComment = (commentId: string) => {
-    setComments(prev => prev.map(comment =>
-      comment.id === commentId
-        ? { ...comment, likes: comment.likes + 1 }
-        : comment
-    ))
-    toast.success("コメントにいいねしました")
+    let updatedLikedCommentIds: string[];
+    const isCurrentlyLiked = likedCommentIds.includes(commentId);
+
+    if (isCurrentlyLiked) {
+      // いいね解除
+      updatedLikedCommentIds = likedCommentIds.filter(id => id !== commentId);
+      setComments(prev => prev.map(comment =>
+        comment.id === commentId
+          ? { ...comment, likes: Math.max(0, comment.likes - 1) }
+          : comment
+      ))
+      toast.success("コメントのいいねを取り消しました");
+    } else {
+      // いいねする
+      updatedLikedCommentIds = [...likedCommentIds, commentId];
+      setComments(prev => prev.map(comment =>
+        comment.id === commentId
+          ? { ...comment, likes: comment.likes + 1 }
+          : comment
+      ))
+      toast.success("コメントにいいねしました");
+    }
+    
+    setLikedCommentIds(updatedLikedCommentIds);
+    localStorage.setItem("likedCommentIds", JSON.stringify(updatedLikedCommentIds));
   }
 
   // 選択された投稿のコメントを取得
@@ -652,8 +678,7 @@ export default function BoardPage() {
                 </div>
               </CardHeader>
               <CardContent>
-                <p className="line-clamp-3 cursor-pointer hover:text-gray-700"
-                  onClick={() => handleViewPost(post)}>
+                <p className="line-clamp-3">
                   {post.content}
                 </p>
               </CardContent>
@@ -674,7 +699,7 @@ export default function BoardPage() {
                 </div>
                 <div className="flex space-x-2">
                   <Button variant="ghost" size="sm" onClick={() => handleLike(post.id)}>
-                    <Heart className="mr-1 h-4 w-4" />
+                    <Heart className={`mr-1 h-4 w-4 ${isLiked ? 'fill-red-500 text-red-500' : ''}`} />
                     いいね
                   </Button>
                   <Button variant="ghost" size="sm" onClick={() => toggleBookmark(post.id)}>
@@ -907,31 +932,15 @@ export default function BoardPage() {
                   })}
                 </div>
                 <DialogTitle className="text-xl">{selectedPost.title}</DialogTitle>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <Avatar className="h-8 w-8 mr-2">
-                      <AvatarFallback>{getUserInitial(selectedPost.authorEmail)}</AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <p className="font-medium">{selectedPost.author}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {format(new Date(selectedPost.createdAt), "yyyy年MM月dd日 HH:mm", { locale: ja })}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-4 text-sm text-muted-foreground">
-                    <div className="flex items-center">
-                      <ThumbsUp className="mr-1 h-4 w-4" />
-                      <span>{selectedPost.likes}</span>
-                    </div>
-                    <div className="flex items-center">
-                      <MessageCircle className="mr-1 h-4 w-4" />
-                      <span>{selectedPost.comments}</span>
-                    </div>
-                    <div className="flex items-center">
-                      <Eye className="mr-1 h-4 w-4" />
-                      <span>{selectedPost.views}</span>
-                    </div>
+                <div className="flex items-center">
+                  <Avatar className="h-8 w-8 mr-2">
+                    <AvatarFallback>{getUserInitial(selectedPost.authorEmail)}</AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <p className="font-medium">{selectedPost.author}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {format(new Date(selectedPost.createdAt), "yyyy年MM月dd日 HH:mm", { locale: ja })}
+                    </p>
                   </div>
                 </div>
               </DialogHeader>
@@ -939,21 +948,6 @@ export default function BoardPage() {
               <div className="py-4">
                 <div className="whitespace-pre-wrap text-gray-700 mb-6">
                   {selectedPost.content}
-                </div>
-
-                <div className="flex space-x-2 mb-6">
-                  <Button variant="outline" onClick={() => handleLike(selectedPost.id)}>
-                    <Heart className="mr-1 h-4 w-4" />
-                    いいね ({selectedPost.likes})
-                  </Button>
-                  <Button variant="outline" onClick={() => toggleBookmark(selectedPost.id)}>
-                    {bookmarkedPosts.includes(selectedPost.id) ? (
-                      <BookmarkCheck className="mr-1 h-4 w-4 text-blue-600" />
-                    ) : (
-                      <Bookmark className="mr-1 h-4 w-4" />
-                    )}
-                    ブックマーク
-                  </Button>
                 </div>
 
                 {/* コメントセクション */}
@@ -974,7 +968,7 @@ export default function BoardPage() {
                           rows={3}
                         />
                         <div className="flex justify-end mt-2">
-                          <Button size="sm" onClick={handleAddComment}>
+                          <Button size="sm" onClick={handleAddComment} className="bg-blue-600 hover:bg-blue-700 text-white">
                             <Send className="mr-1 h-4 w-4" />
                             投稿
                           </Button>
@@ -987,6 +981,7 @@ export default function BoardPage() {
                   <div className="space-y-4">
                     {getPostComments(selectedPost.id).map((comment) => {
                       const isOwnComment = comment.authorEmail === currentUserEmail;
+                      const isCommentLiked = likedCommentIds.includes(comment.id);
                       return (
                         <div key={comment.id} className="flex space-x-2">
                           <Avatar className="h-8 w-8">
@@ -1006,10 +1001,10 @@ export default function BoardPage() {
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                onClick={() => handleLikeComment(comment.id)} // handleLikeComment は未実装の可能性あり
-                                className="h-6 px-2 text-xs"
+                                onClick={() => handleLikeComment(comment.id)}
+                                className={`h-6 px-2 text-xs ${isCommentLiked ? 'text-blue-600' : ''}`}
                               >
-                                <ThumbsUp className="mr-1 h-3 w-3" />
+                                <ThumbsUp className={`mr-1 h-3 w-3 ${isCommentLiked ? 'fill-blue-600 text-blue-600' : ''}`} />
                                 {comment.likes}
                               </Button>
                             </div>
