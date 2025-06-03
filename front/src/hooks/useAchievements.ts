@@ -1,9 +1,10 @@
-import { useState, useCallback } from 'react';
-import { toast } from 'sonner';
+// import { useState, useCallback } from 'react';
+// import { toast } from 'sonner';
 // import { type Achievement as FrontendAchievement } from '@/app/collection/page'; // collection/page.tsx から型をインポート
 
 // バックエンドAPIのレスポンス型 (collection/page.tsx と同じものを再定義または共有)
 // もし型定義を共通化したい場合は、types/index.ts のようなファイルに移動することを検討してください。
+/*
 type ApiAchievementResponse = {
   id: number; // DB上の achievement.id
   original_achievement_id: number;
@@ -18,7 +19,6 @@ type ApiAchievementResponse = {
   // created_at, updated_at など、APIが返す他のフィールドも必要に応じて追加
 };
 
-/*
 // APIレスポンスをフロントエンドの型に変換するヘルパー関数
 const mapApiToFrontend = (apiAch: ApiAchievementResponse): FrontendAchievement => {
   return {

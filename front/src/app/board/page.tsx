@@ -16,7 +16,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { format } from "date-fns"
 import { ja } from "date-fns/locale"
-import { MessageSquare, Heart, Search, Filter, Plus, ThumbsUp, MessageCircle, Clock, MoreVertical, Edit, Trash2, Bookmark, BookmarkCheck, Send, Eye, Star } from "lucide-react"
+import { MessageSquare, Heart, Search, Filter, Plus, ThumbsUp, MessageCircle, MoreVertical, Edit, Trash2, Bookmark, BookmarkCheck, Send, Eye } from "lucide-react"
 import { toast } from "sonner"
 
 // 掲示板カテゴリー
@@ -443,15 +443,15 @@ export default function BoardPage() {
   const handleSaveEdit = () => {
     if (!editingPost) return
 
-    // エラーメッセージをリセット（編集ダイアログ用にも必要であれば同様に追加）
-    setEditTitleError("")
-    setEditContentError("")
-    setEditCategoryError("")
+    // エラーメッセージをリセット
+    setTitleError("")
+    setContentError("")
+    setCategoryError("")
 
     let hasError = false
     // 入力検証
     if (!newPostTitle.trim()) {
-      setEditTitleError("タイトルを入力してください。")
+      setTitleError("タイトルを入力してください。")
       toast.error("タイトルが入力されていません")
       hasError = true
     }
