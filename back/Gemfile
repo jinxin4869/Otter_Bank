@@ -34,7 +34,7 @@ gem "omniauth-google-oauth2", "~> 0.8.0"
 gem "active_model_serializers", "~> 0.10"
 
 # 多言語対応
-gem "i18n-js", "~> 3.0"
+gem "i18n-js", "~> 4.2"
 
 # エラー監視・通知
 gem "exception_notification", "~> 5.0"
