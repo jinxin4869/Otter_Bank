@@ -1,12 +1,29 @@
 version: 2
 updates:
-- package-ecosystem: bundler
-  directory: "/"
-  schedule:
-    interval: daily
-  open-pull-requests-limit: 10
-- package-ecosystem: github-actions
-  directory: "/"
-  schedule:
-    interval: daily
-  open-pull-requests-limit: 10
+  # Ruby dependencies in back/
+  - package-ecosystem: "bundler"
+    directory: "/back"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+
+  # npm dependencies in front/
+  - package-ecosystem: "npm"
+    directory: "/front"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+
+  # Docker dependencies
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+
+  # GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/.github/workflows"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5

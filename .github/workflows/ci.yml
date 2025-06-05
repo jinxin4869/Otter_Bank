@@ -3,11 +3,13 @@ name: CI
 on:
   pull_request:
   push:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   scan_ruby:
-    runs-on: ubuntu-latest
+  defaults:
+    run:
+      working-directory: ./back
 
     steps:
       - name: Checkout code
@@ -18,12 +20,16 @@ jobs:
         with:
           ruby-version: .ruby-version
           bundler-cache: true
+          working-directory: ./back
 
       - name: Scan for common Rails security vulnerabilities using static analysis
         run: bin/brakeman --no-pager
 
-  lint:
+  lint_ruby:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./back
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -33,32 +39,56 @@ jobs:
         with:
           ruby-version: .ruby-version
           bundler-cache: true
+          working-directory: ./back
 
       - name: Lint code for consistent style
         run: bin/rubocop -f github
-
-  test:
+  # フロントエンドのlintテスト
+  lint_frontend:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./front
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: ./front/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint TypeScript /JavaScript style
+        run: npm run lint
+
+      - name: Type check
+        run: npm run type-check
+
+  test_backend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./back
 
     services:
       postgres:
-        image: postgres
+        image: postgres:15
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: otter_bank_test
         ports:
           - 5432:5432
         options: --health-cmd="pg_isready" --health-interval=10s --health-timeout=5s --health-retries=3
 
-      # redis:
-      #   image: redis
-      #   ports:
-      #     - 6379:6379
-      #   options: --health-cmd "redis-cli ping" --health-interval 10s --health-timeout 5s --health-retries 5
-
     steps:
       - name: Install packages
-        run: sudo apt-get update && sudo apt-get install --no-install-recommends -y build-essential git libpq-dev node-gyp pkg-config python-is-python3 google-chrome-stable
+        run: sudo apt-get update && sudo apt-get install --no-install-recommends -y build-essential git libpq-dev node-gyp pkg-config python-is-python3
 
       - name: Checkout code
         uses: actions/checkout@v4
@@ -68,18 +98,46 @@ jobs:
         with:
           ruby-version: .ruby-version
           bundler-cache: true
+          working-directory: ./back
 
-      - name: Run tests
+      - name: Setup database
         env:
           RAILS_ENV: test
-          DATABASE_URL: postgres://postgres:postgres@localhost:5432
-          # REDIS_URL: redis://localhost:6379/0
-        run: bin/rails db:test:prepare test test:system
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/otter_bank_test
+        run: |
+          bin/rails db:create
+          bin/rails db:schema:load
 
-      - name: Keep screenshots from failed system tests
-        uses: actions/upload-artifact@v4
-        if: failure()
+      - name: Run RSpec tests
+        env:
+          RAILS_ENV: test
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/otter_bank_test
+        run: bundle exec rspec --format documentation
+
+      - name: Run legacy tests (if any)
+        env:
+          RAILS_ENV: test
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/otter_bank_test
+        run: bin/rails test
+  test_frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./front
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
         with:
-          name: screenshots
-          path: ${{ github.workspace }}/tmp/screenshots
-          if-no-files-found: ignore
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: ./front/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run frontend tests
+        run: npm run test
