@@ -4,9 +4,33 @@ import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-// import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { ArrowRight, ArrowLeft, Wallet, Trophy, MessageCircle, Sparkles, CheckCircle2 } from 'lucide-react'
+import {
+  ArrowRight,
+  ArrowLeft,
+  Wallet,
+  Trophy,
+  MessageCircle,
+  Sparkles,
+  CheckCircle2,
+  BarChart3,
+  PieChart,
+  TrendingUp,
+  Users,
+  Star
+} from 'lucide-react'
 import Image from "next/image"
+
+// プレースホルダーコンポーネントを追加
+const ImagePlaceholder = ({ icon: Icon, title, className = "" }: {
+  icon: React.ElementType,
+  title: string,
+  className?: string
+}) => (
+  <div className={`relative aspect-[16/9] w-full rounded-lg overflow-hidden border bg-muted/50 flex flex-col items-center justify-center ${className}`}>
+    <Icon className="h-16 w-16 text-muted-foreground/60 mb-2" />
+    <p className="text-sm text-muted-foreground/80 font-medium">{title}</p>
+  </div>
+)
 
 const tutorialSteps = [
   {
@@ -84,7 +108,7 @@ const tutorialSteps = [
   {
     id: "features",
     icon: <Sparkles className="h-6 w-6 text-primary" />,
-    title: "獭獭銀行の主な特徴",
+    title: "Otter Bankの主な特徴",
     description: "楽しく続けられる、新しいお金管理体験を提供します。",
     imageSrc: "/placeholder.svg?height=240&width=420&text=App+Features+Overview",
     altText: "アプリ特徴概要",
@@ -158,12 +182,14 @@ export default function TutorialPage() {
           ) : (
             stepData.imageSrc && (
               <div className="relative aspect-[16/9] w-full rounded-lg overflow-hidden border">
-                <Image
-                  src={stepData.imageSrc}
-                  alt={stepData.altText || 'チュートリアル画像'}
-                  fill
-                  className="object-cover"
-                  priority={currentStep === 0}
+                <ImagePlaceholder
+                  icon={
+                    stepData.id === "dashboard" ? BarChart3 :
+                    stepData.id === "collection" ? Trophy :
+                    stepData.id === "board" ? MessageCircle :
+                    Sparkles
+                  }
+                  title={stepData.altText || 'プレビュー画像'}
                 />
               </div>
             )
