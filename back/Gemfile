@@ -43,7 +43,7 @@ gem "exception_notification", "~> 5.0"
 gem "kaminari", "~> 1.2"
 
 # 環境変数管理
-gem "dotenv-rails", "~> 2.8", groups: [:development, :test]
+gem "dotenv-rails", "~> 3.1", groups: [:development, :test]
 
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
 gem "tzinfo-data", platforms: %i[ windows jruby ]
