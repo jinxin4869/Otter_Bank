@@ -1,12 +1,18 @@
 name: CI
 
 on:
-  pull_request:
   push:
-    branches: [main]
+    branches: 
+      - main
+      - "feature/*"
+  pull_request:
+    branches:
+      - main
+      - "feature/*"
 
 jobs:
   scan_ruby:
+  runs-on: ubuntu-latest
   defaults:
     run:
       working-directory: ./back
