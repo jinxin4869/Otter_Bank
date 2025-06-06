@@ -12,10 +12,10 @@ on:
 
 jobs:
   scan_ruby:
-  runs-on: ubuntu-latest
-  defaults:
-    run:
-      working-directory: ./back
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./back
 
     steps:
       - name: Checkout code
