@@ -319,7 +319,7 @@ GEM
       rubocop-ast (>= 1.44.0, < 2.0)
     ruby-progressbar (1.13.0)
     securerandom (0.4.1)
-    shoulda-matchers (5.3.0)
+    shoulda-matchers (6.5.0)
       activesupport (>= 5.2.0)
     snaky_hash (2.0.3)
       hashie (>= 0.1.0, < 6)
@@ -365,7 +365,7 @@ DEPENDENCIES
   rspec-rails (~> 7.1)
   rubocop (~> 1.0, >= 1.0)
   rubocop-rails (~> 2.0)
-  shoulda-matchers (~> 5.0)
+  shoulda-matchers (~> 6.5)
   tzinfo-data
 
 RUBY VERSION
