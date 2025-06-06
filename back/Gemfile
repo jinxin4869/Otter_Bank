@@ -62,7 +62,7 @@ group :development, :test do
   gem "debug", platforms: %i[ mri windows ]
 
   # テスト
-  gem "rspec-rails", "~> 5.0"
+  gem "rspec-rails", "~> 7.1"
   gem "factory_bot_rails", "~> 6.0"
   gem "shoulda-matchers", "~> 5.0"
 
