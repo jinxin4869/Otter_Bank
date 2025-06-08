@@ -1,6 +1,6 @@
 class Api::V1::AuthController < ApplicationController
   include ActionController::Cookies
-  skip_before_action :authorize_request, only: [:google, :google_callback, :auth_failure]
+  skip_before_action :authorize_request, only: [:google, :google_callback, :auth_failure, :verify]
   
   # Googleログインへのリダイレクト
   def google
@@ -36,6 +36,27 @@ class Api::V1::AuthController < ApplicationController
       redirect_to "#{ENV['FRONTEND_URL']}/auth/cancelled"
     else
       redirect_to "#{ENV['FRONTEND_URL']}/auth/error?message=#{error_message}"
+    end
+  end
+
+  def verify
+    header = request.headers['Authorization']
+    if header
+      token = header.split(' ').last
+      begin
+        decoded = JsonWebToken.decode(token)
+        @current_user = User.find(decoded[:user_id])
+        render json: {
+          id: @current_user.id,
+          email: @current_user.email,
+          username: @current_user.username,
+          name: @current_user.name
+        }, status: :ok
+      rescue JWT::DecodeError, ActiveRecord::RecordNotFound
+        render json: { error: 'Invalid token' }, status: :unauthorized
+      end
+    else
+      render json: { error: 'Authorization header missing' }, status: :unauthorized
     end
   end
 end

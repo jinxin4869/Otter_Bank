@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { toast } from 'sonner';
+import { useRouter } from 'next/navigation';
 
 interface User {
   id: number;
@@ -10,103 +12,110 @@ interface User {
 }
 
 export const useAuth = () => {
+  const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [token, setToken] = useState<string | null>(null);
 
   useEffect(() => {
     checkAuth();
-
-    const handleAuthChange = () => {
-      console.log('[Auth] 認証状態変更イベントを受信');
-      checkAuth();
-    };
-
-    window.addEventListener('auth-state-changed', handleAuthChange);
-    
-    return () => {
-      window.removeEventListener('auth-state-changed', handleAuthChange);
-    };
   }, []);
 
   const checkAuth = async () => {
-    console.log('[Auth] 認証状態をチェック中...');
-    setIsLoading(true); // チェック開始時にローディング状態にする
-    try {
-      const storedToken = localStorage.getItem('auth_token');
-      console.log('[Auth] 保存されたトークン:', storedToken ? `あり (${storedToken.substring(0, 20)}...)` : 'なし');
-      
-      if (!storedToken) {
-        console.log('[Auth] トークンが存在しません。未認証状態に設定します。');
-        setUser(null);
-        setToken(null);
-        // setIsLoading(false) は finally で処理
-        return;
-      }
-
-      setToken(storedToken); // まずトークンをセット
-
-      try {
-        const parts = storedToken.split('.');
-        if (parts.length !== 3) {
-          throw new Error('無効なJWTフォーマット');
-        }
-
-        const payload = JSON.parse(atob(parts[1]));
-        console.log('[Auth] デコードされたペイロード:', payload);
-        
-        const currentTimeInSeconds = Date.now() / 1000;
-        console.log('[Auth] 現在時刻 (秒):', currentTimeInSeconds, 'トークン有効期限 (秒):', payload.exp);
-        
-        if (payload.user_id && payload.exp > currentTimeInSeconds) {
-          const userData = {
-            id: payload.user_id,
-            // バックエンドから実際のユーザー情報を取得するまではダミーデータ
-            email: payload.email || `user${payload.user_id}@example.com`, 
-            username: payload.username || `user${payload.user_id}`,
-            name: payload.name || `ユーザー${payload.user_id}`
-          };
-          console.log('[Auth] トークンは有効。ユーザー情報を設定:', userData);
-          setUser(userData);
-        } else {
-          console.log('[Auth] トークンが期限切れまたは無効 (user_idなし or exp切れ)。');
-          localStorage.removeItem('auth_token');
-          setToken(null);
-          setUser(null);
-        }
-      } catch (decodeError) {
-        console.error('[Auth] トークンデコードエラー:', decodeError);
-        localStorage.removeItem('auth_token');
-        setToken(null);
-        setUser(null);
-      }
-    } catch (error) {
-      console.error('[Auth] 認証確認中に予期せぬエラー:', error);
-      // エラー発生時も未認証状態とする
+    const storedToken = localStorage.getItem('authToken');
+    if (!storedToken) {
       setUser(null);
       setToken(null);
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/auth/verify`, {
+        headers: {
+          'Authorization': `Bearer ${storedToken}`
+        }
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error( errorData.error || 'トークンが無効です');
+      }
+
+      const userData = await response.json();
+      setUser(userData);
+      setToken(storedToken);
+      localStorage.setItem('isLoggedIn', 'true');
+    } catch (error) {
+      console.error('[Auth] トークン検証エラー:', error);
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('isLoggedIn');
+      setUser(null);
+      setToken(null);
+      if (error instanceof Error) {
+        toast.error('認証エラー', {
+          description: error.message,
+        });
+      }
+      router.push('/login');
     } finally {
-      console.log('[Auth] 認証チェック完了');
       setIsLoading(false);
     }
   };
 
-  const logout = () => {
-    console.log('[Auth] ログアウト実行');
-    localStorage.removeItem('auth_token');
-    setUser(null);
+  // 新しい関数: 認証エラーの共通処理
+  const handleAuthError = (error: unknown) => {
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('isLoggedIn');
     setToken(null);
-    window.dispatchEvent(new Event('auth-state-changed')); // 状態変更を通知
+    setUser(null);
+
+    // エラーメッセージの表示
+    if (error instanceof Error) {
+      toast.error('認証エラー', {
+        description: error.message,
+      });
+    } else {
+      toast.error('認証エラー', {
+        description: '予期せぬエラーが発生しました',
+      });
+    }
+
+    // ログインページへのリダイレクト
+    router.push('/login');
   };
 
-  const isAuthenticated = !!user && !!token;
-  // このログはレンダリング毎に出力されるため、状態変化の追跡に役立つ
-  console.log('[Auth] 現在の認証状態:', { isAuthenticated, userId: user?.id, hasToken: !!token, isLoading });
+  // ログアウト関数の改善
+  const logout = async () => {
+    console.log('[Auth] ログアウト実行');
+    try {
+      const currentToken = localStorage.getItem('authToken');
+      if (currentToken) {
+        // バックエンドでトークンを無効化
+        await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/auth/logout`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${currentToken}`,
+            'Content-Type': 'application/json',
+          },
+        });
+      }
+    } catch (error) {
+      console.error('[Auth] ログアウトエラー:', error);
+    } finally {
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('isLoggedIn');
+      setUser(null);
+      setToken(null);
+      window.dispatchEvent(new Event('auth-state-changed'));
+      router.push('/login');
+    }
+  }
 
   return {
     user,
     isLoading,
-    isAuthenticated,
+    isAuthenticated: !!user && !!token,
     logout,
     checkAuth
   };

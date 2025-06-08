@@ -42,33 +42,53 @@ export default function LoginPage() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || "ログインに失敗しました。");
+        // エラーメッセージの詳細化
+        switch (response.status) {
+          case 401:
+            throw new Error('メールアドレスまたはパスワードが正しくありません');
+          case 403:
+            throw new Error('アカウントがロックされています');
+          case 404:
+            throw new Error('アカウントが見つかりません');
+          default:
+            throw new Error(errorData.error || 'ログインに失敗しました');
+        }
       }
 
       const data = await response.json();
+
+      // トークンの検証
+      if (!data.token) {
+        throw new Error('認証トークンの取得に失敗しました');
+      }
+
+      // トークンの保存とリダイレクト
+      localStorage.setItem("authToken", data.token);
+      localStorage.setItem("isLoggedIn", "true");
+      localStorage.setItem("currentUserEmail", email);
 
       // Success case
       toast.success("ログイン成功", {
         description: "ダッシュボードにリダイレクトします",
       });
 
-      // トークンを保存
-      if (data.token) {
-        localStorage.setItem("authToken", data.token);
-        localStorage.setItem("isLoggedIn", "true");
-        localStorage.setItem("currentUserEmail", email); // またはdata.user.email
-      }
-
       router.push("/dashboard")
     } catch (error) {
       // Error case
       if (error instanceof Error) {
         setError(error.message)
+        toast.error(error.message);
+        toast.error(error.message, {
+          description: error.message,
+        });
       } else {
-        setError("ログインに失敗しました。もう一度お試しください。")
+        setError("ログインに失敗しました。もう一度お試しください。");
+        toast.error("エラー", {
+          description: "ログインに失敗しました。もう一度お試しください。",
+        });
       }
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
   }
 

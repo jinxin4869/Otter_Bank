@@ -15,6 +15,11 @@ class User < ApplicationRecord
     oauth_providers.any? && !password_digest.present?
   end
 
+  # アカウントロック状態を確認するメソッド
+  def locked?
+    false  # デフォルトではロックされていない
+  end
+
   # OAuthからユーザーを作成または検索
   def self.find_or_create_from_oauth(auth)
     return nil unless auth&.info&.email
