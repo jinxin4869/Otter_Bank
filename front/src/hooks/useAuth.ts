@@ -44,7 +44,9 @@ export const useAuth = () => {
 
       const userData = await response.json();
       setUser(userData);
-      setToken(storedToken);
+      if (token !== storedToken) {
+        setToken(storedToken);
+      }
       localStorage.setItem('isLoggedIn', 'true');
     } catch (error) {
       console.error('[Auth] トークン検証エラー:', error);
