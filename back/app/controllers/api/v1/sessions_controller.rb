@@ -5,7 +5,16 @@ class Api::V1::SessionsController < ApplicationController
   def create
     user = User.find_by(email: params[:email])
 
-    if user&.authenticate(params[:session][:password])
+    if user.nil?
+      render json: { 
+        status: 'error',
+        error: 'アカウントが見つかりません',
+        code: 'account_not_found'
+      }, status: :not_found
+      return
+    end
+
+    if user&.authenticate(params[:password])
       token = JsonWebToken.encode(user_id: user.id)
       render json: {
         status: 'success',
@@ -16,14 +25,9 @@ class Api::V1::SessionsController < ApplicationController
     else
       render json: { 
         status: 'error', 
-        error: 'メールアドレスまたはパスワードが無効です' 
+        error: 'メールアドレスまたはパスワードが無効です',
+        code: 'invalid_credentials'
       }, status: :unauthorized
     end
   end
-
-  # DELETE /api/v1/sessions (ログアウト処理の例)
-  # def destroy
-  #   # トークン無効化処理など (JWTはステートレスなのでクライアント側でトークンを削除するのが一般的)
-  #   render json: { message: 'ログアウトしました' }, status: :ok
-  # end
 end

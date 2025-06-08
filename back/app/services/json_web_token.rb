@@ -7,8 +7,12 @@ class JsonWebToken
   end
   
   def self.decode(token)
-    raise JWT::DecodeError, "Token is nil" if token.nil? # 追加
+    raise JWT::DecodeError, "Token is nil" if token.nil?
     decoded = JWT.decode(token, SECRET_KEY)[0]
     HashWithIndifferentAccess.new decoded
+  rescue JWT::ExpiredSignature
+    raise JWT::ExpiredSignature, "Token has expired"
+  rescue JWT::DecodeError => e
+    raise JWT::DecodeError, "Invalid token: #{e.message}"
   end
 end
