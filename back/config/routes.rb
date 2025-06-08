@@ -11,6 +11,7 @@ Rails.application.routes.draw do
       get 'comments/destroy'
       get 'bookmarks/create'
       get 'bookmarks/destroy'
+      get 'auth/verify', to: 'auth#verify'
       resources :posts do
         member do
           post 'increment_views'
