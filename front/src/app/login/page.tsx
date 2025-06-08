@@ -77,8 +77,7 @@ export default function LoginPage() {
       // Error case
       if (error instanceof Error) {
         setError(error.message)
-        toast.error(error.message);
-        toast.error(error.message, {
+        toast.error("エラー", {
           description: error.message,
         });
       } else {
