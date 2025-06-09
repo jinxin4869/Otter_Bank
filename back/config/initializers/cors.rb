@@ -10,7 +10,7 @@ Rails.application.config.middleware.insert_before 0, Rack::Cors do
     origins ENV["FRONTEND_URL"]  # フロント側
     resource "*",
       headers: :any,
-      methods: [:get, :post, :put, :patch, :delete, :options, :head]
+      methods: [:get, :post, :put, :patch, :delete, :options, :head],
       expose: [:Authorization]
-   end
- end
+  end
+end
