@@ -2,25 +2,40 @@ class Api::V1::AchievementsController < ApplicationController
   before_action :authorize
   
   def index
-        achievements = current_user.achievements.order(:original_achievement_id) # original_achievement_id でソート
-        render json: achievements.map { |ach|
+    achievements = current_user.achievements.order(:original_achievement_id)
+    render json: {
+      achievements: achievements.map { |ach|
+        {
+          id: ach.id,
+          original_achievement_id: ach.original_achievement_id,
+          title: ach.title,
+          description: ach.description,
+          category: ach.category,
+          unlocked: ach.unlocked,
+          progress: ach.progress,
+          progress_percentage: ach.progress_percentage,
+          progress_target: ach.progress_target,
+          image_url: ach.image_url,
+          reward: ach.reward,
+          tier: ach.tier,
+          created_at: ach.created_at,
+          updated_at: ach.updated_at,
+          unlocked_at: ach.unlocked_at
+        }
+      },
+      summary: {
+        total_achievements: achievements.count,
+        unlocked_achievements: achievements.where(unlocked: true).count,
+        progress_by_category: achievements.group_by(&:category).transform_values { |achs|
           {
-            id: ach.id, # DB上のID
-            original_achievement_id: ach.original_achievement_id, # フロントエンドと紐づくID
-            title: ach.title,
-            description: ach.description,
-            category: ach.category,
-            unlocked: ach.unlocked,
-            progress: ach.progress,
-            image_url: ach.image_url,
-            reward: ach.reward,
-            tier: ach.tier,
-            created_at: ach.created_at,
-            updated_at: ach.updated_at
-            # 必要に応じて、進捗目標値 (progress_target) なども返す
+            total: achs.count,
+            unlocked: achs.count(&:unlocked),
+            progress_percentage: (achs.count(&:unlocked).to_f / achs.count * 100).round
           }
         }
-      end
+      }
+    }
+  end
 
   def update
         achievement = current_user.achievements.find_by(id: params[:id])
@@ -50,7 +65,37 @@ class Api::V1::AchievementsController < ApplicationController
 
   def show
     achievement = current_user.achievements.find(params[:id])
-    render json: achievement
+    render json: {
+      achievement: {
+        id: achievement.id,
+        original_achievement_id: achievement.original_achievement_id,
+        title: achievement.title,
+        description: achievement.description,
+        category: achievement.category,
+        unlocked: achievement.unlocked,
+        progress: achievement.progress,
+        progress_percentage: achievement.progress_percentage,
+        progress_target: achievement.progress_target,
+        image_url: achievement.image_url,
+        reward: achievement.reward,
+        tier: achievement.tier,
+        created_at: achievement.created_at,
+        updated_at: achievement.updated_at,
+        unlocked_at: achievement.unlocked_at
+      },
+      related_achievements: current_user.achievements
+        .where(category: achievement.category)
+        .where.not(id: achievement.id)
+        .limit(3)
+        .map { |ach|
+          {
+            id: ach.id,
+            title: ach.title,
+            progress_percentage: ach.progress_percentage,
+            unlocked: ach.unlocked
+          }
+        }
+    }
   rescue ActiveRecord::RecordNotFound
     render json: { error: '実績が見つかりません' }, status: :not_found
   end
