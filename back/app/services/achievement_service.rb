@@ -6,13 +6,14 @@ class AchievementService
   # 貯金関連の実績を更新
   def update_savings_achievements(amount)
     achievements = @user.achievements.where(category: :savings, unlocked: false)
+    cumulative_savings = @user.savings.sum(:amount) # Calculate cumulative savings
     
     achievements.each do |achievement|
       case achievement.original_achievement_id
       when 'first_savings'
         achievement.update_progress(1) if amount > 0
       when 'savings_milestone_1000'
-        achievement.update_progress(amount)
+        achievement.update_progress(cumulative_savings) # Use cumulative savings
       when 'savings_milestone_10000'
         achievement.update_progress(amount)
       when 'savings_milestone_100000'
