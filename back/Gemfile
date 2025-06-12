@@ -28,7 +28,7 @@ gem "bcrypt", ">= 3.1.7"
 gem "jwt", ">= 2.5"
 
 # OAuth認証 Google
-gem "omniauth-google-oauth2", "~> 0.8.0"
+gem "omniauth-google-oauth2", "~> 1.2.1"
 
 # JSONシリアライザ (後でちゃんと調べます)
 gem "active_model_serializers", "~> 0.10"
