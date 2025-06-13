@@ -7,9 +7,8 @@ import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import Image from "next/image"
-import { LockIcon, UnlockIcon, Sparkles, Calendar, TrendingDown } from 'lucide-react'
 import { cn } from "@/lib/utils"
-import { Wallet } from 'lucide-react'
+import { Wallet, LockIcon, UnlockIcon, Sparkles, Calendar, TrendingDown, ListChecks, AlertTriangle, Trophy } from 'lucide-react'; // ListChecks, AlertTriangle, Trophy を追加または確認
 
 type Achievement = {
   id: number
@@ -24,10 +23,28 @@ type Achievement = {
   prerequisiteId?: number // ID of achievement that must be unlocked first
 }
 
+// 新しくユーザー行動履歴の型を定義
+interface UserAction {
+  id: string;
+  action_type: 'deposit' | 'withdrawal' | 'budget_set' | 'goal_achieved' | string; // バックエンドの実際の行動タイプに合わせてください
+  amount?: number;
+  description: string;
+  created_at: string; // ISO 8601 形式の日時文字列を想定
+}
+
 export default function CollectionPage() {
   const router = useRouter()
   const [achievements, setAchievements] = useState<Achievement[]>([])
   const [selectedCategory, setSelectedCategory] = useState<string>("all")
+  const [filteredAchievements, setFilteredAchievements] = useState<Achievement[]>([]);
+  const [activeTab, setActiveTab] = useState("all");
+  const [loadingAchievements, setLoadingAchievements] = useState(true);
+  const [errorAchievements, setErrorAchievements] = useState<string | null>(null);
+
+  // ユーザー行動履歴用のstate
+  const [userActions, setUserActions] = useState<UserAction[]>([]);
+  const [loadingUserActions, setLoadingUserActions] = useState(true);
+  const [errorUserActions, setErrorUserActions] = useState<string | null>(null);
 
   // ログイン状態を確認
   useEffect(() => {
@@ -348,11 +365,11 @@ export default function CollectionPage() {
     // まずカテゴリーで並べ替え
     const catPriorityA = getCategoryPriority(a.category);
     const catPriorityB = getCategoryPriority(b.category);
-    
+
     if (catPriorityA !== catPriorityB) {
       return catPriorityA - catPriorityB;
     }
-    
+
     // 特別カテゴリーは最後に表示
     if (a.category === "special" && b.category === "special") {
       return a.id - b.id;
