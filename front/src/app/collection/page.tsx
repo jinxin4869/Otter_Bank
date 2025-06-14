@@ -10,17 +10,50 @@ import Image from "next/image"
 import { cn } from "@/lib/utils"
 import { Wallet, LockIcon, UnlockIcon, Sparkles, Calendar, TrendingDown, ListChecks, AlertTriangle, Trophy } from 'lucide-react'; // ListChecks, AlertTriangle, Trophy を追加または確認
 
+// 実績の型定義 (Rails APIのレスポンスに合わせて調整)
 interface Achievement {
   id: number | string;
+  original_achievement_id: string; // Rails APIから
   title: string;
   description: string;
-  category: "savings" | "expense" | "streak" | "special"
-  isUnlocked: boolean;
-  progress: number; // 0-100
-  imageUrl: string;
-  reward?: string;
-  tier?: number; // 1, 2, 3, etc. for tiered achievements
-  prerequisiteId?: number | string | null; // ID of achievement that must be unlocked first
+  category: 'savings' | 'streak' | 'expense' | 'special'; // 明確な型定義
+  tier: 'bronze' | 'silver' | 'gold' | 'platinum'; // 明確な型定義
+  unlocked: boolean; // Rails APIでは `unlocked`
+  progress: number;
+  progress_percentage: number; // Rails APIから
+  progress_target: number; // Rails APIから
+  image_url?: string; // Rails APIでは `image_url`
+  reward: string;
+  created_at: string; // Rails APIから
+  updated_at: string; // Rails APIから
+  unlocked_at?: string | null; // Rails APIから
+}
+
+// カテゴリ表示用の日本語マッピング
+const categoryLabels: Record<string, string> = {
+  all: 'すべて',
+  savings: '貯金',
+  streak: '連続記録',
+  expense: '支出管理',
+  special: '特別'
+};
+
+// ティア表示用の日本語マッピング
+const tierLabels: Record<string, string> = {
+  bronze: 'ブロンズ',
+  silver: 'シルバー',
+  gold: 'ゴールド',
+  platinum: 'プラチナ'
+};
+
+// APIレスポンス全体の型 (必要であれば)
+interface AchievementsApiResponse {
+  achievements: Achievement[];
+  summary: {
+    total_achievements: number;
+    unlocked_achievements: number;
+    progress_by_category: Record<string, { total: number; unlocked: number; progress_percentage: number }>;
+  };
 }
 
 // 新しくユーザー行動履歴の型を定義
@@ -40,6 +73,7 @@ export default function CollectionPage() {
   const [activeTab, setActiveTab] = useState("all");
   const [loadingAchievements, setLoadingAchievements] = useState(true);
   const [errorAchievements, setErrorAchievements] = useState<string | null>(null);
+  const [achievementSummary, setAchievementSummary] = useState<AchievementsApiResponse['summary'] | null>(null);
 
   // ユーザー行動履歴用のstate
   const [userActions, setUserActions] = useState<UserAction[]>([]);
@@ -317,182 +351,6 @@ export default function CollectionPage() {
 
     setAchievements(sampleAchievements)
   }, [])
-
-  const getCategoryIcon = (category: string) => {
-    switch (category) {
-      case "savings":
-        return <Wallet className="h-4 w-4" />
-      case "expense":
-        return <TrendingDown className="h-4 w-4" />
-      case "streak":
-        return <Calendar className="h-4 w-4" />
-      case "special":
-        return <Sparkles className="h-4 w-4" />
-      default:
-        return null
-    }
-  }
-
-  const getCategoryLabel = (category: string) => {
-    switch (category) {
-      case "savings":
-        return "貯金"
-      case "expense":
-        return "節約"
-      case "streak":
-        return "継続"
-      case "special":
-        return "特別"
-      default:
-        return category
-    }
-  }
-
-  // カテゴリーの優先順位を設定（貯金、継続、節約、特別）
-  const getCategoryPriority = (category: string) => {
-    switch (category) {
-      case "savings": return 1;
-      case "streak": return 2;
-      case "expense": return 3;
-      case "special": return 4;
-      default: return 5;
-    }
-  }
-
-  // 実績をソート - カテゴリー優先順位でソートし、同じカテゴリー内ではティア順
-  const sortedAchievements = [...filteredAchievements].sort((a, b) => {
-    // まずカテゴリーで並べ替え
-    const catPriorityA = getCategoryPriority(a.category);
-    const catPriorityB = getCategoryPriority(b.category);
-
-    if (catPriorityA !== catPriorityB) {
-      return catPriorityA - catPriorityB;
-    }
-
-    // 特別カテゴリーは最後に表示
-    if (a.category === "special" && b.category === "special") {
-      return a.id - b.id;
-    }
-
-    // 同じカテゴリー内ではティア順
-    if (a.tier !== undefined && b.tier !== undefined) {
-      return a.tier - b.tier;
-    }
-
-    // ティアがない場合はID順
-    return a.id - b.id;
-  })
-
-  return (
-    <div className="container mx-auto px-4 py-6 md:px-6 md:py-8 lg:px-8 lg:py-10 space-y-6">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <h1 className="text-3xl font-bold">図鑑</h1>
-          <p className="text-muted-foreground">実績を達成してカワウソの新しい姿や特別なバッジを解放しよう！</p>
-        </div>
-
-        <Tabs defaultValue="all" value={selectedCategory} onValueChange={setSelectedCategory}>
-          <TabsList>
-            <TabsTrigger value="all">すべて</TabsTrigger>
-            <TabsTrigger value="savings">貯金</TabsTrigger>
-            <TabsTrigger value="streak">継続</TabsTrigger>
-            <TabsTrigger value="expense">節約</TabsTrigger>
-            <TabsTrigger value="special">特別</TabsTrigger>
-          </TabsList>
-        </Tabs>
-      </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-        {sortedAchievements.map((achievement) => (
-          <Card
-            key={achievement.id}
-            className={cn(
-              "overflow-hidden transition-all duration-300 hover:shadow-md",
-              achievement.isUnlocked ? "bg-card" : "bg-muted/50",
-              achievement.tier && `border-l-4 ${getTierBorderColor(achievement.tier, achievement.isUnlocked)}`,
-            )}
-          >
-            <CardHeader className="p-4 pb-2">
-              <div className="flex justify-between items-start">
-                <Badge variant={achievement.isUnlocked ? "default" : "outline"} className="mb-2">
-                  {getCategoryIcon(achievement.category)}
-                  <span className="ml-1">{getCategoryLabel(achievement.category)}</span>
-                  {achievement.tier && <span className="ml-1 text-xs">Lv.{achievement.tier}</span>}
-                </Badge>
-                {achievement.isUnlocked ? (
-                  <UnlockIcon className="h-5 w-5 text-green-500" />
-                ) : (
-                  <LockIcon className="h-5 w-5 text-muted-foreground" />
-                )}
-              </div>
-              <CardTitle
-                className={cn(
-                  "text-base",
-                  !achievement.isUnlocked && achievement.progress === 0 && "text-muted-foreground",
-                )}
-              >
-                {achievement.isUnlocked || achievement.progress > 0 ? achievement.title : "???"}
-              </CardTitle>
-              <CardDescription
-                className={cn(!achievement.isUnlocked && achievement.progress === 0 && "text-muted-foreground/70")}
-              >
-                {achievement.isUnlocked || achievement.progress > 0
-                  ? achievement.description
-                  : "この実績はまだ解放されていません"}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="p-4 pt-0 flex flex-col items-center">
-              <div className="relative w-[120px] h-[120px] my-2">
-                <Image
-                  src={
-                    achievement.isUnlocked || achievement.progress > 0
-                      ? achievement.imageUrl
-                      : "/placeholder.svg?height=120&width=120&text=???"
-                  }
-                  alt={achievement.title}
-                  fill
-                  className={cn("object-contain transition-opacity", !achievement.isUnlocked && "opacity-40")}
-                />
-              </div>
-
-              {achievement.progress > 0 && achievement.progress < 100 && (
-                <div className="w-full mt-2">
-                  <Progress value={achievement.progress} className="h-2" />
-                  <p className="text-xs text-center text-muted-foreground mt-1">{achievement.progress}% 完了</p>
-                </div>
-              )}
-            </CardContent>
-            {achievement.isUnlocked && achievement.reward && (
-              <CardFooter className="p-4 pt-0 text-sm">
-                <p className="text-green-600 dark:text-green-400 font-medium">報酬: {achievement.reward}</p>
-              </CardFooter>
-            )}
-          </Card>
-        ))}
-      </div>
-    </div>
-  )
-}
-
-// Helper function to get border color based on tier
-function getTierBorderColor(tier: number, isUnlocked: boolean): string {
-  if (!isUnlocked) return "border-gray-300 dark:border-gray-700"
-
-  switch (tier) {
-    case 1:
-      return "border-blue-400 dark:border-blue-600"
-    case 2:
-      return "border-green-400 dark:border-green-600"
-    case 3:
-      return "border-yellow-400 dark:border-yellow-600"
-    case 4:
-      return "border-purple-400 dark:border-purple-600"
-    case 5:
-      return "border-red-400 dark:border-red-600"
-    default:
-      return "border-gray-400 dark:border-gray-600"
-  }
-}
 */
 
   useEffect(() => {
@@ -501,24 +359,27 @@ function getTierBorderColor(tier: number, isUnlocked: boolean): string {
       setLoadingAchievements(true);
       setErrorAchievements(null);
       try {
-        // TODO: 実際のAPIエンドポイントから実績データを取得してください
-        // 以下はダミーデータです。実際のAPIレスポンスに合わせてください。
-        const dummyAchievements: Achievement[] = [
-          { id: 1, title: "初めての貯金", description: "最初の貯金を記録しました。", category: "savings", isUnlocked: true, progress: 100, imageUrl: "/placeholder.svg?height=120&width=120&text=First+Save", reward: "カワウソステッカー", tier: 1, prerequisiteId: null },
-          { id: 10, title: "節約家", description: "月の支出を予算内に収めました。", category: "expense", isUnlocked: false, progress: 75, imageUrl: "/placeholder.svg?height=120&width=120&text=Budget+Hero", reward: "節約バッジ", tier: 2, prerequisiteId: 1 },
-          { id: 100, title: "貯金習慣マスター", description: "30日連続で貯金を記録しました", category: "streak", isUnlocked: true, progress: 100, imageUrl: "/placeholder.svg?height=120&width=120&text=Streak+Master", reward: "連続記録トロフィー", tier: 3, prerequisiteId: 101, },
-          { id: 150, title: "予算マスター", description: "3ヶ月連続で予算内に収まりました", category: "special", isUnlocked: false, progress: 33, imageUrl: "/placeholder.svg?height=120&width=120&text=Budget+Master", reward: "予算管理バッジ", },
-          { id: 151, title: "投資家デビュー", description: "初めての投資を行いました", category: "special", isUnlocked: false, progress: 0, imageUrl: "/placeholder.svg?height=120&width=120&text=Investor", reward: "投資家バッジ", },
-        ];
-        // 実際のAPI呼び出し例:
-        // const response = await fetch('/api/v1/achievements'); // Rails側の実績APIエンドポイント
-        // if (!response.ok) throw new Error('実績データの取得に失敗しました。');
-        // const data = await response.json();
-        // setAchievements(data.achievements || []); // APIのレスポンス構造に合わせる
-        // setFilteredAchievements(data.achievements || []); // APIのレスポンス構造に合わせる
-        await new Promise(resolve => setTimeout(resolve, 1000)); // API呼び出しを模倣
-        setAchievements(dummyAchievements); // ダミーデータを使用
-        setFilteredAchievements(dummyAchievements); // 初期表示は全件
+        // Rails APIから取得
+        const response = await fetch('/api/v1/achievements'); // Rails側の実績APIエンドポイント
+
+        if (!response.ok) {
+          let errorMessage = `実績データの取得に失敗しました。ステータス: ${response.status}`;
+          try {
+            const errorData = await response.json();
+            errorMessage = errorData.error || errorData.message || errorMessage;
+          } catch (e) {
+            errorMessage = `{errorMessage} (レスポンスの解析に失敗しました)`;
+          }
+          throw new Error(errorMessage);
+        }
+
+        const data: AchievementsApiResponse = await response.json();
+
+        //APIのデータ構造に合わせて実績データを設定
+        setAchievements(data.achievements || []);
+        setFilteredAchievements(data.achievements || []);
+        setAchievementSummary(data.summary || null);
+
       } catch (err: any) {
         setErrorAchievements(err.message || '実績データの読み込み中にエラーが発生しました。');
         console.error("Error fetching achievements:", err);
@@ -535,24 +396,13 @@ function getTierBorderColor(tier: number, isUnlocked: boolean): string {
       setLoadingUserActions(true);
       setErrorUserActions(null);
       try {
-        // TODO: 実際のバックエンドAPIエンドポイントに置き換えてください
-        // 例: const response = await fetch('/api/v1/user_actions'); // Rails側の行動履歴APIエンドポイント
-        // if (!response.ok) {
-        //   const errorData = await response.json().catch(() => ({ message: `ユーザー行動履歴の取得に失敗しました。ステータス: ${response.status}` }));
-        //   throw new Error(errorData.message || `ユーザー行動履歴の取得に失敗しました。ステータス: ${response.status}`);
-        // }
-        // const data: UserAction[] = await response.json();
-        // setUserActions(data); // APIのレスポンス構造に合わせる (例: data.actions)
-
-        // 以下はダミーデータです。実際のAPIレスポンスに合わせてください。
-        const dummyActions: UserAction[] = [
-          { id: 'action1', action_type: 'deposit', amount: 5000, description: '給料からの自動積立', created_at: new Date(Date.now() - 86400000 * 2).toISOString() },
-          { id: 'action2', action_type: 'withdrawal', amount: 1500, description: 'カフェ代', created_at: new Date(Date.now() - 86400000).toISOString() },
-          { id: 'action3', action_type: 'budget_set', description: '今月の食費予算を設定 (¥30,000)', created_at: new Date().toISOString() },
-          { id: 'action4', action_type: 'goal_achieved', description: '目標「新しいPC購入資金」達成！', created_at: new Date(Date.now() - 86400000 * 5).toISOString() },
-        ];
-        await new Promise(resolve => setTimeout(resolve, 1200)); // API呼び出しを模倣
-        setUserActions(dummyActions);
+        const response = await fetch('/api/v1/user_actions'); // Rails側の行動履歴APIエンドポイント
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({ message: `ユーザー行動履歴の取得に失敗しました。ステータス: ${response.status}` }));
+          throw new Error(errorData.message || `ユーザー行動履歴の取得に失敗しました。ステータス: ${response.status}`);
+        }
+        const data: UserAction[] = await response.json();
+        setUserActions(data); // APIのレスポンス構造に合わせる (例: data.actions)
 
       } catch (err: any) {
         setErrorUserActions(err.message || 'ユーザー行動履歴の読み込み中にエラーが発生しました。');
@@ -576,11 +426,37 @@ function getTierBorderColor(tier: number, isUnlocked: boolean): string {
     }
   };
 
-  const achievementCategories = ["all", "savings", "expense", "streak", "special"];
+  // 表示するカテゴリを動的に生成 (APIから取得したカテゴリを使用することも検討可能)
+  const achievementCategories = ["all", ...new Set(achievements.map(ach => ach.category))];
 
   return (
     <div className="container mx-auto p-4 md:p-6 lg:p-8">
       <h1 className="text-3xl font-bold mb-8 text-gray-800 dark:text-white">コレクション</h1>
+
+      {/* 実績サマリー表示 (任意) */}
+      {achievementSummary && !loadingAchievements && !errorAchievements && (
+        <section className="mb-8 p-4 bg-slate-100 dark:bg-slate-800 rounded-lg">
+          <h3 className="text-xl font-semibold mb-3 text-gray-700 dark:text-gray-300">実績サマリー</h3>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+            <div>
+              <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{achievementSummary.total_achievements}</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">総実績数</p>
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-green-600 dark:text-green-400">{achievementSummary.unlocked_achievements}</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">達成済み</p>
+            </div>
+            {Object.entries(achievementSummary.progress_by_category).map(([category, summary]) => (
+              summary.total > 0 && ( // カテゴリに実績がある場合のみ表示
+                <div key={category}>
+                  <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">{summary.progress_percentage}%</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 capitalize">{category} 達成率</p>
+                </div>
+              )
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* 実績セクション */}
       <section className="mb-12">
@@ -590,14 +466,13 @@ function getTierBorderColor(tier: number, isUnlocked: boolean): string {
         </div>
         <Tabs value={activeTab} onValueChange={filterAchievements} className="mb-6">
           <TabsList>
+            {/* カテゴリータブ */}
             {achievementCategories.map((cat) => (
-              <TabsTrigger key={cat} value={cat} className="capitalize px-4 py-2">
-                {cat === "all" ? "すべて" :
-                  cat === "savings" ? "貯金" :
-                    cat === "expense" ? "支出" :
-                      cat === "streak" ? "連続記録" :
-                        cat === "special" ? "特別" : cat}
-              </TabsTrigger>
+              cat && (
+                <TabsTrigger key={cat} value={cat} className="capitalize px-4 py-2">
+                  {categoryLabels[cat] || cat}
+                </TabsTrigger>
+              )
             ))}
           </TabsList>
         </Tabs>
@@ -634,7 +509,9 @@ function getTierBorderColor(tier: number, isUnlocked: boolean): string {
         )}
 
         {!loadingAchievements && !errorAchievements && filteredAchievements.length === 0 && (
-          <p className="text-gray-500 dark:text-gray-400 py-4">このカテゴリの実績はまだありません。</p>
+          <p className="text-gray-500 dark:text-gray-400 py-4">
+            {activeTab === "all" ? "実績はまだありません。" : `このカテゴリ (${activeTab}) の実績はまだありません。`}
+          </p>
         )}
 
         {!loadingAchievements && !errorAchievements && filteredAchievements.length > 0 && (
@@ -644,24 +521,24 @@ function getTierBorderColor(tier: number, isUnlocked: boolean): string {
                 key={ach.id}
                 className={cn(
                   "flex flex-col transition-all hover:shadow-lg dark:bg-slate-800",
-                  ach.isUnlocked ? "border-green-500 dark:border-green-600" : "border-gray-300 dark:border-slate-700"
+                  ach.unlocked ? "border-green-500 dark:border-green-600" : "border-gray-300 dark:border-slate-700"
                 )}
               >
                 <CardHeader className="p-4">
                   <div className="relative w-full aspect-[16/9] mb-3">
                     <Image
-                      src={ach.imageUrl || "/placeholder.svg?text=No+Image"}
+                      src={ach.image_url || "/placeholder.svg?text=No+Image"} // `image_url` を使用
                       alt={ach.title}
                       layout="fill"
                       objectFit="cover"
-                      className={cn("rounded-md", !ach.isUnlocked && "opacity-60 grayscale")}
+                      className={cn("rounded-md", !ach.unlocked && "opacity-60 grayscale")} // `unlocked` を使用
                     />
-                    {ach.isUnlocked && (
+                    {ach.unlocked && ( // `unlocked` を使用
                       <Badge className="absolute top-2 right-2 bg-green-500 hover:bg-green-600 text-white text-xs px-2 py-1">
                         <UnlockIcon className="h-3 w-3 mr-1" />達成済
                       </Badge>
                     )}
-                    {!ach.isUnlocked && (
+                    {!ach.unlocked && ( // `unlocked` を使用
                       <Badge variant="outline" className="absolute top-2 right-2 bg-white dark:bg-slate-700 text-xs px-2 py-1">
                         <LockIcon className="h-3 w-3 mr-1" />未達成
                       </Badge>
@@ -672,8 +549,11 @@ function getTierBorderColor(tier: number, isUnlocked: boolean): string {
                 </CardHeader>
                 <CardContent className="flex-grow p-4 pt-0">
                   {ach.tier && <Badge variant="secondary" className="mb-2 text-xs">Tier {ach.tier}</Badge>}
-                  <Progress value={ach.progress} className="w-full h-2 my-1" />
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{ach.progress}% 完了</p>
+                  {/* Rails APIから progress_percentage を直接使用 */}
+                  <Progress value={ach.progress_percentage} className="w-full h-2 my-1" />
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    {ach.progress_percentage}% 完了 ({ach.progress} / {ach.progress_target})
+                  </p>
                 </CardContent>
                 {ach.reward && (
                   <CardFooter className="p-4 pt-0">
@@ -686,7 +566,7 @@ function getTierBorderColor(tier: number, isUnlocked: boolean): string {
         )}
       </section>
 
-      {/* ユーザー行動履歴セクション */}
+      {/* ユーザー行動履歴セクション (変更なし) */}
       <section>
         <div className="flex items-center mb-4">
           <ListChecks className="mr-2 h-7 w-7 text-blue-500" />
@@ -731,7 +611,7 @@ function getTierBorderColor(tier: number, isUnlocked: boolean): string {
                           action.action_type === 'withdrawal' ? '出金' :
                             action.action_type === 'budget_set' ? '予算設定' :
                               action.action_type === 'goal_achieved' ? '目標達成' :
-                                action.action_type} {/* 不明なタイプはそのまま表示 */}
+                                action.action_type}
                         {action.amount !== undefined && action.amount !== null && ` (${action.amount.toLocaleString()}円)`}
                       </p>
                       <p className="text-sm text-gray-600 dark:text-gray-400 mt-0.5">{action.description}</p>
