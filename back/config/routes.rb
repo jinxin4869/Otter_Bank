@@ -47,10 +47,7 @@ Rails.application.routes.draw do
       resources :savings_goals, only: [:index, :create, :update, :destroy]
 
       # 実績関連
-      resources :achievements, only: [:index, :show]
-
-      # ゲストログイン用ルート
-      post 'guest_login', to: 'guest_sessions#create'
+      resources :achievements, only: [:index, :show, :update]
 
       # Auth関連
       get 'auth/google', to: 'auth#google'

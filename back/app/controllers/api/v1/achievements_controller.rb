@@ -1,8 +1,12 @@
 class Api::V1::AchievementsController < ApplicationController
-  before_action :authorize
+  # before_action :authorize を削除（ApplicationControllerで処理済み）
   
   def index
-    achievements = current_user.achievements.order(:original_achievement_id)
+    Rails.logger.info "AchievementsController#index: current_user = #{@current_user&.id}"
+    Rails.logger.info "AchievementsController#index: achievements count = #{@current_user&.achievements&.count}"
+    
+    achievements = @current_user.achievements.order(:tier, :original_achievement_id)
+    
     render json: {
       achievements: achievements.map { |ach|
         {
@@ -38,33 +42,33 @@ class Api::V1::AchievementsController < ApplicationController
   end
 
   def update
-        achievement = current_user.achievements.find_by(id: params[:id])
+    achievement = @current_user.achievements.find_by(id: params[:id])
 
-        if achievement
-          if achievement.update(achievement_params)
-            # フロントエンドで使う主要な情報を返す
-            render json: {
-              id: achievement.id,
-              original_achievement_id: achievement.original_achievement_id,
-              title: achievement.title,
-              description: achievement.description,
-              category: achievement.category,
-              unlocked: achievement.unlocked,
-              progress: achievement.progress,
-              image_url: achievement.image_url,
-              reward: achievement.reward,
-              tier: achievement.tier
-            }, status: :ok
-          else
-            render json: { errors: achievement.errors.full_messages }, status: :unprocessable_entity
-          end
-        else
-          render json: { error: "Achievement not found" }, status: :not_found
-        end
+    if achievement
+      if achievement.update(achievement_params)
+        # フロントエンドで使う主要な情報を返す
+        render json: {
+          id: achievement.id,
+          original_achievement_id: achievement.original_achievement_id,
+          title: achievement.title,
+          description: achievement.description,
+          category: achievement.category,
+          unlocked: achievement.unlocked,
+          progress: achievement.progress,
+          image_url: achievement.image_url,
+          reward: achievement.reward,
+          tier: achievement.tier
+        }, status: :ok
+      else
+        render json: { errors: achievement.errors.full_messages }, status: :unprocessable_entity
       end
+    else
+      render json: { error: "Achievement not found" }, status: :not_found
+    end
+  end
 
   def show
-    achievement = current_user.achievements.find(params[:id])
+    achievement = @current_user.achievements.find(params[:id])
     render json: {
       achievement: {
         id: achievement.id,
@@ -83,7 +87,7 @@ class Api::V1::AchievementsController < ApplicationController
         updated_at: achievement.updated_at,
         unlocked_at: achievement.unlocked_at
       },
-      related_achievements: current_user.achievements
+      related_achievements: @current_user.achievements
         .where(category: achievement.category)
         .where.not(id: achievement.id)
         .limit(3)

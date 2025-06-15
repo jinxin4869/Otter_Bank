@@ -44,7 +44,7 @@ export default function Home() {
           </div>
 
           <div className="relative h-[500px] hidden md:block">
-            <div className="absolute inset-0 bg-gradient-to-br from-background/50 to-transparent z-10 rounded-xl opacity-20" />
+            <div className="absolute inset-0 bg-gradient-to-br from-background/50 to-transparent dark:from-slate-700/40 dark:to-slate-800/20 z-10 rounded-xl opacity-20 dark:opacity-60 dark:border dark:border-slate-600/50" />
             <div className="absolute -left-12 bottom-0 w-96 h-80">
               <Image
                 src="/otter_bank.svg"
@@ -58,7 +58,7 @@ export default function Home() {
                 src="/otter_umbrella.png"
                 alt="App Preview"
                 fill
-                className="object-contain rounded-2xl shadow-2xl"
+                className="object-contain rounded-2xl shadow-2xl dark:shadow-slate-700/50 border dark:border-slate-600/30"
               />
             </div>
             <div className="absolute right-20 bottom-10 w-64 h-64 -rotate-3">
@@ -66,7 +66,7 @@ export default function Home() {
                 src="/otter_mathtest.svg"
                 alt="Savings Chart"
                 fill
-                className="object-contain rounded-2xl shadow-xl"
+                className="object-contain rounded-2xl shadow-xl dark:shadow-slate-700/50 border dark:border-slate-600/30"
               />
             </div>
           </div>
@@ -276,7 +276,7 @@ export default function Home() {
                             src="/app-top.png"
                             alt="Otter Bank Dashboard"
                             fill
-                            className="object-cover"
+                            className="object-cover rounded-lg border dark:border-slate-600/30"
                           />
                           <div className="absolute bottom-12 right-4 bg-card/90 p-3 rounded-lg shadow-md border border-border">
                             <div className="flex items-center gap-2">
@@ -298,12 +298,12 @@ export default function Home() {
                       src="/otter_logo.svg"
                       alt="Happy Otter"
                       fill
-                      className="object-contain animate-bounce"
+                      className="object-contain animate-bounce dark:drop-shadow-lg"
                     />
                   </div>
-                  <div className="absolute bottom-48 right-28 bg-card p-3 rounded-xl shadow-lg z-10 max-w-[200px] transform rotate-3 border border-border">
-                    <p className="text-sm text-card-foreground">楽しく貯金できるね！今月も頑張ろう！</p>
-                    <div className="absolute -bottom-2 right-6 w-4 h-4 bg-card border-l border-b border-border transform rotate-45"></div>
+                  <div className="absolute bottom-48 right-28 bg-card p-3 rounded-xl shadow-lg z-10 max-w-[200px] transform rotate-3 border border-border dark:border-slate-600/50 dark:bg-slate-800">
+                    <p className="text-sm text-card-foreground dark:text-slate-200">楽しく貯金できるね！今月も頑張ろう！</p>
+                    <div className="absolute -bottom-2 right-6 w-4 h-4 bg-card dark:bg-slate-800 border-l border-b border-border dark:border-slate-600/50 transform rotate-45"></div>
                   </div>
                 </div>
               </div>
@@ -469,14 +469,14 @@ export default function Home() {
                     </Button>
                   </div>
                 </div>
-                <div className="relative rounded-xl overflow-hidden h-64 md:h-auto bg-gradient-to-br from-primary/10 to-primary/5">
+                <div className="relative rounded-xl overflow-hidden h-64 md:h-auto bg-gradient-to-br from-primary/10 to-primary/5 border dark:border-slate-600/30">
                   <div className="absolute inset-0 flex items-center justify-center">
                     <Image
                       src="/otter_glasses.svg"
                       alt="Happy Otter"
                       width={300}
                       height={300}
-                      className="object-contain"
+                      className="object-contain dark:drop-shadow-lg"
                     />
                   </div>
                 </div>
