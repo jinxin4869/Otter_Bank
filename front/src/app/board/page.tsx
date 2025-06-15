@@ -1103,12 +1103,12 @@ export default function BoardPage() {
                           <div className="flex-1">
                             <div className={`rounded-lg p-3 ${isOwnComment ? "comment-own" : "comment-other"}`}>
                               <div className="flex items-center justify-between mb-1">
-                                <span className="font-medium text-sm">{comment.author} {isOwnComment && <span className="text-xs text-blue-500">(自分)</span>}</span>
-                                <span className="text-xs text-muted-foreground">
+                                <span className="font-medium text-sm comment-author">{comment.author} {isOwnComment && <span className="text-xs text-blue-500">(自分)</span>}</span>
+                                <span className="text-xs comment-time">
                                   {format(new Date(comment.createdAt), "MM月dd日 HH:mm", { locale: ja })}
                                 </span>
                               </div>
-                              <p className="text-sm text-foreground">{comment.content}</p> {/* text-gray-700 から text-foreground に */}
+                              <p className="text-sm comment-content">{comment.content}</p>
                             </div>
                             <div className="flex items-center mt-1">
                               <Button
