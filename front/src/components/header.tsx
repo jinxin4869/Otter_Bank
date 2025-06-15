@@ -77,7 +77,7 @@ export default function Header() {
   if (!mounted) {
     return (
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 dark:border-slate-800">
-        <div className="container flex h-16 items-center justify-between">
+        <div className="header-container flex h-16 items-center justify-between">
           <Link href={logoHref} className="flex items-center gap-2">
             <Image src="/logo.png" alt="Otter Bank Logo" width={32} height={32} className="rounded-full" />
             <span className="font-bold text-lg">Otter Bank</span>
@@ -90,14 +90,17 @@ export default function Header() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 dark:border-slate-800 dark:bg-slate-900/95 shadow-sm">
-      <div className="container flex h-16 items-center justify-between">
-        <Link href={logoHref} className="flex items-center gap-2 mr-auto">
+      <div className="header-container flex h-16 items-center">
+        <Link href={logoHref} className="flex items-center gap-2">
           <Image src="/logo.png" alt="Otter Bank Logo" width={36} height={36} className="rounded-full transition-transform hover:scale-110" />
           <span className="font-bold text-lg hidden sm:inline-block text-primary dark:text-primary-foreground">Otter Bank</span>
         </Link>
 
-        {/* デスクトップ表示のナビゲーション */}
-        <nav className="hidden md:flex items-center gap-1">
+        {/* 中央のスペーサー */}
+        <div className="flex-1"></div>
+
+        {/* デスクトップ表示のナビゲーション - 完全に右寄せ */}
+        <nav className="hidden md:flex items-center gap-1 mr-4">
           {navLinks.map(link => (
             <Button
               key={link.href}
@@ -125,7 +128,7 @@ export default function Header() {
           )}
         </nav>
 
-        <div className="flex items-center gap-2 ml-4">
+        <div className="flex items-center gap-2 ml-2">
           {/* モバイル表示のハンバーガーメニュー */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
