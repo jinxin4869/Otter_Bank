@@ -241,11 +241,11 @@ export default function BoardPage() {
 
     // ローカルストレージから投稿データを読み込み
     const savedPosts = localStorage.getItem("boardPosts")
-    const initialPosts = savedPosts ? JSON.parse(savedPosts) : SAMPLE_POSTS
+    const initialPosts = savedPosts ? JSON.parse(savedPosts) : []
 
     // ローカルストレージからコメントデータを読み込み
     const savedComments = localStorage.getItem("boardComments")
-    const initialComments = savedComments ? JSON.parse(savedComments) : SAMPLE_COMMENTS
+    const initialComments = savedComments ? JSON.parse(savedComments) : []
 
     // サンプルデータを読み込み
     setCurrentUserEmail(userEmail)
