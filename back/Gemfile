@@ -28,7 +28,7 @@ gem "bcrypt", ">= 3.1.7"
 gem "jwt", ">= 2.5"
 
 # OAuth認証 Google
-gem "omniauth-google-oauth2", "~> 0.8.0"
+gem "omniauth-google-oauth2", "~> 1.2.1"
 
 # JSONシリアライザ (後でちゃんと調べます)
 gem "active_model_serializers", "~> 0.10"
@@ -67,7 +67,7 @@ group :development, :test do
   gem "shoulda-matchers", "~> 6.5"
 
   # コード品質
-  gem "rubocop", "~> 1.0", ">= 1.0", require: false
+  gem "rubocop", "~> 1.76", require: false
   gem "rubocop-rails", "~> 2.0", require: false
 end
 
