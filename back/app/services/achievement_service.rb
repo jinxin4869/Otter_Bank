@@ -216,7 +216,7 @@ class AchievementService
 
   # 連続記録の実績を更新
   def update_streak_achievements(days)
-    streak_achievements = @user.achievements.where(unlocked: false)
+    streak_achievements = @user.achievements.where(category: :streak, unlocked: false)
     
     streak_achievements.each do |achievement|
       case achievement.original_achievement_id
