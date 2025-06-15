@@ -263,7 +263,7 @@ class AchievementService
 
   # 支出管理実績を更新
   def update_expense_achievements(budget_status)
-    expense_achievements = @user.achievements.where(unlocked: false)
+    expense_achievements = @user.achievements.where(category: :expense, unlocked: false)
     
     expense_achievements.each do |achievement|
       case achievement.original_achievement_id
