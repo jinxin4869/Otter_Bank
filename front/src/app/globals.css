@@ -212,6 +212,35 @@
     background-color: hsl(var(--background)) !important;
     border: 1px solid hsl(var(--border)) !important;
   }
+
+  /* 掲示板ダイアログの背景色を明示的に設定 */
+  .board-dialog-content {
+    background-color: #fef7ed !important; /* ライトモード: 暖色系のクリーム色 */
+    color: #0c0a09 !important; /* ライトモード: 濃い茶色の文字 */
+  }
+
+  .dark .board-dialog-content {
+    background-color: #1e293b !important; /* ダークモード: 落ち着いた青灰色 */
+    color: #f1f5f9 !important; /* ダークモード: 明るい灰色の文字 */
+    border-color: #475569 !important; /* ダークモード: ボーダー色も調整 */
+  }
+
+  /* コメントの背景色設定 */
+  .comment-own {
+    background-color: #fef3c7 !important; /* ライトモード: 自分のコメント - 薄い黄色 */
+  }
+
+  .comment-other {
+    background-color: #f3f4f6 !important; /* ライトモード: 他人のコメント - 薄い灰色 */
+  }
+
+  .dark .comment-own {
+    background-color: #374151 !important; /* ダークモード: 自分のコメント - 濃い灰色 */
+  }
+
+  .dark .comment-other {
+    background-color: #4b5563 !important; /* ダークモード: 他人のコメント - やや濃い灰色 */
+  }
 }
 
 @keyframes shake {
