@@ -33,6 +33,7 @@ class ApplicationController < ActionController::API
     !!current_user
   end
 
+  # authorize メソッドを追加して統一
   def authorize
     render json: { message: 'ログインが必要です' }, status: :unauthorized unless logged_in?
   end
@@ -40,26 +41,44 @@ class ApplicationController < ActionController::API
   private
   
   def authorize_request
+    # 特定のエンドポイントではスキップ
+    return if skip_authorization?
+    
     header = request.headers['Authorization']
     token = header.split(' ').last if header
+    
+    Rails.logger.info "Authorization header: #{header.present? ? 'present' : 'missing'}"
+    Rails.logger.info "Token: #{token.present? ? 'present' : 'missing'}"
     
     begin
       if token
         @decoded = JsonWebToken.decode(token)
+        Rails.logger.info "Decoded token: #{@decoded}"
         if @decoded
           @current_user = User.find(@decoded[:user_id])
+          Rails.logger.info "Current user set: #{@current_user.id}"
         else
+          Rails.logger.error "Invalid token payload"
           render json: { error: 'Invalid token payload' }, status: :unauthorized
         end
       else
+        Rails.logger.error "Authorization token not provided"
        render json: { error: 'Authorization token not provided' }, status: :unauthorized
       end
     rescue ActiveRecord::RecordNotFound => e
+      Rails.logger.error "User not found: #{e.message}"
       render json: { error: "User not found: #{e.message}" }, status: :unauthorized
     rescue JWT::ExpiredSignature => e
+      Rails.logger.error "Token has expired: #{e.message}"
       render json: { error: "Token has expired: #{e.message}" }, status: :unauthorized
     rescue JWT::DecodeError => e
+      Rails.logger.error "Invalid token: #{e.message}"
       render json: { error: "Invalid token: #{e.message}" }, status: :unauthorized
     end
+  end
+  
+  def skip_authorization?
+    # 認証をスキップするアクションを定義
+    false
   end
 end

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_06_15_072451) do
+ActiveRecord::Schema[7.1].define(version: 2025_06_15_082344) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -19,20 +19,21 @@ ActiveRecord::Schema[7.1].define(version: 2025_06_15_072451) do
     t.string "original_achievement_id", null: false
     t.string "title", null: false
     t.text "description"
-    t.string "category", null: false
-    t.string "tier"
-    t.boolean "unlocked", default: false
-    t.integer "progress", default: 0
-    t.integer "progress_target", default: 1
+    t.integer "category", default: 0, null: false
+    t.integer "tier", default: 0, null: false
+    t.boolean "unlocked", default: false, null: false
+    t.integer "progress", default: 0, null: false
+    t.integer "progress_target", null: false
     t.string "image_url"
     t.string "reward"
     t.datetime "unlocked_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["category"], name: "index_achievements_on_category"
+    t.index ["created_at"], name: "index_achievements_on_created_at"
     t.index ["tier"], name: "index_achievements_on_tier"
     t.index ["unlocked"], name: "index_achievements_on_unlocked"
-    t.index ["user_id", "original_achievement_id"], name: "index_achievements_on_user_id_and_original_achievement_id", unique: true
+    t.index ["user_id", "original_achievement_id"], name: "index_achievements_on_user_and_original_id", unique: true
     t.index ["user_id"], name: "index_achievements_on_user_id"
   end
 

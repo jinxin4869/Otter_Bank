@@ -3,7 +3,6 @@ class User < ApplicationRecord
 
     has_many :oauth_providers, dependent: :destroy
     has_many :achievements, dependent: :destroy # ユーザーが獲得した実績
-    has_many :user_actions, dependent: :destroy # ユーザーのアクション履歴
     has_many :savings, dependent: :destroy
 
     validates :username, presence: true, uniqueness: { case_sensitive: false }, length: { minimum: 3, maximum: 20 }
@@ -102,9 +101,6 @@ class User < ApplicationRecord
   def total_savings
     # ユーザーの総貯金額を計算するロジック
     savings.sum(:amount)
-    # 既存の総貯金額計算ロジック
-    user_actions.where(action_type: 'deposit').sum(:amount) - 
-    user_actions.where(action_type: 'withdrawal').sum(:amount)
   end
 
   def current_streak
