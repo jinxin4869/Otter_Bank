@@ -5,7 +5,7 @@ class Achievement < ApplicationRecord
   enum category: {
     savings: 0,      # 貯金関連
     streak: 1,       # 連続記録
-    milestone: 2,    # マイルストーン
+    expense: 2,    # マイルストーン
     special: 3       # 特別な実績
   }
 
