@@ -1,0 +1,26 @@
+# render.yaml
+services:
+  - type: web # Webサービスの定義
+    name: otter-bank-api # サービス名
+    env: ruby # 使用する環境
+    region: oregon # デプロイ先のリージョン
+    plan: free # プランの指定
+    rootDir: back                    # バックエンドのディレクトリを指定
+    buildCommand: bundle install && bundle exec rails db:migrate
+    startCommand: bundle exec rails server -b 0.0.0.0 -p $PORT
+    envVars:
+      - key: RAILS_ENV
+        value: production
+      - key: RAILS_MASTER_KEY
+        sync: false
+      - key: SECRET_KEY_BASE
+        generateValue: true
+      - key: WEB_CONCURRENCY
+        value: 1
+
+databases:
+  - name: otter-bank-db
+    databaseName: otter_bank_production
+    user: otter_bank_user
+    region: oregon
+    plan: free
