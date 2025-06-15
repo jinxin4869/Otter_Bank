@@ -1044,14 +1044,14 @@ export default function BoardPage() {
                     );
                   })}
                 </div>
-                <DialogTitle className="text-xl">{selectedPost.title}</DialogTitle>
+                <DialogTitle className="text-xl text-primary dark:text-primary-dark">{selectedPost.title}</DialogTitle>
                 <div className="flex items-center">
                   <Avatar className="h-8 w-8 mr-2">
                     <AvatarFallback>{getUserInitial(selectedPost.authorEmail)}</AvatarFallback>
                   </Avatar>
                   <div>
-                    <p className="font-medium">{selectedPost.author}</p>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="font-medium text-gray-900 dark:text-gray-100">{selectedPost.author}</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-300">
                       {format(new Date(selectedPost.createdAt), "yyyy年MM月dd日 HH:mm", { locale: ja })}
                     </p>
                   </div>
@@ -1059,13 +1059,13 @@ export default function BoardPage() {
               </DialogHeader>
 
               <div className="py-4">
-                <div className="whitespace-pre-wrap text-gray-700 mb-6">
+                <div className="whitespace-pre-wrap text-gray-800 dark:text-gray-100 mb-6">
                   {selectedPost.content}
                 </div>
 
                 {/* コメントセクション */}
                 <div className="border-t pt-4">
-                  <h3 className="font-medium mb-4">コメント ({getPostComments(selectedPost.id).length})</h3> {/* コメント数を動的に */}
+                  <h3 className="font-medium mb-4 text-gray-900 dark:text-gray-100">コメント ({getPostComments(selectedPost.id).length})</h3> {/* コメント数を動的に */}
 
                   {/* 新しいコメントを追加 */}
                   <div className="mb-4">
@@ -1127,7 +1127,7 @@ export default function BoardPage() {
                       );
                     })}
                     {getPostComments(selectedPost.id).length === 0 && (
-                      <p className="text-sm text-muted-foreground">まだコメントはありません。</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">まだコメントはありません。</p>
                     )}
                   </div>
                 </div>
