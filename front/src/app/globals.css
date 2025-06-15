@@ -235,11 +235,11 @@
   }
 
   .dark .comment-own {
-    background-color: #374151 !important; /* ダークモード: 自分のコメント - 濃い灰色 */
+    background-color: #334155; /* ダークモード: 自分のコメント - より明るい青灰色 */
   }
 
   .dark .comment-other {
-    background-color: #4b5563 !important; /* ダークモード: 他人のコメント - やや濃い灰色 */
+    background-color: #475569 !important; /* ダークモード: 他人のコメント - 中間の青灰色 */
   }
 
   /* テーマ切替ダイアログの文字色を統一 */
@@ -291,6 +291,15 @@
 
   .dark .comment-textarea {
     color: #f1f5f9 !important; /* ダークモード: 明るい灰色 */
+  }
+
+  /* ヘッダー専用のコンテナクラス - 完全な右寄せ対応 */
+  .header-container {
+    width: 100%;
+    margin-left: 0;
+    margin-right: 0;
+    padding-left: 2rem;
+    padding-right: 2rem;
   }
 }
 

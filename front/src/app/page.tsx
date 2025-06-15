@@ -44,7 +44,7 @@ export default function Home() {
           </div>
 
           <div className="relative h-[500px] hidden md:block">
-            <div className="absolute inset-0 bg-gradient-to-br from-background/50 to-transparent dark:from-slate-700/40 dark:to-slate-800/20 z-10 rounded-xl opacity-20 dark:opacity-60 dark:border dark:border-slate-600/50" />
+            <div className="absolute rounded-xl opacity-20 dark:opacity-60 dark:border dark:border-slate-600/50" />
             <div className="absolute -left-12 bottom-0 w-96 h-80">
               <Image
                 src="/otter_bank.svg"
