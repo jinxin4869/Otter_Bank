@@ -962,7 +962,7 @@ export default function BoardPage() {
             <Button variant="outline" onClick={() => handleNewPostDialogChange(false)}>
               キャンセル
             </Button>
-            <Button onClick={handleAddPost}>投稿する</Button>
+            <Button onClick={handleAddPost} className="bg-blue-600 hover:bg-blue-700 text-white">投稿する</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -1020,7 +1020,7 @@ export default function BoardPage() {
             <Button variant="outline" onClick={() => setIsEditPostDialogOpen(false)}>
               キャンセル
             </Button>
-            <Button onClick={handleSaveEdit}>更新する</Button>
+            <Button onClick={handleSaveEdit} className="bg-blue-600 hover:bg-blue-700 text-white">更新する</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -1079,6 +1079,7 @@ export default function BoardPage() {
                           onChange={(e) => setNewCommentContent(e.target.value)}
                           placeholder="コメントを入力..."
                           rows={3}
+                          className="comment-textarea"
                         />
                         <div className="flex justify-end mt-2">
                           <Button size="sm" onClick={handleAddComment} className="bg-blue-600 hover:bg-blue-700 text-white">

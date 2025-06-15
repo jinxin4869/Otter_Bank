@@ -283,6 +283,15 @@
   .dark .comment-time {
     color: #9ca3af !important; /* ダークモード: 明るいミュート色 */
   }
+
+  /* コメント入力欄の文字色を明示的に指定 */
+  .comment-textarea {
+    color: #0c0a09 !important; /* ライトモード: 濃い茶色 */
+  }
+
+  .dark .comment-textarea {
+    color: #f1f5f9 !important; /* ダークモード: 明るい灰色 */
+  }
 }
 
 @keyframes shake {
