@@ -3,7 +3,7 @@ class User < ApplicationRecord
 
     has_many :oauth_providers, dependent: :destroy
     has_many :achievements, dependent: :destroy # ユーザーが獲得した実績
-    has_many :savings, dependent: :destroy
+    has_many :savings_goals, dependent: :destroy
 
     validates :username, presence: true, uniqueness: { case_sensitive: false }, length: { minimum: 3, maximum: 20 }
     validates :email, presence: true, uniqueness: true, format: { with: URI::MailTo::EMAIL_REGEXP }
