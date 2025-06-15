@@ -371,7 +371,7 @@ export default function DashboardPage() {
             <SelectTrigger className="w-[100px]">
               <SelectValue />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="board-dialog-content">
               <SelectItem value="day">日別</SelectItem>
               <SelectItem value="month">月別</SelectItem>
               <SelectItem value="year">年別</SelectItem>
@@ -559,7 +559,7 @@ export default function DashboardPage() {
                     <SelectValue placeholder="カテゴリーを選択" />
                   </SelectTrigger>
                   <SelectContent
-                    className="category-dropdown-menu"
+                    className="board-dialog-content"
                     position="item-aligned"
                     align="start"
                     side="bottom"
@@ -600,7 +600,7 @@ export default function DashboardPage() {
                       {format(date, "yyyy年MM月dd日", { locale: ja })}
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0">
+                  <PopoverContent className="w-auto p-0 board-dialog-content">
                     <Calendar mode="single" selected={date} onSelect={(date) => date && setDate(date)} initialFocus />
                   </PopoverContent>
                 </Popover>

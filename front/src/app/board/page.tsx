@@ -721,7 +721,7 @@ export default function BoardPage() {
                             <MoreVertical className="h-4 w-4" />
                           </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
+                        <DropdownMenuContent align="end" className="board-dialog-content">
                           <DropdownMenuItem onClick={() => handleEditPost(post)}>
                             <Edit className="mr-2 h-4 w-4" />
                             編集

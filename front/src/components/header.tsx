@@ -134,7 +134,7 @@ export default function Header() {
                 <span className="sr-only">ナビゲーションを開く</span>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="md:hidden w-48">
+            <DropdownMenuContent align="end" className="md:hidden w-48 board-dialog-content">
               <DropdownMenuLabel>メニュー</DropdownMenuLabel>
               <DropdownMenuSeparator />
               {navLinks.map(link => (
@@ -168,7 +168,7 @@ export default function Header() {
                 <span className="sr-only">テーマを切り替える</span>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-40 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-lg rounded-md">
+            <DropdownMenuContent align="end" className="w-40 board-dialog-content">
               <DropdownMenuLabel className="px-2 py-1.5 text-sm font-semibold text-slate-700 dark:text-slate-200">背景色を選択</DropdownMenuLabel>
               <DropdownMenuSeparator className="bg-slate-200 dark:bg-slate-700" />
               <DropdownMenuItem
