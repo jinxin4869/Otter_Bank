@@ -1,7 +1,7 @@
-# 獭獭銀行 (OtterBank) 🦦💰
+# Otter Bank(獭獭銀行) 🦦💰
 
 ## サービス概要
-- 水獭银行(Otter Bank)は、お金の管理をするためアプリです！
+- Otter Bank (獭獭銀行)は、お金の管理をするためアプリです！
 - カワウソがあなたの出費に応じてリアクションを反応してくれます！
 
 ## このサービスへの思い・作りたい理由
@@ -33,9 +33,20 @@
 - 🏆 **アチーブメントシステム**: 貯金目標を達成して特別なバッジを獲得
 - 🌈 **カスタマイズ要素**: 貯金額に応じてカワウソの生活環境を変えられる！
 
+### 💰 家計管理機能
+- **収支管理**: 収入・支出の記録と分析
+- **カテゴリ別分析**: 支出をカテゴリごとに可視化
+- **予算設定**: 月次・カテゴリ別予算の設定と追跡
+- **レポート機能**: 詳細な家計分析レポート
+
+### 💬 コミュニティ機能
+- **掲示板**: ユーザー同士の情報交換
+- **コメント機能**: 投稿に対するディスカッション
+
 ## ユーザーの獲得について
 
-RUNTEQコミュニティ内容で使用してもらいつつ、SNSを利用して拡散する。
+- RUNTEQコミュニティ内容で使用してもらいつつ、SNSを利用して拡散する。
+- 現在学生でもあるため、学生コミュニティでも使ってもらいフィードバックをいただけると
 
 ## サービスの差別化ポイント・推しポイント
 
@@ -56,13 +67,74 @@ MVPリリース時:
 - プライバシーポリシー
 - 問い合わせフォーム
 - カワウソのアニメーション(最低限のもの)
-- 実績フォームの画面
-- 実績フォームの閲覧
+- 実績画面、閲覧
+- 掲示板画面、閲覧、投稿
 
 本リリースまで:
 - 実績画面(アップデート予定あり)
 - 実際の銀行口座と連携して金額をリアルタイムで取得
 - マルチプラットフォーム(webアプリではなく、ネイティブアプリとして使用する方がより便利性が上がるため)
+
+## 🛠️ 技術スタック
+
+### フロントエンド
+- **フレームワーク**: Next.js 14
+- **使用言語**: TypeScript(すごく後悔している)
+- **CSS**: Tailwind CSS
+- **UI コンポーネント**: Radix UI, shadcn/ui, Lucide React
+- **State Management**: Zustand
+- **Charts**: Recharts
+- **デプロイ**: Vercel
+
+### バックエンド
+- **フレームワーク**: Ruby on Rails 7.1
+- **使用言語**: Ruby 3.2.2
+- **データベース**: PostgreSQL (Production), SQLite (Development)
+- **認証**: JWT + bcrypt
+- **CORS**: rack-cors
+- **デプロイ**: Render
+
+## 🚀 セットアップ
+
+### 前提条件
+- Node.js 18+
+- Ruby 3.2.2
+- PostgreSQL (本番環境)
+
+### ローカル開発環境の構築
+
+#### 1. リポジトリのクローン
+```bash
+git clone https://github.com/jinxin4869/Otter_Bank.git
+cd Otter_Bank
+```
+
+## 📂 プロジェクト構造
+
+```
+Otter_Bank/
+├── back/                    # Ruby on Rails API
+│   ├── app/
+│   │   ├── controllers/     # APIコントローラー
+│   │   ├── models/         # データモデル
+│   │   └── services/       # ビジネスロジック
+│   ├── config/             # Rails設定
+│   ├── db/                 # データベース関連
+│   └── spec/               # テストファイル
+├── front/                  # Next.js フロントエンド
+│   ├── src/
+│   │   ├── app/            # アプリケーションページ
+│   │   ├── components/     # 再利用可能なコンポーネント
+│   │   ├── lib/            # ユーティリティ関数
+│   │   └── types/          # TypeScript型定義
+│   └── public/             # 静的ファイル
+├── render.yaml             # Renderデプロイ設定
+└── README.md
+```
+
+### CI/CD
+- GitHubへのプッシュで自動デプロイ(フロントエンド)
+- プルリクエストでgithub copilotによる自動レビュー
 
 ## 機能の実装方針予定
 
@@ -77,6 +149,14 @@ MVPリリース時:
 | 認証 | Devise (Railsの認証ライブラリ) |
 | CI / CD | GitHub Actions |
 | 開発環境 | Docker (コンテナ化), VSCode (エディタ) |
+
+## 👥 開発者
+
+- **jinxin4869** - *メイン開発者* - [GitHub](https://github.com/jinxin4869)
+
+## 📞 サポート
+
+質問や問題がある場合は、[GitHub Issues](https://github.com/jinxin4869/Otter_Bank/issues)で報告してください。
 
 ## 画面遷移図
 [Figmaリンク](https://www.figma.com/board/336gqg7QemlRBOyX6Hyjk9/Untitled?node-id=0-1&p=f&t=pWqT6LtmUdhXr6q1-0)
