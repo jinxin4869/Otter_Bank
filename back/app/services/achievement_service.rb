@@ -191,8 +191,6 @@ class AchievementService
   # 貯金関連の実績を更新
   # enum対応
   def update_savings_achievements(amount)
-    # 総貯金額を取得
-    savings_achievements = @user.achievements.where(category: :savings, unlocked: false)
     
     savings_achievements.each do |achievement|
       case achievement.original_achievement_id
@@ -203,7 +201,7 @@ class AchievementService
         achievement.update_progress(total_savings) if total_savings >= achievement.progress_target
       when 'savings_milestone_5000'
         total_savings = @user.total_savings || 0
-        achievement.update_progress(total_savings) if total_savings >= achievement.progress_target
+        achievement.update_progress(cumulative_savings) # Use cumulative savings
       when 'savings_milestone_10000'
         total_savings = @user.total_savings || 0
         achievement.update_progress(total_savings) if total_savings >= achievement.progress_target
