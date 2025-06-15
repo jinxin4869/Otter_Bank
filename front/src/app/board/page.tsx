@@ -1044,7 +1044,7 @@ export default function BoardPage() {
                     );
                   })}
                 </div>
-                <DialogTitle className="text-xl text-gray-900 dark:text-gray-100">{selectedPost.title}</DialogTitle>
+                <DialogTitle className="text-xl text-primary dark:text-primary-dark">{selectedPost.title}</DialogTitle>
                 <div className="flex items-center">
                   <Avatar className="h-8 w-8 mr-2">
                     <AvatarFallback>{getUserInitial(selectedPost.authorEmail)}</AvatarFallback>
