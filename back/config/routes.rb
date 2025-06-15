@@ -1,5 +1,8 @@
 Rails.application.routes.draw do
   namespace :api do
+    namespace :vi do
+      get 'user_actions/index'
+    end
     namespace :v1 do
       get 'likes/create_post_like'
       get 'likes/destroy_post_like'
@@ -48,6 +51,7 @@ Rails.application.routes.draw do
 
       # 実績関連
       resources :achievements, only: [:index, :show, :update]
+      resources :user_actions, only: [:index, :create] 
 
       # Auth関連
       get 'auth/google', to: 'auth#google'
