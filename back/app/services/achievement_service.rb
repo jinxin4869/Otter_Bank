@@ -191,8 +191,6 @@ class AchievementService
   # 貯金関連の実績を更新
   # enum対応
   def update_savings_achievements(amount)
-    # 総貯金額を取得
-    savings_achievements = @user.achievements.where(category: :savings, unlocked: false)
     
     savings_achievements.each do |achievement|
       case achievement.original_achievement_id
@@ -203,7 +201,7 @@ class AchievementService
         achievement.update_progress(total_savings) if total_savings >= achievement.progress_target
       when 'savings_milestone_5000'
         total_savings = @user.total_savings || 0
-        achievement.update_progress(total_savings) if total_savings >= achievement.progress_target
+        achievement.update_progress(cumulative_savings) # Use cumulative savings
       when 'savings_milestone_10000'
         total_savings = @user.total_savings || 0
         achievement.update_progress(total_savings) if total_savings >= achievement.progress_target
@@ -216,7 +214,7 @@ class AchievementService
 
   # 連続記録の実績を更新
   def update_streak_achievements(days)
-    streak_achievements = @user.achievements.where(unlocked: false)
+    streak_achievements = @user.achievements.where(category: :streak, unlocked: false)
     
     streak_achievements.each do |achievement|
       case achievement.original_achievement_id
@@ -263,7 +261,7 @@ class AchievementService
 
   # 支出管理実績を更新
   def update_expense_achievements(budget_status)
-    expense_achievements = @user.achievements.where(unlocked: false)
+    expense_achievements = @user.achievements.where(category: :expense, unlocked: false)
     
     expense_achievements.each do |achievement|
       case achievement.original_achievement_id

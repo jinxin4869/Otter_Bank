@@ -47,32 +47,32 @@ class ApplicationController < ActionController::API
     header = request.headers['Authorization']
     token = header.split(' ').last if header
     
-    Rails.logger.info "Authorization header: #{header.present? ? 'present' : 'missing'}"
-    Rails.logger.info "Token: #{token.present? ? 'present' : 'missing'}"
+    Rails.logger.info "Authorization header: #{header.present? ? 'present' : 'missing'}" if Rails.env.development?
+    Rails.logger.info "Token: #{token.present? ? 'present' : 'missing'}" if Rails.env.development?
     
     begin
       if token
         @decoded = JsonWebToken.decode(token)
-        Rails.logger.info "Decoded token: #{@decoded}"
+        Rails.logger.info "Decoded token: #{Rails.env.development? ? @decoded : '[MASKED]'}"
         if @decoded
           @current_user = User.find(@decoded[:user_id])
-          Rails.logger.info "Current user set: #{@current_user.id}"
+          Rails.logger.info "Current user set: #{Rails.env.development? ? @current_user.id : '[MASKED]'}"
         else
-          Rails.logger.error "Invalid token payload"
+          Rails.logger.error "Invalid token payload" if Rails.env.development?
           render json: { error: 'Invalid token payload' }, status: :unauthorized
         end
       else
-        Rails.logger.error "Authorization token not provided"
+        Rails.logger.error "Authorization token not provided" if Rails.env.development?
        render json: { error: 'Authorization token not provided' }, status: :unauthorized
       end
     rescue ActiveRecord::RecordNotFound => e
-      Rails.logger.error "User not found: #{e.message}"
+      Rails.logger.error "User not found: #{Rails.env.development? ? e.message : '[MASKED]'}"
       render json: { error: "User not found: #{e.message}" }, status: :unauthorized
     rescue JWT::ExpiredSignature => e
-      Rails.logger.error "Token has expired: #{e.message}"
+      Rails.logger.error "Token has expired: #{Rails.env.development? ? e.message : '[MASKED]'}"
       render json: { error: "Token has expired: #{e.message}" }, status: :unauthorized
     rescue JWT::DecodeError => e
-      Rails.logger.error "Invalid token: #{e.message}"
+      Rails.logger.error "Invalid token: #{Rails.env.development? ? e.message : '[MASKED]'}"
       render json: { error: "Invalid token: #{e.message}" }, status: :unauthorized
     end
   end
