@@ -10,23 +10,30 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_06_03_131242) do
+ActiveRecord::Schema[7.1].define(version: 2025_06_15_082344) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
   create_table "achievements", force: :cascade do |t|
-    t.string "title"
-    t.text "description"
-    t.boolean "unlocked"
-    t.integer "progress"
     t.bigint "user_id", null: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.integer "original_achievement_id"
-    t.string "category"
+    t.string "original_achievement_id", null: false
+    t.string "title", null: false
+    t.text "description"
+    t.integer "category", default: 0, null: false
+    t.integer "tier", default: 0, null: false
+    t.boolean "unlocked", default: false, null: false
+    t.integer "progress", default: 0, null: false
+    t.integer "progress_target", null: false
     t.string "image_url"
     t.string "reward"
-    t.integer "tier"
+    t.datetime "unlocked_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["category"], name: "index_achievements_on_category"
+    t.index ["created_at"], name: "index_achievements_on_created_at"
+    t.index ["tier"], name: "index_achievements_on_tier"
+    t.index ["unlocked"], name: "index_achievements_on_unlocked"
+    t.index ["user_id", "original_achievement_id"], name: "index_achievements_on_user_and_original_id", unique: true
     t.index ["user_id"], name: "index_achievements_on_user_id"
   end
 
@@ -120,6 +127,19 @@ ActiveRecord::Schema[7.1].define(version: 2025_06_03_131242) do
     t.index ["user_id"], name: "index_transactions_on_user_id"
   end
 
+  create_table "user_actions", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.string "action_type", null: false
+    t.decimal "amount", precision: 10, scale: 2
+    t.text "description"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["action_type"], name: "index_user_actions_on_action_type"
+    t.index ["created_at"], name: "index_user_actions_on_created_at"
+    t.index ["user_id", "created_at"], name: "index_user_actions_on_user_id_and_created_at"
+    t.index ["user_id"], name: "index_user_actions_on_user_id"
+  end
+
   create_table "users", force: :cascade do |t|
     t.string "email"
     t.string "password_digest"
@@ -137,4 +157,5 @@ ActiveRecord::Schema[7.1].define(version: 2025_06_03_131242) do
   add_foreign_key "post_categories", "posts"
   add_foreign_key "savings_goals", "users"
   add_foreign_key "transactions", "users"
+  add_foreign_key "user_actions", "users"
 end

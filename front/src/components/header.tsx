@@ -134,7 +134,7 @@ export default function Header() {
                 <span className="sr-only">ナビゲーションを開く</span>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="md:hidden w-48">
+            <DropdownMenuContent align="end" className="md:hidden w-48 board-dialog-content">
               <DropdownMenuLabel>メニュー</DropdownMenuLabel>
               <DropdownMenuSeparator />
               {navLinks.map(link => (
@@ -168,12 +168,12 @@ export default function Header() {
                 <span className="sr-only">テーマを切り替える</span>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-40 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-lg rounded-md">
-              <DropdownMenuLabel className="px-2 py-1.5 text-sm font-semibold text-slate-700 dark:text-slate-200">背景色を選択</DropdownMenuLabel>
+            <DropdownMenuContent align="end" className="w-40 board-dialog-content">
+              <DropdownMenuLabel className="px-2 py-1.5 text-sm font-semibold theme-dropdown-label">背景色を選択</DropdownMenuLabel>
               <DropdownMenuSeparator className="bg-slate-200 dark:bg-slate-700" />
               <DropdownMenuItem
                 onClick={() => setTheme("light")}
-                className="flex items-center gap-2 px-2 py-1.5 text-sm text-slate-700 dark:text-slate-300 hover:!bg-orange-100 dark:hover:!bg-slate-700 rounded-sm cursor-pointer"
+                className="flex items-center gap-2 px-2 py-1.5 text-sm theme-dropdown-item hover:!bg-orange-100 dark:hover:!bg-slate-700 rounded-sm cursor-pointer"
               >
                 <Sun className="h-4 w-4 text-orange-500" />
                 ライト
@@ -181,7 +181,7 @@ export default function Header() {
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => setTheme("dark")}
-                className="flex items-center gap-2 px-2 py-1.5 text-sm text-slate-700 dark:text-slate-300 hover:!bg-orange-100 dark:hover:!bg-slate-700 rounded-sm cursor-pointer"
+                className="flex items-center gap-2 px-2 py-1.5 text-sm theme-dropdown-item hover:!bg-orange-100 dark:hover:!bg-slate-700 rounded-sm cursor-pointer"
               >
                 <Moon className="h-4 w-4 text-indigo-500" />
                 ダーク
