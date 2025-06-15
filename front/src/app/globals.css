@@ -235,7 +235,7 @@
   }
 
   .dark .comment-own {
-    background-color: #334155 !important; /* ダークモード: 自分のコメント - より明るい青灰色 */
+    background-color: #334155; /* ダークモード: 自分のコメント - より明るい青灰色 */
   }
 
   .dark .comment-other {
