@@ -239,10 +239,18 @@ export default function BoardPage() {
       return
     }
 
+    // ローカルストレージから投稿データを読み込み
+    const savedPosts = localStorage.getItem("boardPosts")
+    const initialPosts = savedPosts ? JSON.parse(savedPosts) : SAMPLE_POSTS
+
+    // ローカルストレージからコメントデータを読み込み
+    const savedComments = localStorage.getItem("boardComments")
+    const initialComments = savedComments ? JSON.parse(savedComments) : SAMPLE_COMMENTS
+
     // サンプルデータを読み込み
     setCurrentUserEmail(userEmail)
-    setPosts(SAMPLE_POSTS)
-    setComments(SAMPLE_COMMENTS)
+    setPosts(initialPosts)
+    setComments(initialComments)
 
     // ブックマークデータを読み込み
     const savedBookmarks = localStorage.getItem("bookmarkedPosts")
@@ -272,20 +280,26 @@ export default function BoardPage() {
     if (isCurrentlyLiked) {
       // いいね解除
       updatedLikedPostIds = likedPostIds.filter(id => id !== postId);
-      setPosts((prev) =>
-        prev.map((post) =>
+      setPosts((prev) => {
+        const updatedPosts = prev.map((post) =>
           post.id === postId ? { ...post, likes: Math.max(0, post.likes - 1) } : post
         )
-      );
+        // ローカルストレージに保存
+        localStorage.setItem("boardPosts", JSON.stringify(updatedPosts))
+        return updatedPosts
+      });
       toast.success("いいねを取り消しました");
     } else {
       // いいねする
       updatedLikedPostIds = [...likedPostIds, postId];
-      setPosts((prev) =>
-        prev.map((post) =>
+      setPosts((prev) => {
+        const updatedPosts = prev.map((post) =>
           post.id === postId ? { ...post, likes: post.likes + 1 } : post
         )
-      );
+        // ローカルストレージに保存
+        localStorage.setItem("boardPosts", JSON.stringify(updatedPosts))
+        return updatedPosts
+      });
       toast.success("いいねしました");
     }
     setLikedPostIds(updatedLikedPostIds);
@@ -413,7 +427,12 @@ export default function BoardPage() {
     }
 
     // 投稿リストに追加
-    setPosts((prev) => [newPost, ...prev])
+    setPosts((prev) => {
+      const updatedPosts = [newPost, ...prev]
+      // ローカルストレージに保存
+      localStorage.setItem("boardPosts", JSON.stringify(updatedPosts))
+      return updatedPosts
+    })
 
     // フォームをリセット
     setNewPostTitle("")
@@ -473,8 +492,8 @@ export default function BoardPage() {
     }
 
     // 投稿を更新
-    setPosts((prev) =>
-      prev.map((post) =>
+    setPosts((prev) => {
+      const updatedPosts = prev.map((post) =>
         post.id === editingPost.id
           ? {
             ...post,
@@ -484,7 +503,10 @@ export default function BoardPage() {
           }
           : post
       )
-    )
+      // ローカルストレージに保存
+      localStorage.setItem("boardPosts", JSON.stringify(updatedPosts))
+      return updatedPosts
+    })
 
     // フォームをリセット
     setNewPostTitle("")
@@ -506,9 +528,14 @@ export default function BoardPage() {
     setIsPostDetailDialogOpen(true)
 
     // 閲覧数を増加
-    setPosts(prev => prev.map(p =>
-      p.id === post.id ? { ...p, views: p.views + 1 } : p
-    ))
+    setPosts(prev => {
+      const updatedPosts = prev.map(p =>
+        p.id === post.id ? { ...p, views: p.views + 1 } : p
+      )
+      // ローカルストレージに保存
+      localStorage.setItem("boardPosts", JSON.stringify(updatedPosts))
+      return updatedPosts
+    })
   }
 
   // コメントを追加
@@ -531,14 +558,24 @@ export default function BoardPage() {
       likes: 0,
     }
 
-    setComments(prev => [...prev, newComment])
+    setComments(prev => {
+      const updatedComments = [...prev, newComment]
+      // ローカルストレージに保存
+      localStorage.setItem("boardComments", JSON.stringify(updatedComments))
+      return updatedComments
+    })
 
     // 投稿のコメント数を更新
-    setPosts(prev => prev.map(post =>
-      post.id === selectedPost.id
-        ? { ...post, comments: post.comments + 1 }
-        : post
-    ))
+    setPosts(prev => {
+      const updatedPosts = prev.map(post =>
+        post.id === selectedPost.id
+          ? { ...post, comments: post.comments + 1 }
+          : post
+      )
+      // ローカルストレージに保存
+      localStorage.setItem("boardPosts", JSON.stringify(updatedPosts))
+      return updatedPosts
+    })
 
     setNewCommentContent("")
     toast.success("コメントを投稿しました")
@@ -552,20 +589,30 @@ export default function BoardPage() {
     if (isCurrentlyLiked) {
       // いいね解除
       updatedLikedCommentIds = likedCommentIds.filter(id => id !== commentId);
-      setComments(prev => prev.map(comment =>
-        comment.id === commentId
-          ? { ...comment, likes: Math.max(0, comment.likes - 1) }
-          : comment
-      ))
+      setComments(prev => {
+        const updatedComments = prev.map(comment =>
+          comment.id === commentId
+            ? { ...comment, likes: Math.max(0, comment.likes - 1) }
+            : comment
+        )
+        // ローカルストレージに保存
+        localStorage.setItem("boardComments", JSON.stringify(updatedComments))
+        return updatedComments
+      })
       toast.success("コメントのいいねを取り消しました");
     } else {
       // いいねする
       updatedLikedCommentIds = [...likedCommentIds, commentId];
-      setComments(prev => prev.map(comment =>
-        comment.id === commentId
-          ? { ...comment, likes: comment.likes + 1 }
-          : comment
-      ))
+      setComments(prev => {
+        const updatedComments = prev.map(comment =>
+          comment.id === commentId
+            ? { ...comment, likes: comment.likes + 1 }
+            : comment
+        )
+        // ローカルストレージに保存
+        localStorage.setItem("boardComments", JSON.stringify(updatedComments))
+        return updatedComments
+      })
       toast.success("コメントにいいねしました");
     }
     
@@ -584,15 +631,18 @@ export default function BoardPage() {
   const handleDeletePost = () => {
     if (!deletingPostId) return
 
-    setPosts((prev) => prev.filter((post) => post.id !== deletingPostId))
+    setPosts((prev) => {
+      const updatedPosts = prev.filter((post) => post.id !== deletingPostId)
+      // ローカルストレージに保存
+      localStorage.setItem("boardPosts", JSON.stringify(updatedPosts))
+      return updatedPosts
+    })
+    
     setDeletingPostId(null)
+    setIsDeleteDialogOpen(false)
 
     toast.success("投稿を削除しました")
   }
-
-  setTimeout(() => {
-    setIsDeleteDialogOpen(false)
-  }, 100)
 
   // 削除ダイアログを開く
   const openDeleteDialog = (postId: string) => {
@@ -814,7 +864,7 @@ export default function BoardPage() {
             <SelectTrigger className="w-[130px]">
               <SelectValue placeholder="並び替え" />
             </SelectTrigger>
-            <SelectContent className="bg-white">
+            <SelectContent>
               {SORT_OPTIONS.map((option) => (
                 <SelectItem key={option.value} value={option.value}>
                   {option.label}
@@ -857,7 +907,7 @@ export default function BoardPage() {
 
       {/* 新規投稿ダイアログ */}
       <Dialog open={isNewPostDialogOpen} onOpenChange={handleNewPostDialogChange}>
-        <DialogContent className="sm:max-w-[600px] bg-white">
+        <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>
             <DialogTitle>新規投稿</DialogTitle>
             <DialogDescription>
@@ -919,7 +969,7 @@ export default function BoardPage() {
 
       {/* 編集ダイアログ */}
       <Dialog open={isEditPostDialogOpen} onOpenChange={handleEditPostDialogChange}>
-        <DialogContent className="sm:max-w-[600px] bg-white">
+        <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>
             <DialogTitle>投稿を編集</DialogTitle>
             <DialogDescription>
@@ -977,7 +1027,7 @@ export default function BoardPage() {
 
       {/* 投稿詳細ダイアログ */}
       <Dialog open={isPostDetailDialogOpen} onOpenChange={setIsPostDetailDialogOpen}>
-        <DialogContent className="sm:max-w-[800px] max-h-[80vh] overflow-y-auto bg-white">
+        <DialogContent className="sm:max-w-[800px] max-h-[80vh] overflow-y-auto">
           {selectedPost && (
             <>
               <DialogHeader>
@@ -1109,7 +1159,7 @@ export default function BoardPage() {
 
       {/* フィルターダイアログ */}
       <Dialog open={isFilterDialogOpen} onOpenChange={setIsFilterDialogOpen}>
-        <DialogContent className="sm:max-w-[500px] bg-white">
+        <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
             <DialogTitle>投稿のフィルター</DialogTitle>
           </DialogHeader>
