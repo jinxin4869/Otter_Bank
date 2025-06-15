@@ -169,11 +169,11 @@ export default function Header() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-40 board-dialog-content">
-              <DropdownMenuLabel className="px-2 py-1.5 text-sm font-semibold text-slate-700 dark:text-slate-200">背景色を選択</DropdownMenuLabel>
+              <DropdownMenuLabel className="px-2 py-1.5 text-sm font-semibold theme-dropdown-label">背景色を選択</DropdownMenuLabel>
               <DropdownMenuSeparator className="bg-slate-200 dark:bg-slate-700" />
               <DropdownMenuItem
                 onClick={() => setTheme("light")}
-                className="flex items-center gap-2 px-2 py-1.5 text-sm text-slate-700 dark:text-slate-300 hover:!bg-orange-100 dark:hover:!bg-slate-700 rounded-sm cursor-pointer"
+                className="flex items-center gap-2 px-2 py-1.5 text-sm theme-dropdown-item hover:!bg-orange-100 dark:hover:!bg-slate-700 rounded-sm cursor-pointer"
               >
                 <Sun className="h-4 w-4 text-orange-500" />
                 ライト
@@ -181,7 +181,7 @@ export default function Header() {
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => setTheme("dark")}
-                className="flex items-center gap-2 px-2 py-1.5 text-sm text-slate-700 dark:text-slate-300 hover:!bg-orange-100 dark:hover:!bg-slate-700 rounded-sm cursor-pointer"
+                className="flex items-center gap-2 px-2 py-1.5 text-sm theme-dropdown-item hover:!bg-orange-100 dark:hover:!bg-slate-700 rounded-sm cursor-pointer"
               >
                 <Moon className="h-4 w-4 text-indigo-500" />
                 ダーク
