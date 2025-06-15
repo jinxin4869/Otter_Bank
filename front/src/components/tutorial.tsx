@@ -96,7 +96,7 @@ export function Tutorial() {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[500px] board-dialog-content">
         <DialogHeader>
           <div className="flex items-center gap-2">
             {currentStepData.icon}

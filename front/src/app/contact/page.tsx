@@ -106,7 +106,7 @@ export default function ContactPage() {
                 <SelectTrigger id="subject">
                   <SelectValue placeholder="お問い合わせ種類を選択" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="board-dialog-content">
                   <SelectItem value="question">ご質問・ご相談</SelectItem>
                   <SelectItem value="feedback">ご意見・ご感想</SelectItem>
                   <SelectItem value="bug">不具合の報告</SelectItem>
