@@ -864,7 +864,7 @@ export default function BoardPage() {
             <SelectTrigger className="w-[130px]">
               <SelectValue placeholder="並び替え" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="board-dialog-content">
               {SORT_OPTIONS.map((option) => (
                 <SelectItem key={option.value} value={option.value}>
                   {option.label}
@@ -907,7 +907,7 @@ export default function BoardPage() {
 
       {/* 新規投稿ダイアログ */}
       <Dialog open={isNewPostDialogOpen} onOpenChange={handleNewPostDialogChange}>
-        <DialogContent className="sm:max-w-[600px]">
+        <DialogContent className="sm:max-w-[600px] board-dialog-content">
           <DialogHeader>
             <DialogTitle>新規投稿</DialogTitle>
             <DialogDescription>
@@ -969,7 +969,7 @@ export default function BoardPage() {
 
       {/* 編集ダイアログ */}
       <Dialog open={isEditPostDialogOpen} onOpenChange={handleEditPostDialogChange}>
-        <DialogContent className="sm:max-w-[600px]">
+        <DialogContent className="sm:max-w-[600px] board-dialog-content">
           <DialogHeader>
             <DialogTitle>投稿を編集</DialogTitle>
             <DialogDescription>
@@ -1027,7 +1027,7 @@ export default function BoardPage() {
 
       {/* 投稿詳細ダイアログ */}
       <Dialog open={isPostDetailDialogOpen} onOpenChange={setIsPostDetailDialogOpen}>
-        <DialogContent className="sm:max-w-[800px] max-h-[80vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-[800px] max-h-[80vh] overflow-y-auto board-dialog-content">
           {selectedPost && (
             <>
               <DialogHeader>
@@ -1101,7 +1101,7 @@ export default function BoardPage() {
                             <AvatarFallback>{getUserInitial(comment.authorEmail)}</AvatarFallback>
                           </Avatar>
                           <div className="flex-1">
-                            <div className={`rounded-lg p-3 ${isOwnComment ? "bg-muted" : "bg-gray-100 dark:bg-gray-700"}`}> {/* 背景色を条件分岐 */}
+                            <div className={`rounded-lg p-3 ${isOwnComment ? "comment-own" : "comment-other"}`}>
                               <div className="flex items-center justify-between mb-1">
                                 <span className="font-medium text-sm">{comment.author} {isOwnComment && <span className="text-xs text-blue-500">(自分)</span>}</span>
                                 <span className="text-xs text-muted-foreground">
@@ -1138,7 +1138,7 @@ export default function BoardPage() {
 
       {/* 削除確認ダイアログ */}
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <AlertDialogContent>
+        <AlertDialogContent className="board-dialog-content">
           <AlertDialogHeader>
             <AlertDialogTitle>投稿を削除しますか？</AlertDialogTitle>
             <AlertDialogDescription>
@@ -1159,7 +1159,7 @@ export default function BoardPage() {
 
       {/* フィルターダイアログ */}
       <Dialog open={isFilterDialogOpen} onOpenChange={setIsFilterDialogOpen}>
-        <DialogContent className="sm:max-w-[500px]">
+        <DialogContent className="sm:max-w-[500px] board-dialog-content">
           <DialogHeader>
             <DialogTitle>投稿のフィルター</DialogTitle>
           </DialogHeader>
