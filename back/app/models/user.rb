@@ -107,7 +107,7 @@ class User < ApplicationRecord
 
   def total_savings
     # ユーザーの総貯金額を計算するロジック
-    transactions.where(transaction_type: 'income').sum(:amount) || 0
+    savings.sum(:amount) || 0
   end
 
   def current_streak
