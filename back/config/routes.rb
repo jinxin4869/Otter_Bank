@@ -6,6 +6,7 @@ Rails.application.routes.draw do
       resources :users, only: [:create, :update, :destroy]
       resources :sessions, only: [:create, :destroy]
       get 'auth/verify', to: 'auth#verify'
+      post 'auth/logout', to: 'auth#logout'
       get 'auth/google', to: 'auth#google'
       get 'auth/google/callback', to: 'auth#google_callback'
 

@@ -106,8 +106,8 @@ export default function CollectionPage() {
       setLoadingAchievements(true);
       setErrorAchievements(null);
       try {
-        // JWTトークンを取得
-        const token = localStorage.getItem("token");
+        // JWTトークンを取得（正しいキー名を使用）
+        const token = localStorage.getItem("authToken");
         
         const getApiUrl = () => {
           if (process.env.NODE_ENV === 'development') {
@@ -115,6 +115,8 @@ export default function CollectionPage() {
           }
           return process.env.NEXT_PUBLIC_API_URL;
         };
+        
+        console.log("Token found:", !!token); // デバッグログ追加
         
         // Rails APIから取得
         const response = await fetch(`${getApiUrl()}/api/v1/achievements`, {

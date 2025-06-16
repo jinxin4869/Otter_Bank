@@ -21,8 +21,16 @@ export const useAuth = () => {
     checkAuth();
   }, []);
 
+  const getApiUrl = () => {
+    if (process.env.NODE_ENV === 'development') {
+      return process.env.NEXT_PUBLIC_DEV_URL;
+    }
+    return process.env.NEXT_PUBLIC_API_URL;
+  };
+
   const checkAuth = async () => {
     const storedToken = localStorage.getItem('authToken');
+    
     if (!storedToken) {
       setUser(null);
       setToken(null);
@@ -31,35 +39,45 @@ export const useAuth = () => {
     }
 
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/auth/verify`, {
+      const response = await fetch(`${getApiUrl()}/api/v1/auth/verify`, {
+        method: 'GET',
         headers: {
-          'Authorization': `Bearer ${storedToken}`
+          'Authorization': `Bearer ${storedToken}`,
+          'Content-Type': 'application/json'
         }
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error( errorData.error || 'トークンが無効です');
+        
+        // JWT期限切れの場合の処理
+        if (errorData.code === 'token_expired') {
+          console.log('[Auth] JWT Token expired');
+          throw new Error('認証期限が切れました。再度ログインしてください。');
+        }
+        
+        throw new Error(errorData.error || 'Token verification failed');
       }
 
-      const userData = await response.json();
-      setUser(userData);
-      if (token !== storedToken) {
-        setToken(storedToken);
-      }
+      const data = await response.json();
+      setUser(data.user || data); // dataにuserプロパティがない場合はdata自体をユーザー情報として使用
+      setToken(storedToken);
       localStorage.setItem('isLoggedIn', 'true');
     } catch (error) {
-      console.error('[Auth] トークン検証エラー:', error);
+      console.error('[Auth] JWT Token verification failed:', error);
       localStorage.removeItem('authToken');
       localStorage.removeItem('isLoggedIn');
+      localStorage.removeItem('currentUserEmail');
       setUser(null);
       setToken(null);
-      if (error instanceof Error) {
-        toast.error('認証エラー', {
+      
+      // JWT期限切れの場合のみトーストを表示
+      if (error instanceof Error && error.message.includes('認証期限が切れました')) {
+        toast.error('認証期限切れ', {
           description: error.message,
         });
       }
-      router.push('/login');
+      // その他のエラーは表示しない（初回アクセス時の混乱を避けるため）
     } finally {
       setIsLoading(false);
     }
@@ -94,7 +112,7 @@ export const useAuth = () => {
       const currentToken = localStorage.getItem('authToken');
       if (currentToken) {
         // バックエンドでトークンを無効化
-        await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/auth/logout`, {
+        await fetch(`${getApiUrl()}/api/v1/auth/logout`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${currentToken}`,
@@ -107,6 +125,7 @@ export const useAuth = () => {
     } finally {
       localStorage.removeItem('authToken');
       localStorage.removeItem('isLoggedIn');
+      localStorage.removeItem('currentUserEmail');
       setUser(null);
       setToken(null);
       window.dispatchEvent(new Event('auth-state-changed'));
