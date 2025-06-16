@@ -28,7 +28,14 @@ export default function LoginPage() {
     setError(null)
 
     try {
-      const apiUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/sessions`;
+      const getApiUrl = () => {
+        if (process.env.NODE_ENV === 'development') {
+          return process.env.NEXT_PUBLIC_DEV_URL;
+        }
+        return process.env.NEXT_PUBLIC_API_URL;
+      };
+      
+      const apiUrl = `${getApiUrl()}/api/v1/sessions`;
       const response = await fetch(apiUrl, {
         method: 'POST',
         headers: {
@@ -96,8 +103,15 @@ export default function LoginPage() {
     setIsGoogleLoading(true)
 
     try {
+      const getApiUrl = () => {
+        if (process.env.NODE_ENV === 'development') {
+          return process.env.NEXT_PUBLIC_DEV_URL;
+        }
+        return process.env.NEXT_PUBLIC_API_URL;
+      };
+      
       // Google認証の処理
-      window.location.href = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/auth/google`;
+      window.location.href = `${getApiUrl()}/api/v1/auth/google`;
 
     } catch (error) {
       console.error("Google認証エラー:", error);
