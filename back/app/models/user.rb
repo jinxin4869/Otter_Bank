@@ -4,6 +4,10 @@ class User < ApplicationRecord
     has_many :oauth_providers, dependent: :destroy
     has_many :achievements, dependent: :destroy # ユーザーが獲得した実績
     has_many :savings_goals, dependent: :destroy
+    has_many :transactions, dependent: :destroy
+    
+    # 貯金関連のアソシエーション（transactions の中から income タイプを取得）
+    has_many :savings, -> { where(transaction_type: 'income') }, class_name: 'Transaction'
 
     validates :username, presence: true, uniqueness: { case_sensitive: false }, length: { minimum: 3, maximum: 20 }
     validates :email, presence: true, uniqueness: true, format: { with: URI::MailTo::EMAIL_REGEXP }
@@ -67,9 +71,12 @@ class User < ApplicationRecord
   private
 
   def password_required?
-    # OAuth認証の場合はパスワードを必須にしない
-    return false if oauth_only?
-    true
+    # 新規作成時でパスワードが設定されている場合は必須
+    # OAuthユーザーの場合は不要（password_digestが空でoauth_providersが存在）
+    return false if oauth_providers.any? && password_digest.blank?
+    
+    # 通常ユーザーの場合、新規作成時またはパスワード変更時は必須
+    new_record? || !password.nil?
   end
 
   def self.generate_username_from_email(email)
@@ -100,22 +107,22 @@ class User < ApplicationRecord
 
   def total_savings
     # ユーザーの総貯金額を計算するロジック
-    savings.sum(:amount)
+    savings.sum(:amount) || 0
   end
 
   def current_streak
-    return 0 if savings.empty?
+    return 0 if transactions.where(transaction_type: 'income').empty?
 
     today = Date.current
     streak = 0
     current_date = today
 
     # 今日の記録があるか確認
-    has_today_record = savings.exists?(created_at: today.beginning_of_day..today.end_of_day)
+    has_today_record = transactions.where(transaction_type: 'income').exists?(created_at: today.beginning_of_day..today.end_of_day)
     
     # 昨日までの記録を確認
     while true
-      has_record = savings.exists?(created_at: current_date.beginning_of_day..current_date.end_of_day)
+      has_record = transactions.where(transaction_type: 'income').exists?(created_at: current_date.beginning_of_day..current_date.end_of_day)
       
       if has_record
         streak += 1
@@ -132,9 +139,9 @@ class User < ApplicationRecord
   end
 
   def longest_streak
-    return 0 if savings.empty?
+    return 0 if transactions.where(transaction_type: 'income').empty?
 
-    dates = savings.pluck(:created_at).map(&:to_date).uniq.sort
+    dates = transactions.where(transaction_type: 'income').pluck(:created_at).map(&:to_date).uniq.sort
     return 0 if dates.empty?
 
     current_streak = 1
@@ -158,7 +165,7 @@ class User < ApplicationRecord
     {
       current_streak: current_streak,
       longest_streak: longest_streak,
-      last_record_date: savings.last&.created_at&.to_date
+      last_record_date: transactions.where(transaction_type: 'income').last&.created_at&.to_date
     }
   end
 end
