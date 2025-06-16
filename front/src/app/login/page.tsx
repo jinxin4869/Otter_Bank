@@ -103,12 +103,6 @@ export default function LoginPage() {
     setIsGoogleLoading(true)
 
     try {
-      const getApiUrl = () => {
-        if (process.env.NODE_ENV === 'development') {
-          return process.env.NEXT_PUBLIC_DEV_URL;
-        }
-        return process.env.NEXT_PUBLIC_API_URL;
-      };
       
       // Google認証の処理
       window.location.href = `${getApiUrl()}/api/v1/auth/google`;
