@@ -7,8 +7,10 @@
 
 Rails.application.config.middleware.insert_before 0, Rack::Cors do
   allow do
-    origins ENV["FRONTEND_URL"], 
-            ENV["FRONTEND_URL_PROD"]  # フロント側
+    origins [
+      ENV["FRONTEND_URL"], # フロント側
+      ENV["FRONTEND_URL_PROD"], # フロント側（本番環境）
+  ].compact # nilを除外
     resource "*",
       headers: :any,
       methods: [:get, :post, :put, :patch, :delete, :options, :head],
