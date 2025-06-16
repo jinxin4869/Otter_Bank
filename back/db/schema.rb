@@ -11,11 +11,8 @@
 # It's strongly recommended that you check this file into your version control system.
 
 ActiveRecord::Schema[7.1].define(version: 2025_06_15_082344) do
-  # These are extensions that must be enabled in order to support this database
-  enable_extension "plpgsql"
-
   create_table "achievements", force: :cascade do |t|
-    t.bigint "user_id", null: false
+    t.integer "user_id", null: false
     t.string "original_achievement_id", null: false
     t.string "title", null: false
     t.text "description"
@@ -38,7 +35,7 @@ ActiveRecord::Schema[7.1].define(version: 2025_06_15_082344) do
   end
 
   create_table "bookmarks", force: :cascade do |t|
-    t.bigint "post_id", null: false
+    t.integer "post_id", null: false
     t.string "user_email"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
@@ -52,7 +49,7 @@ ActiveRecord::Schema[7.1].define(version: 2025_06_15_082344) do
   end
 
   create_table "comments", force: :cascade do |t|
-    t.bigint "post_id", null: false
+    t.integer "post_id", null: false
     t.text "content"
     t.string "author"
     t.string "author_email"
@@ -64,7 +61,7 @@ ActiveRecord::Schema[7.1].define(version: 2025_06_15_082344) do
 
   create_table "likes", force: :cascade do |t|
     t.string "likeable_type", null: false
-    t.bigint "likeable_id", null: false
+    t.integer "likeable_id", null: false
     t.string "user_email"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
@@ -72,7 +69,7 @@ ActiveRecord::Schema[7.1].define(version: 2025_06_15_082344) do
   end
 
   create_table "oauth_providers", force: :cascade do |t|
-    t.bigint "user_id", null: false
+    t.integer "user_id", null: false
     t.string "provider"
     t.string "uid"
     t.string "access_token"
@@ -84,8 +81,8 @@ ActiveRecord::Schema[7.1].define(version: 2025_06_15_082344) do
   end
 
   create_table "post_categories", force: :cascade do |t|
-    t.bigint "post_id", null: false
-    t.bigint "category_id", null: false
+    t.integer "post_id", null: false
+    t.integer "category_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["category_id"], name: "index_post_categories_on_category_id"
@@ -109,7 +106,7 @@ ActiveRecord::Schema[7.1].define(version: 2025_06_15_082344) do
     t.decimal "target_amount"
     t.decimal "current_amount"
     t.date "deadline"
-    t.bigint "user_id", null: false
+    t.integer "user_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["user_id"], name: "index_savings_goals_on_user_id"
@@ -120,7 +117,7 @@ ActiveRecord::Schema[7.1].define(version: 2025_06_15_082344) do
     t.string "transaction_type"
     t.string "category"
     t.text "description"
-    t.bigint "user_id", null: false
+    t.integer "user_id", null: false
     t.datetime "date"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
@@ -128,7 +125,7 @@ ActiveRecord::Schema[7.1].define(version: 2025_06_15_082344) do
   end
 
   create_table "user_actions", force: :cascade do |t|
-    t.bigint "user_id", null: false
+    t.integer "user_id", null: false
     t.string "action_type", null: false
     t.decimal "amount", precision: 10, scale: 2
     t.text "description"

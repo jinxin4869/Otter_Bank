@@ -1,6 +1,6 @@
 class Api::V1::AuthController < ApplicationController
   include ActionController::Cookies
-  skip_before_action :authorize_request, only: [:google, :google_callback, :auth_failure, :verify]
+  skip_before_action :authorize_request, only: [:google, :google_callback, :auth_failure, :verify, :logout]
   
   # Googleログインへのリダイレクト
   def google
@@ -52,11 +52,25 @@ class Api::V1::AuthController < ApplicationController
           username: @current_user.username,
           name: @current_user.name
         }, status: :ok
-      rescue JWT::DecodeError, ActiveRecord::RecordNotFound
-        render json: { error: 'Invalid token' }, status: :unauthorized
+      rescue JWT::ExpiredSignature
+        render json: { error: 'Token has expired', code: 'token_expired' }, status: :unauthorized
+      rescue JWT::DecodeError => e
+        render json: { error: 'Invalid token', code: 'invalid_token', details: e.message }, status: :unauthorized
+      rescue ActiveRecord::RecordNotFound
+        render json: { error: 'User not found', code: 'user_not_found' }, status: :unauthorized
       end
     else
-      render json: { error: 'Authorization header missing' }, status: :unauthorized
+      render json: { error: 'Authorization header missing', code: 'missing_header' }, status: :unauthorized
     end
+  end
+
+  # ログアウト処理
+  def logout
+    # JWTはステートレスなので、サーバー側での無効化は通常行わない
+    # 必要に応じて、ブラックリストやトークンの追跡を実装することも可能
+    render json: { 
+      status: 'success',
+      message: 'ログアウトしました'
+    }, status: :ok
   end
 end
