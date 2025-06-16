@@ -47,7 +47,14 @@ export default function RegisterPage() {
     }
 
     try {
-      const apiUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/users`;
+      const getApiUrl = () => {
+        if (process.env.NODE_ENV === 'development') {
+          return process.env.NEXT_PUBLIC_DEV_URL;
+        }
+        return process.env.NEXT_PUBLIC_API_URL;
+      };
+      
+      const apiUrl = `${getApiUrl()}/api/v1/users`;
       const response = await fetch(apiUrl, {
         method: "POST",
         headers: {
