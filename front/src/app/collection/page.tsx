@@ -109,8 +109,15 @@ export default function CollectionPage() {
         // JWTトークンを取得
         const token = localStorage.getItem("token");
         
+        const getApiUrl = () => {
+          if (process.env.NODE_ENV === 'development') {
+            return process.env.NEXT_PUBLIC_DEV_URL;
+          }
+          return process.env.NEXT_PUBLIC_API_URL;
+        };
+        
         // Rails APIから取得
-        const response = await fetch('/api/v1/achievements', {
+        const response = await fetch(`${getApiUrl()}/api/v1/achievements`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',

@@ -1,17 +1,20 @@
 Rails.application.routes.draw do
   namespace :api do
     namespace :v1 do
-      get 'likes/create_post_like'
-      get 'likes/destroy_post_like'
-      get 'likes/create_comment_like'
-      get 'likes/destroy_comment_like'
-      get 'comments/index'
-      get 'comments/create'
-      get 'comments/update'
-      get 'comments/destroy'
-      get 'bookmarks/create'
-      get 'bookmarks/destroy'
+
+      # 認証関連
+      resources :users, only: [:create, :update, :destroy]
+      resources :sessions, only: [:create, :destroy]
       get 'auth/verify', to: 'auth#verify'
+      get 'auth/google', to: 'auth#google'
+      get 'auth/google/callback', to: 'auth#google_callback'
+
+      # 家計簿管理
+      resources :transactions, only: [:index, :create, :update, :destroy] # 取引関連
+      resources :savings_goals, only: [:index, :create, :update, :destroy] # 貯金目標関連
+      resources :achievements, only: [:index, :show, :update] # 実績関連
+
+      # 掲示板管理
       resources :posts do
         member do
           post 'increment_views'
@@ -31,28 +34,7 @@ Rails.application.routes.draw do
         resources :bookmarks, only: [:create, :destroy]
       end
 
-      get 'posts/index'
-      get 'posts/show'
-      get 'posts/create'
-      get 'auth/google_callback'
-
-      # ユーザー関連
-      resources :users, only: [:create, :update, :destroy]
-      resources :sessions, only: [:create, :destroy]
-      
-      # 取引関連
-      resources :transactions, only: [:index, :create, :update, :destroy]
-
-      # 貯金目標関連
-      resources :savings_goals, only: [:index, :create, :update, :destroy]
-
-      # 実績関連
-      resources :achievements, only: [:index, :show, :update]
-
-      # Auth関連
-      get 'auth/google', to: 'auth#google'
-      get 'auth/google/callback', to: 'auth#google_callback'
-
+      # ヘルスチェック
       get 'health', to: 'health#index'
     end
   end
