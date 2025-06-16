@@ -22,19 +22,19 @@ export default function LoginPage() {
   const [isGoogleLoading, setIsGoogleLoading] = useState(false)
   const router = useRouter()
 
+  const getApiUrl = () => {
+    if (process.env.NODE_ENV === 'development') {
+      return process.env.NEXT_PUBLIC_DEV_URL;
+    }
+    return process.env.NEXT_PUBLIC_API_URL;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
     setError(null)
 
     try {
-      const getApiUrl = () => {
-        if (process.env.NODE_ENV === 'development') {
-          return process.env.NEXT_PUBLIC_DEV_URL;
-        }
-        return process.env.NEXT_PUBLIC_API_URL;
-      };
-      
       const apiUrl = `${getApiUrl()}/api/v1/sessions`;
       const response = await fetch(apiUrl, {
         method: 'POST',
@@ -103,13 +103,6 @@ export default function LoginPage() {
     setIsGoogleLoading(true)
 
     try {
-      const getApiUrl = () => {
-        if (process.env.NODE_ENV === 'development') {
-          return process.env.NEXT_PUBLIC_DEV_URL;
-        }
-        return process.env.NEXT_PUBLIC_API_URL;
-      };
-      
       // Google認証の処理
       window.location.href = `${getApiUrl()}/api/v1/auth/google`;
 
