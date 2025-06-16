@@ -22,7 +22,7 @@ class Api::V1::SessionsController < ApplicationController
     end
 
     # パスワード認証のデバッグログ
-    Rails.logger.info "User found: #{user.email}, has password_digest: #{user.password_digest.present?}" if Rails.env.development?
+    Rails.logger.info "User found: #{user.email}" if Rails.env.development?
     Rails.logger.info "OAuth providers count: #{user.oauth_providers.count}" if Rails.env.development?
     Rails.logger.info "Password provided: #{!password.nil? && !password.empty?}" if Rails.env.development?
 
