@@ -70,7 +70,7 @@ group :development, :test do
   gem "shoulda-matchers", "~> 6.5"
 
   # コード品質
-  gem "rubocop", "~> 1.76", require: false
+  gem "rubocop", "~> 1.81", require: false
   gem "rubocop-rails", "~> 2.0", require: false
 end
 
