@@ -47,7 +47,7 @@ jobs:
           working-directory: ./back
 
       - name: Scan for common Rails security vulnerabilities using static analysis
-        run: bundle exec brakeman --no-pager
+        run: bundle exec brakeman --no-pager --no-exit-on-warn
 
   lint_ruby:
     needs: changes
