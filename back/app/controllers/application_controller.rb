@@ -33,9 +33,13 @@ class ApplicationController < ActionController::API
     !!current_user
   end
 
-  # authorize メソッドを追加して統一
-  def authorize
-    render json: { message: 'ログインが必要です' }, status: :unauthorized unless logged_in?
+  # コントローラーから統一的にアクセスするためのヘルパー
+  def current_api_v1_user
+    @current_user
+  end
+
+  def authenticate_user!
+    authorize_request unless @current_user
   end
 
   private
