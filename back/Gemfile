@@ -69,7 +69,7 @@ group :development, :test do
   # テスト
   gem 'factory_bot_rails', '~> 6.0'
   gem 'rspec-rails', '~> 7.1'
-  gem 'shoulda-matchers', '~> 6.5'
+  gem 'shoulda-matchers', '~> 7.0'
 
   # コード品質
   gem "rubocop", "~> 1.81", require: false
