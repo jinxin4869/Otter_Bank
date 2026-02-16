@@ -37,7 +37,7 @@ class Api::V1::TransactionsController < ApplicationController
     if @transaction.save
       render json: @transaction, status: :created
     else
-      render json: { errors: @transaction.errors.full_messages }, status: :unprocessable_entity
+      render json: @transaction.errors, status: :unprocessable_entity
     end
   end
 
@@ -45,7 +45,7 @@ class Api::V1::TransactionsController < ApplicationController
     if @transaction.update(transaction_params)
       render json: @transaction
     else
-      render json: { errors: @transaction.errors.full_messages }, status: :unprocessable_entity
+      render json: @transaction.errors, status: :unprocessable_entity
     end
   end
 
