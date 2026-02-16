@@ -1,0 +1,77 @@
+plugins:
+  - rubocop-rails
+
+AllCops:
+  NewCops: enable
+  TargetRubyVersion: 3.2
+  Exclude:
+    - 'bin/**/*'
+    - 'db/schema.rb'
+    - 'vendor/**/*'
+    - 'node_modules/**/*'
+
+# ドキュメントコメントは不要
+Style/Documentation:
+  Enabled: false
+
+# メソッド長の制限を緩和（コントローラーのアクションは長くなりがち）
+Metrics/MethodLength:
+  Max: 35
+  Exclude:
+    - 'db/migrate/**/*'
+    - 'app/services/**/*'
+
+Metrics/AbcSize:
+  Max: 65
+  Exclude:
+    - 'db/migrate/**/*'
+    - 'app/services/**/*'
+
+Metrics/CyclomaticComplexity:
+  Max: 17
+
+Metrics/PerceivedComplexity:
+  Max: 19
+
+Metrics/ClassLength:
+  Max: 300
+
+# スペック・ルーティングファイルのブロック長制限を緩和
+Metrics/BlockLength:
+  Exclude:
+    - 'spec/**/*'
+    - 'db/schema.rb'
+    - 'config/routes.rb'
+
+# マイグレーション済みのカラムに対する警告を無効化
+Rails/ThreeStateBooleanColumn:
+  Exclude:
+    - 'db/migrate/**/*'
+
+# increment!/decrement! はカウンター操作で一般的
+Rails/SkipsModelValidations:
+  Enabled: false
+
+# ロケールファイルへの移行は後日対応
+Rails/I18nLocaleTexts:
+  Enabled: false
+
+# ユニークインデックスの追加は別タスクで対応
+Rails/UniqueValidationWithoutIndex:
+  Enabled: false
+
+# dependent オプションの強制を緩和
+Rails/HasManyOrHasOneDependent:
+  Enabled: false
+
+# inverse_of の自動推定に任せる
+Rails/InverseOf:
+  Enabled: false
+
+# 重複ブランチは意図的な場合がある
+Lint/DuplicateBranch:
+  Enabled: false
+
+# self メソッドの private は別途対応
+Lint/IneffectiveAccessModifier:
+  Enabled: false

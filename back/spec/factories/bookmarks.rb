@@ -1,6 +1,8 @@
+# frozen_string_literal: true
+
 FactoryBot.define do
   factory :bookmark do
-    post { nil }
-    user_email { "MyString" }
+    association :post
+    association :user
   end
 end

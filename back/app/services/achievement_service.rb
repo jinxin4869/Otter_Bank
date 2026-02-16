@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class AchievementService
   def initialize(user)
     @user = user
@@ -11,8 +13,8 @@ class AchievementService
         original_achievement_id: 'first_savings',
         title: '初めての貯金',
         description: '最初の貯金を記録しました',
-        category: :savings,        # シンボルを使用
-        tier: :bronze,            # シンボルを使用
+        category: :savings, # シンボルを使用
+        tier: :bronze, # シンボルを使用
         progress_target: 1,
         progress: 0,
         unlocked: false,
@@ -49,7 +51,7 @@ class AchievementService
         description: '10,000円の貯金を達成しました',
         category: :savings,
         tier: :silver,
-        progress_target: 10000,
+        progress_target: 10_000,
         progress: 0,
         unlocked: false,
         image_url: '/achievements/savings_10000.png',
@@ -61,7 +63,7 @@ class AchievementService
         description: '30,000円の貯金を達成しました',
         category: :savings,
         tier: :gold,
-        progress_target: 30000,
+        progress_target: 30_000,
         progress: 0,
         unlocked: false,
         image_url: '/achievements/savings_30000.png',
@@ -111,7 +113,7 @@ class AchievementService
         original_achievement_id: 'budget_first_set',
         title: '予算の第一歩',
         description: '初めての予算を設定しました',
-        category: :expense,       # シンボルを使用
+        category: :expense, # シンボルを使用
         tier: :bronze,
         progress_target: 1,
         progress: 0,
@@ -193,11 +195,11 @@ class AchievementService
   def update_savings_achievements(amount)
     # 貯金関連の実績を取得
     savings_achievements = @user.achievements.where(category: :savings, unlocked: false)
-    
+
     savings_achievements.each do |achievement|
       case achievement.original_achievement_id
       when 'first_savings'
-        achievement.update_progress(1) if amount > 0
+        achievement.update_progress(1) if amount.positive?
       when 'savings_milestone_1000'
         total_savings = @user.total_savings || 0
         achievement.update_progress(total_savings) if total_savings >= achievement.progress_target
@@ -217,7 +219,7 @@ class AchievementService
   # 連続記録の実績を更新
   def update_streak_achievements(days)
     streak_achievements = @user.achievements.where(category: :streak, unlocked: false)
-    
+
     streak_achievements.each do |achievement|
       case achievement.original_achievement_id
       when 'streak_3_days'
@@ -233,18 +235,18 @@ class AchievementService
   # マイルストーンの実績を更新（改善版）
   def update_milestone_achievements(total_savings = nil)
     total_savings ||= @user.total_savings || 0
-    
+
     milestone_achievements = @user.achievements.where(
-      category: :savings, 
+      category: :savings,
       unlocked: false,
-      original_achievement_id: [
-        'savings_milestone_1000', 
-        'savings_milestone_5000', 
-        'savings_milestone_10000', 
-        'savings_milestone_30000'
+      original_achievement_id: %w[
+        savings_milestone_1000
+        savings_milestone_5000
+        savings_milestone_10000
+        savings_milestone_30000
       ]
     )
-    
+
     milestone_achievements.each do |achievement|
       if total_savings >= achievement.progress_target
         achievement.update!(
@@ -254,9 +256,9 @@ class AchievementService
         )
         # 実績解除時の通知などを追加する場合はここに記述
         Rails.logger.info "Achievement unlocked: #{achievement.title} for user #{@user.id}"
-      else
+      elsif achievement.progress != total_savings
         # 進捗のみ更新（未達成の場合）
-        achievement.update!(progress: total_savings) if achievement.progress != total_savings
+        achievement.update!(progress: total_savings)
       end
     end
   end
@@ -264,7 +266,7 @@ class AchievementService
   # 支出管理実績を更新
   def update_expense_achievements(budget_status)
     expense_achievements = @user.achievements.where(category: :expense, unlocked: false)
-    
+
     expense_achievements.each do |achievement|
       case achievement.original_achievement_id
       when 'budget_first_set'
@@ -278,9 +280,9 @@ class AchievementService
   end
 
   # 特別実績を更新
-  def update_special_achievements(achievement_type, data = {})
+  def update_special_achievements(achievement_type, _data = {})
     special_achievements = @user.achievements.where(unlocked: false)
-    
+
     case achievement_type
     when :goal_achieved
       goal_achievement = special_achievements.find_by(original_achievement_id: 'goal_first_achieved')

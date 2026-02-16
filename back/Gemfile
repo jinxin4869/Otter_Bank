@@ -1,12 +1,14 @@
-source "https://rubygems.org"
+# frozen_string_literal: true
 
-ruby "3.2.2"
+source 'https://rubygems.org'
+
+ruby '3.2.2'
 
 # Bundle edge Rails instead: gem "rails", github: "rails/rails", branch: "main"
-gem "rails", "~> 7.1.5", ">= 7.1.5.1"
+gem 'rails', '~> 8.1.0'
 
 # Use the Puma web server [https://github.com/puma/puma]
-gem "puma", ">= 5.0"
+gem 'puma', '>= 5.0'
 
 # Build JSON APIs with ease [https://github.com/rails/jbuilder]
 # gem "jbuilder"
@@ -19,55 +21,55 @@ gem "puma", ">= 5.0"
 
 # Use Active Model has_secure_password [https://guides.rubyonrails.org/active_model_basics.html#securepassword]
 # パスワードハッシュ化
-gem "bcrypt", ">= 3.1.7"
+gem 'bcrypt', '>= 3.1.7'
 
 # JWT authentication for token-based authorization
-gem "jwt", ">= 2.5"
+gem 'jwt', '>= 2.5'
 
 # OAuth認証 Google
-gem "omniauth-google-oauth2", "~> 1.2.1"
+gem 'omniauth-google-oauth2', '~> 1.2.1'
 
 # JSONシリアライザ (後でちゃんと調べます)
-gem "active_model_serializers", "~> 0.10"
+gem 'active_model_serializers', '~> 0.10'
 
 # 多言語対応
-gem "i18n-js", "~> 4.2"
+gem 'i18n-js', '~> 4.2'
 
 # エラー監視・通知
-gem "exception_notification", "~> 5.0"
+gem 'exception_notification', '~> 5.0'
 
 # ページネーション
-gem "kaminari", "~> 1.2"
+gem 'kaminari', '~> 1.2'
 
 # 環境変数管理
-gem "dotenv-rails", "~> 3.1", groups: [:development, :test]
+gem 'dotenv-rails', '~> 3.1', groups: %i[development test]
 
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
-gem "tzinfo-data", platforms: %i[ windows jruby ]
+gem 'tzinfo-data', platforms: %i[windows jruby]
 
 # Reduces boot times through caching; required in config/boot.rb
-gem "bootsnap", require: false
+gem 'bootsnap', require: false
 
 # Use Active Storage variants [https://guides.rubyonrails.org/active_storage_overview.html#transforming-images]
 # gem "image_processing", "~> 1.2"
 
 # Use Rack CORS for handling Cross-Origin Resource Sharing (CORS), making cross-origin Ajax possible
-gem "rack-cors"
+gem 'rack-cors'
 
-group :production do
-  gem "pg", "~> 1.1"
+group :production, :test do
+  gem 'pg', '~> 1.1'
 end
 
 group :development, :test do
-  gem "sqlite3", "~> 1.4"
-  
+  gem 'sqlite3', '~> 2.7'
+
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
-  gem "debug", platforms: %i[ mri windows ]
+  gem 'debug', platforms: %i[mri windows]
 
   # テスト
-  gem "rspec-rails", "~> 7.1"
-  gem "factory_bot_rails", "~> 6.0"
-  gem "shoulda-matchers", "~> 6.5"
+  gem 'factory_bot_rails', '~> 6.0'
+  gem 'rspec-rails', '~> 7.1'
+  gem 'shoulda-matchers', '~> 6.5'
 
   # コード品質
   gem "rubocop", "~> 1.81", require: false
@@ -78,10 +80,9 @@ group :development do
   # Speed up commands on slow machines / big apps [https://github.com/rails/spring]
   # gem "spring"
 
-  gem "rack-mini-profiler", require: false
+  gem 'rack-mini-profiler', require: false
 
   # エラー表示が変わるらしいので
-  gem "better_errors"
-  gem "binding_of_caller"
+  gem 'better_errors'
+  gem 'binding_of_caller'
 end
-
