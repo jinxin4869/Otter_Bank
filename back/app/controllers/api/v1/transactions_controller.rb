@@ -17,7 +17,7 @@ class Api::V1::TransactionsController < ApplicationController
       @transactions = @transactions.where(transaction_type: params[:transaction_type])
     end
 
-    summary_amounts = @transactions.group(:transaction_type).sum(:amount)
+    summary_amounts = @transactions.unscope(:order).group(:transaction_type).sum(:amount)
     total_income = summary_amounts['income'] || 0
     total_expense = summary_amounts['expense'] || 0
 
