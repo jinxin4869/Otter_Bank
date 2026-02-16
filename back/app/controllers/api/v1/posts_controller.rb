@@ -1,14 +1,18 @@
 class Api::V1::PostsController < ApplicationController
-  before_action :authenticate_user!, except: [:index, :show]
+  before_action :authenticate_user!, except: [:index, :show, :increment_views]
   before_action :set_post, only: [:show, :update, :destroy, :increment_views]
-  
+
+  def skip_authorization?
+    action_name.in?(%w[index show increment_views])
+  end
+
   def index
-    @posts = Post.order(created_at: :desc)
-    render json: @posts
+    @posts = Post.includes(:user).order(created_at: :desc)
+    render json: @posts.map { |post| post_json(post) }
   end
 
   def show
-    render json: @post
+    render json: post_json(@post)
   end
 
   def create
@@ -18,30 +22,28 @@ class Api::V1::PostsController < ApplicationController
     @post.views_count ||= 0
 
     if @post.save
-      render json: @post, status: :created
+      render json: post_json(@post), status: :created
     else
       render json: @post.errors, status: :unprocessable_entity
     end
   end
 
   def update
-    authorize @post
-    unless @post.author == current_api_v1_user
-      render json: { error: 'You are not authorized to update this post' }, status: :forbidden
+    unless @post.user_id == current_api_v1_user.id
+      render json: { error: '投稿の編集権限がありません' }, status: :forbidden
       return
     end
-    
+
     if @post.update(post_params)
-      render json: @post
+      render json: post_json(@post)
     else
       render json: @post.errors, status: :unprocessable_entity
     end
   end
 
   def destroy
-    authorize @post
-    unless @post.author == current_api_v1_user
-      render json: { error: 'You are not authorized to delete this post' }, status: :forbidden
+    unless @post.user_id == current_api_v1_user.id
+      render json: { error: '投稿の削除権限がありません' }, status: :forbidden
       return
     end
 
@@ -63,6 +65,22 @@ class Api::V1::PostsController < ApplicationController
   end
 
   def post_params
-    params.require(:post).permit(:title, :content, :category_ids => []).merge(author_id: current_api_v1_user.id)
+    params.require(:post).permit(:title, :content, category_ids: [])
+  end
+
+  def post_json(post)
+    {
+      id: post.id,
+      title: post.title,
+      content: post.content,
+      author: post.user&.username,
+      author_email: post.user&.email,
+      user_id: post.user_id,
+      likes_count: post.likes_count || 0,
+      comments_count: post.comments_count || 0,
+      views_count: post.views_count || 0,
+      created_at: post.created_at,
+      updated_at: post.updated_at
+    }
   end
 end
