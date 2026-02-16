@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_06_15_082344) do
+ActiveRecord::Schema[7.1].define(version: 2026_02_16_100000) do
   create_table "achievements", force: :cascade do |t|
     t.integer "user_id", null: false
     t.string "original_achievement_id", null: false
@@ -39,7 +39,10 @@ ActiveRecord::Schema[7.1].define(version: 2025_06_15_082344) do
     t.string "user_email"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "user_id"
     t.index ["post_id"], name: "index_bookmarks_on_post_id"
+    t.index ["user_id", "post_id"], name: "index_bookmarks_on_user_and_post", unique: true
+    t.index ["user_id"], name: "index_bookmarks_on_user_id"
   end
 
   create_table "categories", force: :cascade do |t|
@@ -56,7 +59,9 @@ ActiveRecord::Schema[7.1].define(version: 2025_06_15_082344) do
     t.integer "likes_count"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "user_id"
     t.index ["post_id"], name: "index_comments_on_post_id"
+    t.index ["user_id"], name: "index_comments_on_user_id"
   end
 
   create_table "likes", force: :cascade do |t|
@@ -65,7 +70,10 @@ ActiveRecord::Schema[7.1].define(version: 2025_06_15_082344) do
     t.string "user_email"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "user_id"
     t.index ["likeable_type", "likeable_id"], name: "index_likes_on_likeable"
+    t.index ["user_id", "likeable_type", "likeable_id"], name: "index_likes_on_user_and_likeable", unique: true
+    t.index ["user_id"], name: "index_likes_on_user_id"
   end
 
   create_table "oauth_providers", force: :cascade do |t|
@@ -99,6 +107,8 @@ ActiveRecord::Schema[7.1].define(version: 2025_06_15_082344) do
     t.integer "views_count"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "user_id"
+    t.index ["user_id"], name: "index_posts_on_user_id"
   end
 
   create_table "savings_goals", force: :cascade do |t|
@@ -148,10 +158,14 @@ ActiveRecord::Schema[7.1].define(version: 2025_06_15_082344) do
 
   add_foreign_key "achievements", "users"
   add_foreign_key "bookmarks", "posts"
+  add_foreign_key "bookmarks", "users"
   add_foreign_key "comments", "posts"
+  add_foreign_key "comments", "users"
+  add_foreign_key "likes", "users"
   add_foreign_key "oauth_providers", "users"
   add_foreign_key "post_categories", "categories"
   add_foreign_key "post_categories", "posts"
+  add_foreign_key "posts", "users"
   add_foreign_key "savings_goals", "users"
   add_foreign_key "transactions", "users"
   add_foreign_key "user_actions", "users"
