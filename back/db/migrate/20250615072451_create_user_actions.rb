@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class CreateUserActions < ActiveRecord::Migration[7.1]
   def change
     create_table :user_actions do |t|
@@ -10,6 +12,6 @@ class CreateUserActions < ActiveRecord::Migration[7.1]
 
     add_index :user_actions, :action_type
     add_index :user_actions, :created_at
-    add_index :user_actions, [:user_id, :created_at]
+    add_index :user_actions, %i[user_id created_at]
   end
 end
