@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class CreateOauthProviders < ActiveRecord::Migration[7.1]
   def change
     create_table :oauth_providers do |t|
