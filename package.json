@@ -1,0 +1,16 @@
+{
+  "name": "otter-bank",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "back/**/*.rb": "cd back && bundle exec rubocop -A --force-exclusion",
+    "front/**/*.{ts,tsx,js,jsx}": "cd front && npx eslint --fix"
+  },
+  "devDependencies": {
+    "husky": "^9.1.7",
+    "lint-staged": "^16.2.7"
+  }
+}

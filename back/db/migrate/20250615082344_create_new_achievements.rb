@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class CreateNewAchievements < ActiveRecord::Migration[7.1]
   def change
     create_table :achievements do |t|
@@ -15,9 +17,10 @@ class CreateNewAchievements < ActiveRecord::Migration[7.1]
       t.datetime :unlocked_at
       t.timestamps
     end
-    
+
     # インデックスを追加
-    add_index :achievements, [:user_id, :original_achievement_id], unique: true, name: 'index_achievements_on_user_and_original_id'
+    add_index :achievements, %i[user_id original_achievement_id], unique: true,
+                                                                  name: 'index_achievements_on_user_and_original_id'
     add_index :achievements, :category
     add_index :achievements, :tier
     add_index :achievements, :unlocked
