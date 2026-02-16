@@ -1,32 +1,34 @@
+# frozen_string_literal: true
+
 class User < ApplicationRecord
-    has_secure_password validations: false # OAuth認証の場合はパスワード不要
+  has_secure_password validations: false # OAuth認証の場合はパスワード不要
 
-    has_many :oauth_providers, dependent: :destroy
-    has_many :achievements, dependent: :destroy # ユーザーが獲得した実績
-    has_many :savings_goals, dependent: :destroy
-    has_many :transactions, dependent: :destroy
-    has_many :posts, dependent: :destroy
-    has_many :comments, dependent: :destroy
-    has_many :likes, dependent: :destroy
-    has_many :bookmarks, dependent: :destroy
-    
-    # 貯金関連のアソシエーション（transactions の中から income タイプを取得）
-    has_many :savings, -> { where(transaction_type: 'income') }, class_name: 'Transaction'
+  has_many :oauth_providers, dependent: :destroy
+  has_many :achievements, dependent: :destroy # ユーザーが獲得した実績
+  has_many :savings_goals, dependent: :destroy
+  has_many :transactions, dependent: :destroy
+  has_many :posts, dependent: :destroy
+  has_many :comments, dependent: :destroy
+  has_many :likes, dependent: :destroy
+  has_many :bookmarks, dependent: :destroy
 
-    validates :username, presence: true, uniqueness: { case_sensitive: false }, length: { minimum: 3, maximum: 20 }
-    validates :email, presence: true, uniqueness: true, format: { with: URI::MailTo::EMAIL_REGEXP }
-    validates :password, presence: true, length: { minimum: 8 }, if: :password_required? # パスワード長を8文字に変更 (フロントエンドと合わせる)
+  # 貯金関連のアソシエーション（transactions の中から income タイプを取得）
+  has_many :savings, -> { where(transaction_type: 'income') }, class_name: 'Transaction'
 
-    after_create :setup_initial_achievements # ユーザー作成時に初期実績を生成
+  validates :username, presence: true, uniqueness: { case_sensitive: false }, length: { minimum: 3, maximum: 20 }
+  validates :email, presence: true, uniqueness: true, format: { with: URI::MailTo::EMAIL_REGEXP }
+  validates :password, presence: true, length: { minimum: 8 }, if: :password_required? # パスワード長を8文字に変更 (フロントエンドと合わせる)
 
-    # OAuthアカウントのみかどうか
+  after_create :setup_initial_achievements # ユーザー作成時に初期実績を生成
+
+  # OAuthアカウントのみかどうか
   def oauth_only?
-    oauth_providers.any? && !password_digest.present?
+    oauth_providers.any? && password_digest.blank?
   end
 
   # アカウントロック状態を確認するメソッド
   def locked?
-    false  # デフォルトではロックされていない
+    false # デフォルトではロックされていない
   end
 
   # OAuthからユーザーを作成または検索
@@ -35,23 +37,21 @@ class User < ApplicationRecord
 
     # 既存のOAuthプロバイダーをチェック
     oauth_provider = OauthProvider.find_by(provider: auth.provider, uid: auth.uid)
-    
-    if oauth_provider
-      return oauth_provider.user
-    end
+
+    return oauth_provider.user if oauth_provider
 
     # 既存のユーザーをメールアドレスで検索
     user = User.find_by(email: auth.info.email)
-    
+
     unless user
       username = generate_username_from_email(auth.info.email)
-      
+
       user = User.new(
         email: auth.info.email,
         username: username,
         name: auth.info.name || username
       )
-      
+
       user.save!(validate: false)
     end
 
@@ -67,7 +67,7 @@ class User < ApplicationRecord
   rescue ActiveRecord::RecordInvalid => e
     Rails.logger.error "OAuth ユーザー作成エラー: #{e.message}"
     nil
-  rescue => e
+  rescue StandardError => e
     Rails.logger.error "OAuth 予期しないエラー: #{e.message}"
     nil
   end
@@ -78,7 +78,7 @@ class User < ApplicationRecord
     # 新規作成時でパスワードが設定されている場合は必須
     # OAuthユーザーの場合は不要（password_digestが空でoauth_providersが存在）
     return false if oauth_providers.any? && password_digest.blank?
-    
+
     # 通常ユーザーの場合、新規作成時またはパスワード変更時は必須
     new_record? || !password.nil?
   end
@@ -87,18 +87,16 @@ class User < ApplicationRecord
     base_username = email.split('@').first
     username = base_username
     counter = 1
-    
+
     # ユニークなusernameを生成
     while User.exists?(username: username)
       username = "#{base_username}#{counter}"
       counter += 1
     end
-    
+
     # 最低3文字を保証
     username.length >= 3 ? username : "#{username}#{SecureRandom.hex(2)}"
   end
-
-  private
 
   def password_required
     password_digest.present? || !password.nil?
@@ -122,18 +120,16 @@ class User < ApplicationRecord
     current_date = today
 
     # 今日の記録があるか確認
-    has_today_record = transactions.where(transaction_type: 'income').exists?(created_at: today.beginning_of_day..today.end_of_day)
-    
+    has_today_record = transactions.where(transaction_type: 'income').exists?(created_at: today.all_day)
+
     # 昨日までの記録を確認
-    while true
-      has_record = transactions.where(transaction_type: 'income').exists?(created_at: current_date.beginning_of_day..current_date.end_of_day)
-      
-      if has_record
-        streak += 1
-        current_date -= 1.day
-      else
-        break
-      end
+    loop do
+      has_record = transactions.where(transaction_type: 'income').exists?(created_at: current_date.all_day)
+
+      break unless has_record
+
+      streak += 1
+      current_date -= 1.day
     end
 
     # 今日の記録がある場合は1を加算

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class DropAchievements < ActiveRecord::Migration[7.1]
   def up
     drop_table :achievements
@@ -20,8 +22,8 @@ class DropAchievements < ActiveRecord::Migration[7.1]
       t.datetime :unlocked_at
       t.timestamps
     end
-    
-    add_index :achievements, [:user_id, :original_achievement_id], unique: true
+
+    add_index :achievements, %i[user_id original_achievement_id], unique: true
     add_index :achievements, :category
     add_index :achievements, :unlocked
   end

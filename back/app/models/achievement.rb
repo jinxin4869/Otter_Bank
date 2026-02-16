@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Achievement < ApplicationRecord
   belongs_to :user
 
@@ -34,7 +36,8 @@ class Achievement < ApplicationRecord
 
   # 実績の進捗率を計算
   def progress_percentage
-    return 0 if progress_target == 0
+    return 0 if progress_target.zero?
+
     ((progress.to_f / progress_target) * 100).round(1)
   end
 end
