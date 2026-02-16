@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'rails_helper'
 
 RSpec.describe Post, type: :model do
@@ -11,30 +13,29 @@ RSpec.describe Post, type: :model do
   it { should validate_presence_of(:content) }
 
   # 基本的な属性のテスト
-  describe "attributes" do
-    it "has likes_count attribute" do
+  describe 'attributes' do
+    it 'has likes_count attribute' do
       post = Post.new
       expect(post).to respond_to(:likes_count)
     end
-    
-    it "has comments_count attribute" do
+
+    it 'has comments_count attribute' do
       post = Post.new
       expect(post).to respond_to(:comments_count)
     end
 
-    it "has views_count attribute" do
+    it 'has views_count attribute' do
       post = Post.new
       expect(post).to respond_to(:views_count)
     end
   end
 
   # メソッドのテスト
-  describe "#increment_views!" do
+  describe '#increment_views!' do
     let(:post) { create(:post, views_count: 5) }
-    
-    it "increments the views count" do
+
+    it 'increments the views count' do
       expect { post.increment_views! }.to change { post.views_count }.by(1)
     end
   end
 end
-

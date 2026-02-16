@@ -1,13 +1,15 @@
-class Api::V1::SavingsGoalsController < ApplicationController
-  def index
-  end
+# frozen_string_literal: true
 
-  def create
-  end
+module Api
+  module V1
+    class SavingsGoalsController < ApplicationController
+      def index; end
 
-  def update
-  end
+      def create; end
 
-  def destroy
+      def update; end
+
+      def destroy; end
+    end
   end
 end

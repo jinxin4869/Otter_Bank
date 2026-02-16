@@ -1,13 +1,19 @@
-require "test_helper"
+# frozen_string_literal: true
 
-class Api::V1::AchievementsControllerTest < ActionDispatch::IntegrationTest
-  test "should get index" do
-    get api_v1_achievements_index_url
-    assert_response :success
-  end
+require 'test_helper'
 
-  test "should get show" do
-    get api_v1_achievements_show_url
-    assert_response :success
+module Api
+  module V1
+    class AchievementsControllerTest < ActionDispatch::IntegrationTest
+      test 'should get index' do
+        get api_v1_achievements_index_url
+        assert_response :success
+      end
+
+      test 'should get show' do
+        get api_v1_achievements_show_url
+        assert_response :success
+      end
+    end
   end
 end

@@ -1,13 +1,19 @@
-require "test_helper"
+# frozen_string_literal: true
 
-class Api::V1::SessionsControllerTest < ActionDispatch::IntegrationTest
-  test "should get create" do
-    get api_v1_sessions_create_url
-    assert_response :success
-  end
+require 'test_helper'
 
-  test "should get destroy" do
-    get api_v1_sessions_destroy_url
-    assert_response :success
+module Api
+  module V1
+    class SessionsControllerTest < ActionDispatch::IntegrationTest
+      test 'should get create' do
+        get api_v1_sessions_create_url
+        assert_response :success
+      end
+
+      test 'should get destroy' do
+        get api_v1_sessions_destroy_url
+        assert_response :success
+      end
+    end
   end
 end
