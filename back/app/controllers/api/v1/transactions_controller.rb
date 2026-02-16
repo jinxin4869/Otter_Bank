@@ -17,12 +17,16 @@ class Api::V1::TransactionsController < ApplicationController
       @transactions = @transactions.where(transaction_type: params[:transaction_type])
     end
 
+    summary_amounts = @transactions.group(:transaction_type).sum(:amount)
+    total_income = summary_amounts['income'] || 0
+    total_expense = summary_amounts['expense'] || 0
+
     render json: {
       transactions: @transactions,
       summary: {
-        total_income: current_api_v1_user.transactions.income.sum(:amount),
-        total_expense: current_api_v1_user.transactions.expense.sum(:amount),
-        balance: current_api_v1_user.transactions.income.sum(:amount) - current_api_v1_user.transactions.expense.sum(:amount)
+        total_income: total_income,
+        total_expense: total_expense,
+        balance: total_income - total_expense
       }
     }
   end
