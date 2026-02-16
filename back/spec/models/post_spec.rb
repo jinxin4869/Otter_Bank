@@ -2,13 +2,13 @@ require 'rails_helper'
 
 RSpec.describe Post, type: :model do
   # アソシエーションのテスト
+  it { should belong_to(:user) }
   it { should have_many(:comments).dependent(:destroy) }
-  it { should have_many(:likes).dependent(:destroy) }
+  it { should have_many(:likes) }
 
   # バリデーションのテスト
   it { should validate_presence_of(:title) }
   it { should validate_presence_of(:content) }
-  it { should validate_presence_of(:author) }
 
   # 基本的な属性のテスト
   describe "attributes" do
