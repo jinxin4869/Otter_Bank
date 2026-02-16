@@ -1,6 +1,8 @@
+# frozen_string_literal: true
+
 FactoryBot.define do
   factory :like do
-    likeable { nil }
-    user_email { "MyString" }
+    association :user
+    association :likeable, factory: :post
   end
 end
