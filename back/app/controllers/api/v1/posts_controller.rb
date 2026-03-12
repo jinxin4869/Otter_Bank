@@ -11,7 +11,7 @@ module Api
       end
 
       def index
-        @posts = Post.includes(:user).order(created_at: :desc)
+        @posts = Post.includes(:user, :categories).order(created_at: :desc)
         render json: @posts.map { |post| post_json(post) }
       end
 
@@ -24,6 +24,7 @@ module Api
         @post.likes_count ||= 0
         @post.comments_count ||= 0
         @post.views_count ||= 0
+        assign_categories(@post)
 
         if @post.save
           render json: post_json(@post), status: :created
@@ -38,6 +39,7 @@ module Api
           return
         end
 
+        assign_categories(@post)
         if @post.update(post_params)
           render json: post_json(@post)
         else
@@ -63,13 +65,20 @@ module Api
       private
 
       def set_post
-        @post = Post.find(params[:id])
+        @post = Post.includes(:categories).find(params[:id])
       rescue ActiveRecord::RecordNotFound
         render json: { error: 'Post not found' }, status: :not_found
       end
 
       def post_params
-        params.expect(post: [:title, :content, { category_ids: [] }])
+        params.expect(post: %i[title content])
+      end
+
+      def assign_categories(post)
+        category_names = params.dig(:post, :category_names)
+        return unless category_names.is_a?(Array) && category_names.any?
+
+        post.categories = category_names.map { |name| Category.find_or_create_by(name: name) }
       end
 
       def post_json(post)
@@ -80,6 +89,7 @@ module Api
           author: post.user&.username,
           author_email: post.user&.email,
           user_id: post.user_id,
+          categories: post.categories.map(&:name),
           likes_count: post.likes_count || 0,
           comments_count: post.comments_count || 0,
           views_count: post.views_count || 0,

@@ -40,7 +40,7 @@ import MonthlyTrend from "@/components/monthly-trend"
 import { Tutorial } from "@/components/tutorial"
 import { cn } from "@/lib/utils"
 import { useRouter } from "next/navigation"
-import { useAuth } from "@/hooks/useAuth" // useAuthフックをインポート
+import { useAuth } from "@/hooks/useAuth"
 
 type Transaction = {
   id: string
@@ -48,6 +48,15 @@ type Transaction = {
   type: "income" | "expense"
   category: string
   description: string
+  date: string
+}
+
+type ApiTransaction = {
+  id: number
+  amount: string | number
+  transaction_type: string
+  category: string
+  description: string | null
   date: string
 }
 
@@ -72,6 +81,15 @@ const INCOME_CATEGORIES = [
   { value: "other", label: "その他", icon: <DollarSign className="h-4 w-4" /> },
 ]
 
+const mapApiTransaction = (t: ApiTransaction): Transaction => ({
+  id: String(t.id),
+  amount: Number(t.amount),
+  type: t.transaction_type as "income" | "expense",
+  category: t.category,
+  description: t.description || "",
+  date: t.date ? t.date.split("T")[0] : "",
+})
+
 export default function DashboardPage() {
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [amount, setAmount] = useState("")
@@ -83,29 +101,41 @@ export default function DashboardPage() {
   const [currentView, setCurrentView] = useState<"day" | "month" | "year">("month")
   const [currentDate, setCurrentDate] = useState<Date>(new Date())
   const [otterMood, setOtterMood] = useState<"happy" | "neutral" | "sad">("neutral")
+  const [isDataLoading, setIsDataLoading] = useState(false)
   const router = useRouter()
-  const { user, isLoading: authIsLoading, isAuthenticated } = useAuth(); // useAuthフックを使用
+  const { user, token, isLoading: authIsLoading, isAuthenticated } = useAuth()
 
-  // ログイン状態を確認する処理をuseAuthに任せる
+  const apiUrl =
+    process.env.NODE_ENV === "development" ? process.env.NEXT_PUBLIC_DEV_URL : process.env.NEXT_PUBLIC_API_URL
+
   useEffect(() => {
     if (!authIsLoading && !isAuthenticated) {
-      // 認証されていなければログインページにリダイレクト
-      router.push("/login");
+      router.push("/login")
     }
-  }, [authIsLoading, isAuthenticated, router]);
+  }, [authIsLoading, isAuthenticated, router])
 
-  // Load transactions from localStorage on component mount
+  // API から取引データを取得
   useEffect(() => {
-    const savedTransactions = localStorage.getItem("transactions")
-    if (savedTransactions) {
-      setTransactions(JSON.parse(savedTransactions))
-    } else {
-      // Create sample data for demo
-      const sampleData = generateSampleData()
-      setTransactions(sampleData)
-      localStorage.setItem("transactions", JSON.stringify(sampleData))
+    if (!isAuthenticated || !token) return
+
+    const fetchTransactions = async () => {
+      setIsDataLoading(true)
+      try {
+        const res = await fetch(`${apiUrl}/api/v1/transactions`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        if (!res.ok) throw new Error("取引データの取得に失敗しました")
+        const data = await res.json()
+        setTransactions((data.transactions as ApiTransaction[]).map(mapApiTransaction))
+      } catch (err) {
+        console.error("取引データ取得エラー:", err)
+      } finally {
+        setIsDataLoading(false)
+      }
     }
-  }, [])
+
+    fetchTransactions()
+  }, [isAuthenticated, token, apiUrl])
 
   // Update otter mood based on financial health
   useEffect(() => {
@@ -120,9 +150,7 @@ export default function DashboardPage() {
     })
 
     const income = monthlyTransactions.filter((t) => t.type === "income").reduce((sum, t) => sum + t.amount, 0)
-
     const expense = monthlyTransactions.filter((t) => t.type === "expense").reduce((sum, t) => sum + t.amount, 0)
-
     const savingsRate = income > 0 ? (income - expense) / income : 0
 
     if (savingsRate > 0.2) {
@@ -135,13 +163,11 @@ export default function DashboardPage() {
   }, [transactions])
 
   const validateAmount = (value: string) => {
-    // 空の場合はエラーなし
     if (!value) {
       setAmountError(null)
       return true
     }
 
-    // 数値のみを許可
     const numericValue = value.replace(/,/g, "")
     if (!/^\d+(\.\d{0,2})?$/.test(numericValue)) {
       setAmountError("数字を入力してください。例：1000")
@@ -158,39 +184,52 @@ export default function DashboardPage() {
     validateAmount(value)
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-
-    if (!amount || !category || !validateAmount(amount)) return
+    if (!amount || !category || !validateAmount(amount) || !token) return
 
     const numericAmount = Number.parseFloat(amount.replace(/,/g, ""))
 
-    const newTransaction: Transaction = {
-      id: Date.now().toString(),
-      amount: numericAmount,
-      type,
-      category,
-      description,
-      date: format(date, "yyyy-MM-dd"),
+    try {
+      const res = await fetch(`${apiUrl}/api/v1/transactions`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          transaction: {
+            amount: numericAmount,
+            transaction_type: type,
+            category,
+            description,
+            date: format(date, "yyyy-MM-dd"),
+          },
+        }),
+      })
+      if (!res.ok) throw new Error("取引の登録に失敗しました")
+      const newTx: ApiTransaction = await res.json()
+      setTransactions((prev) => [...prev, mapApiTransaction(newTx)])
+      setAmount("")
+      setAmountError(null)
+      setDescription("")
+      setDate(new Date())
+    } catch (err) {
+      console.error("取引登録エラー:", err)
     }
-
-    const updatedTransactions = [...transactions, newTransaction]
-    setTransactions(updatedTransactions)
-
-    // Save to localStorage
-    localStorage.setItem("transactions", JSON.stringify(updatedTransactions))
-
-    // Reset form
-    setAmount("")
-    setAmountError(null)
-    setDescription("")
-    setDate(new Date())
   }
 
-  const deleteTransaction = (id: string) => {
-    const updatedTransactions = transactions.filter((t) => t.id !== id)
-    setTransactions(updatedTransactions)
-    localStorage.setItem("transactions", JSON.stringify(updatedTransactions))
+  const deleteTransaction = async (id: string) => {
+    if (!token) return
+    try {
+      await fetch(`${apiUrl}/api/v1/transactions/${id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      setTransactions((prev) => prev.filter((t) => t.id !== id))
+    } catch (err) {
+      console.error("取引削除エラー:", err)
+    }
   }
 
   const getFilteredTransactions = () => {
@@ -221,9 +260,7 @@ export default function DashboardPage() {
   const calculateBalance = () => {
     const filtered = getFilteredTransactions()
     const income = filtered.filter((t) => t.type === "income").reduce((sum, t) => sum + t.amount, 0)
-
     const expense = filtered.filter((t) => t.type === "expense").reduce((sum, t) => sum + t.amount, 0)
-
     return income - expense
   }
 
@@ -280,78 +317,32 @@ export default function DashboardPage() {
     }
   }
 
-  // Generate sample data for demo
-  const generateSampleData = (): Transaction[] => {
-    const data: Transaction[] = []
-    const today = new Date()
-    const currentMonth = today.getMonth()
-    const currentYear = today.getFullYear()
-
-    // Generate data for the last 3 months
-    for (let m = 0; m < 3; m++) {
-      const month = (currentMonth - m + 12) % 12
-      const year = month > currentMonth ? currentYear - 1 : currentYear
-
-      // Add salary for each month
-      data.push({
-        id: `income-${year}-${month}-1`,
-        amount: 280000,
-        type: "income",
-        category: "salary",
-        description: "月給",
-        date: format(new Date(year, month, 15), "yyyy-MM-dd"),
-      })
-
-      // Add some random expenses
-      for (let i = 0; i < 15; i++) {
-        const day = Math.floor(Math.random() * 28) + 1
-        const categoryIndex = Math.floor(Math.random() * EXPENSE_CATEGORIES.length)
-        const amount = Math.floor(Math.random() * 10000) + 500
-
-        data.push({
-          id: `expense-${year}-${month}-${i}`,
-          amount,
-          type: "expense",
-          category: EXPENSE_CATEGORIES[categoryIndex].value,
-          description: `${EXPENSE_CATEGORIES[categoryIndex].label}の支出`,
-          date: format(new Date(year, month, day), "yyyy-MM-dd"),
-        })
-      }
-    }
-
-    return data
-  }
-
   const filteredTransactions = getFilteredTransactions()
   const balance = calculateBalance()
   const totalIncome = calculateTotalIncome()
   const totalExpense = calculateTotalExpense()
 
-  // authIsLoading中はローディング表示
   if (authIsLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="h-12 w-12 animate-spin text-blue-600" />
       </div>
-    );
+    )
   }
 
-  // 認証されていない場合は何も表示しない（リダイレクト処理中）
   if (!isAuthenticated) {
-    return null;
+    return null
   }
 
-  // ユーザー名を取得 (useAuthから)
-  const userName = user?.name || user?.username || "ユーザー";
+  const userName = user?.name || user?.username || "ユーザー"
 
   return (
-    <div className="p-4 md:p-6 lg:p-8 space-y-8"> {/* ページ全体のパディングと要素間のスペースを調整 */}
-      {/* チュートリアルコンポーネントを追加 */}
+    <div className="p-4 md:p-6 lg:p-8 space-y-8">
       <Tutorial />
 
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <h1 className="text-3xl font-bold">
-          {userName ? `${userName}の家計簿` : "家計簿"} {/* ユーザー名を表示　*/}
+          {userName ? `${userName}の家計簿` : "家計簿"}
         </h1>
 
         <div className="flex items-center gap-2">
@@ -441,7 +432,11 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {filteredTransactions.length === 0 ? (
+              {isDataLoading ? (
+                <div className="flex justify-center py-8">
+                  <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+                </div>
+              ) : filteredTransactions.length === 0 ? (
                 <p className="text-center text-muted-foreground py-4">この期間の取引はありません</p>
               ) : (
                 <div className="space-y-2 max-h-[400px] overflow-y-auto pr-2">
@@ -550,8 +545,6 @@ export default function DashboardPage() {
                 </div>
               </div>
 
-              {/* カテゴリー選択ドロップダウンメニューのスタイル調整 */}
-              {/* ライトモードうまくいってない */}
               <div className="space-y-2">
                 <Label htmlFor="category">カテゴリー</Label>
                 <Select value={category} onValueChange={setCategory} required>
@@ -637,4 +630,3 @@ export default function DashboardPage() {
     </div>
   )
 }
-
