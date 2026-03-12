@@ -277,14 +277,14 @@ export default function BoardPage() {
 
     try {
       if (isBookmarked) {
-        await fetch(`${apiUrl}/api/v1/posts/${postId}/bookmarks/0`, {
+        await fetch(`${apiUrl}/api/v1/posts/${postId}/bookmark`, {
           method: "DELETE",
           headers: { Authorization: `Bearer ${token}` },
         })
         setBookmarkedPosts((prev) => prev.filter((id) => id !== postId))
         toast.success("ブックマークを削除しました")
       } else {
-        await fetch(`${apiUrl}/api/v1/posts/${postId}/bookmarks`, {
+        await fetch(`${apiUrl}/api/v1/posts/${postId}/bookmark`, {
           method: "POST",
           headers: { Authorization: `Bearer ${token}` },
         })
