@@ -6,8 +6,8 @@
     "prepare": "husky"
   },
   "lint-staged": {
-    "back/**/*.rb": "cd back && bundle exec rubocop -A --force-exclusion",
-    "front/**/*.{ts,tsx,js,jsx}": "cd front && npx eslint --fix"
+    "back/**/*.rb": "bash -c 'cd back && /home/jinxin/.rbenv/shims/bundle exec rubocop -A --force-exclusion \"$@\"' --",
+    "front/**/*.{ts,tsx,js,jsx}": "bash -c 'cd front && ./node_modules/.bin/eslint --fix \"$@\"' --"
   },
   "devDependencies": {
     "husky": "^9.1.7",

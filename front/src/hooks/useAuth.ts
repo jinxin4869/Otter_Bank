@@ -135,6 +135,7 @@ export const useAuth = () => {
 
   return {
     user,
+    token,
     isLoading,
     isAuthenticated: !!user && !!token,
     logout,
