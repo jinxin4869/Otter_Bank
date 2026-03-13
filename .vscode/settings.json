@@ -1,0 +1,26 @@
+{
+// vsCode設定
+"editor.fontSize": 18,
+// 保存時に自動フォーマットを実行
+"editor.formatOnSave": true,
+// 貼り付け時に自動フォーマットを実行
+"editor.formatOnPaste": true,
+"editor.fontFamily": "Fira Code",
+
+
+// 保存時にESLintでコードを修正
+"editor.codeActionsOnSave": {
+  "source.fixAll.eslint": "explicit"
+},
+
+
+// ESLintを適用するファイルの種類
+"eslint.validate": [
+  "javascript",
+  "javascriptreact",
+  "typescript",
+  "typescriptreact"
+],
+
+"terminal.integrated.fontSize": 18
+}
