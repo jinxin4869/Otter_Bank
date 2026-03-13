@@ -76,6 +76,8 @@ type ApiPost = {
   likes_count: number
   comments_count: number
   views_count: number
+  liked_by_me: boolean
+  bookmarked_by_me: boolean
   created_at: string
 }
 
@@ -175,6 +177,8 @@ export default function BoardPage() {
       if (!res.ok) throw new Error("投稿の取得に失敗しました")
       const data: ApiPost[] = await res.json()
       setPosts(data.map(mapApiPost))
+      setLikedPostIds(data.filter((p) => p.liked_by_me).map((p) => String(p.id)))
+      setBookmarkedPosts(data.filter((p) => p.bookmarked_by_me).map((p) => String(p.id)))
     } catch (err) {
       console.error("投稿取得エラー:", err)
       toast.error("投稿の取得に失敗しました")

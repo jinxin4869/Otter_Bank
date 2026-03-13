@@ -6,7 +6,7 @@
     "prepare": "husky"
   },
   "lint-staged": {
-    "back/**/*.rb": "bash -c 'cd back && bundle exec rubocop -A --force-exclusion \"$@\"' --",
+    "back/**/*.rb": "bash scripts/rubocop-lint.sh",
     "front/**/*.{ts,tsx,js,jsx}": "bash -c 'cd front && ./node_modules/.bin/eslint --fix \"$@\"' --"
   },
   "devDependencies": {
