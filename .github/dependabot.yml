@@ -4,21 +4,21 @@ updates:
   - package-ecosystem: "bundler"
     directory: "/back"
     schedule:
-      interval: "weekly"
+      interval: "monthly"
     open-pull-requests-limit: 5
 
   # npm dependencies in front/
   - package-ecosystem: "npm"
     directory: "/front"
     schedule:
-      interval: "weekly"
+      interval: "monthly"
     open-pull-requests-limit: 5
 
   # Docker dependencies
   - package-ecosystem: "docker"
     directory: "/"
     schedule:
-      interval: "weekly"
+      interval: "monthly"
     open-pull-requests-limit: 5
 
   # GitHub Actions
