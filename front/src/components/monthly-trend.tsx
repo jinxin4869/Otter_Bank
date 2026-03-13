@@ -80,7 +80,7 @@ export default function MonthlyTrend({ transactions }: MonthlyTrendProps) {
     return [`${value.toLocaleString()} 円`, name];
   }
 
-  const legendFormatter = (value: string, entry: any, index: number) => {
+  const legendFormatter = (value: string, _entry: any, _index: number) => {
     if (value === "income") return "収入"
     if (value === "expense") return "支出"
     if (value === "balance") return "収支"
