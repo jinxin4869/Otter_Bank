@@ -78,7 +78,14 @@ module Api
         category_names = params.dig(:post, :category_names)
         return unless category_names.is_a?(Array)
 
-        post.categories = category_names.map { |name| Category.find_or_create_by(name: name) }
+        normalized_names = category_names.map { |name| name.to_s.strip }.reject(&:blank?).uniq
+        return if normalized_names.empty?
+
+        existing_categories = Category.where(name: normalized_names).index_by(&:name)
+        missing_names = normalized_names - existing_categories.keys
+        new_categories = missing_names.map { |name| Category.create(name: name) }
+
+        post.categories = existing_categories.values + new_categories
       end
 
       def post_json(post)

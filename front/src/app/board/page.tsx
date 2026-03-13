@@ -196,11 +196,15 @@ export default function BoardPage() {
 
     try {
       const endpoint = isCurrentlyLiked ? "unlike" : "like"
-      await fetch(`${apiUrl}/api/v1/posts/${postId}/${endpoint}`, {
+      const res = await fetch(`${apiUrl}/api/v1/posts/${postId}/${endpoint}`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
       })
 
+      if (!res.ok) {
+        toast.error("いいねの操作に失敗しました")
+        return
+      }
       if (isCurrentlyLiked) {
         setLikedPostIds((prev) => prev.filter((id) => id !== postId))
         setPosts((prev) =>
@@ -277,14 +281,14 @@ export default function BoardPage() {
 
     try {
       if (isBookmarked) {
-        await fetch(`${apiUrl}/api/v1/posts/${postId}/bookmarks/0`, {
+        await fetch(`${apiUrl}/api/v1/posts/${postId}/bookmark`, {
           method: "DELETE",
           headers: { Authorization: `Bearer ${token}` },
         })
         setBookmarkedPosts((prev) => prev.filter((id) => id !== postId))
         toast.success("ブックマークを削除しました")
       } else {
-        await fetch(`${apiUrl}/api/v1/posts/${postId}/bookmarks`, {
+        await fetch(`${apiUrl}/api/v1/posts/${postId}/bookmark`, {
           method: "POST",
           headers: { Authorization: `Bearer ${token}` },
         })
@@ -467,10 +471,15 @@ export default function BoardPage() {
     if (!deletingPostId || !token) return
 
     try {
-      await fetch(`${apiUrl}/api/v1/posts/${deletingPostId}`, {
+      const res = await fetch(`${apiUrl}/api/v1/posts/${deletingPostId}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       })
+
+      if (!res.ok) {
+        toast.error("投稿の削除に失敗しました")
+        return
+      }
       setPosts((prev) => prev.filter((post) => post.id !== deletingPostId))
       setDeletingPostId(null)
       setIsDeleteDialogOpen(false)
