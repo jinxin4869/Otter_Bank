@@ -222,10 +222,13 @@ export default function DashboardPage() {
   const deleteTransaction = async (id: string) => {
     if (!token) return
     try {
-      await fetch(`${apiUrl}/api/v1/transactions/${id}`, {
+      const res = await fetch(`${apiUrl}/api/v1/transactions/${id}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       })
+      if (!res.ok) {
+        throw new Error("取引の削除に失敗しました")
+      }
       setTransactions((prev) => prev.filter((t) => t.id !== id))
     } catch (err) {
       console.error("取引削除エラー:", err)
