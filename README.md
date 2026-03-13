@@ -1,166 +1,221 @@
-# Otter Bank(獭獭銀行) 🦦💰
+# Otter Bank（獺獺銀行）🦦💰
+
+カワウソのマスコットと一緒に家計を管理するゲーミフィケーション家計簿アプリ。
+収支記録・貯金目標・実績バッジ・コミュニティ掲示板を搭載。
 
 ## サービス概要
-- Otter Bank (獭獭銀行)は、お金の管理をするためアプリです！
-- カワウソがあなたの出費に応じてリアクションを反応してくれます！
 
-## このサービスへの思い・作りたい理由
+衝動買いや散財癖をなくすため、カワウソが支出に応じてリアクションしてくれる家計簿アプリ。
+実績システムやバッジで継続するモチベーションを高め、コミュニティ機能で仲間と情報交換できる。
 
-- 衝動買いをたくさんしてしまうことがある私ですが、Youtubeのショート動画からとある散財癖をなくすＣＭというのを見て、自分の財布管理をはじめようとしたのがきっかけです。
-- 毎月給料日になったときに、給料が通帳からなくなることが多々ありましたので、そんな自分の状況を振り返って自分を律するためのアプリです。
+## 主な機能
 
-- ただの家計簿ですと少し物足りないと感じましたので、最近好きなカワウソ(中国語で水獭)をうまく組合せて一緒に乗り越えることを目指して水濑银行という名前にしました。
+### 家計管理
+- 収入・支出の記録と分析
+- カテゴリ別支出の可視化
+- 貯金目標の設定と進捗管理
 
-## なぜカワウソなの？
+### ゲーミフィケーション
+- **アチーブメントシステム**: 行動に応じて実績・バッジを獲得（Bronze / Silver / Gold / Platinum）
+- **カワウソアニメーション**: 貯金額・支出に応じてリアクション
 
-研究によると、カワウソはとても賢いうえ、コミュニティ内で情報交換も頻繁に行っているようなのでお金の管理もピッタリなのではと思いました。
-単純にかわいいのもあります。
+### コミュニティ
+- 掲示板への投稿・コメント・いいね・ブックマーク
 
-[カワウソは賢い。仲間と協力して問題を解決することもできる](https://karapaia.com/archives/52314005.html)
-
-## ユーザー層について
-
-- 世の中同じことを思ってい仲間が多数だと思いますので、特に大学生や、20代の社会人向けになるかと思います。
-- 動物はどの年代にも通用するので、ママさんたちの中でももしかしたら人気が出るとも考えています。
-
-## サービスの利用イメージ
-
-基本の家計簿アプリである機能を踏まえつつ、家計簿にお金を使ってもらうような感じ。
-実際には口座内におかねがあればあるほどいいので、出費が減る効果につながると思います。
-
-### ゲーム感覚の金融マネジメント
-
-- 🏆 **アチーブメントシステム**: 貯金目標を達成して特別なバッジを獲得
-- 🌈 **カスタマイズ要素**: 貯金額に応じてカワウソの生活環境を変えられる！
-
-### 💰 家計管理機能
-- **収支管理**: 収入・支出の記録と分析
-- **カテゴリ別分析**: 支出をカテゴリごとに可視化
-- **予算設定**: 月次・カテゴリ別予算の設定と追跡
-- **レポート機能**: 詳細な家計分析レポート
-
-### 💬 コミュニティ機能
-- **掲示板**: ユーザー同士の情報交換
-- **コメント機能**: 投稿に対するディスカッション
-
-## ユーザーの獲得について
-
-- RUNTEQコミュニティ内容で使用してもらいつつ、SNSを利用して拡散する。
-- 現在学生でもあるため、学生コミュニティでも使ってもらいフィードバックをいただけると
-
-## サービスの差別化ポイント・推しポイント
-
-差別化ポイント: 
-- 家計簿アプリとして、カワウソという遊び心のある設計が既存のものと異なる
-- カワウソを育てていく(実際は貯金)うちに、感情がでてもっとつかいたくなる点
-- 実績機能やバッジなど続けていく動機づけをする
-推しポイント:
-- かわいいカワウソを眺められる
-- 既存の家計簿としての機能もひと通りそろえている
-
-## 機能候補
-
-MVPリリース時:
-- ユーザー新規登録
-- ログイン・ログアウト
-- 利用規約
-- プライバシーポリシー
-- 問い合わせフォーム
-- カワウソのアニメーション(最低限のもの)
-- 実績画面、閲覧
-- 掲示板画面、閲覧、投稿
-
-本リリースまで:
-- 実績画面(アップデート予定あり)
-- 実際の銀行口座と連携して金額をリアルタイムで取得
-- マルチプラットフォーム(webアプリではなく、ネイティブアプリとして使用する方がより便利性が上がるため)
-
-## 🛠️ 技術スタック
+## 技術スタック
 
 ### フロントエンド
-- **フレームワーク**: Next.js 14
-- **使用言語**: TypeScript(すごく後悔している)
-- **CSS**: Tailwind CSS
-- **UI コンポーネント**: Radix UI, shadcn/ui, Lucide React
-- **State Management**: Zustand
-- **Charts**: Recharts
-- **デプロイ**: Vercel
+| 項目 | 技術 |
+| --- | --- |
+| フレームワーク | Next.js 15（App Router） |
+| 言語 | TypeScript |
+| スタイリング | Tailwind CSS 4 |
+| UI コンポーネント | shadcn/ui, Radix UI, Lucide React |
+| チャート | Recharts |
+| デプロイ | Vercel |
 
 ### バックエンド
-- **フレームワーク**: Ruby on Rails 7.1
-- **使用言語**: Ruby 3.2.2
-- **データベース**: PostgreSQL (Production), SQLite (Development)
-- **認証**: JWT + bcrypt
-- **CORS**: rack-cors
-- **デプロイ**: Render
+| 項目 | 技術 |
+| --- | --- |
+| フレームワーク | Ruby on Rails 7.1（API モード） |
+| 言語 | Ruby 3.2.2 |
+| DB（開発） | SQLite3 |
+| DB（本番） | PostgreSQL 16 |
+| 認証 | JWT + bcrypt, Google OAuth2（OmniAuth） |
+| デプロイ | Render |
 
-## 🚀 セットアップ
+### インフラ・CI
+| 項目 | 技術 |
+| --- | --- |
+| コンテナ | Docker / Docker Compose |
+| CI/CD | GitHub Actions |
+
+## セットアップ
 
 ### 前提条件
-- Node.js 18+
-- Ruby 3.2.2
-- PostgreSQL (本番環境)
 
-### ローカル開発環境の構築
+- Docker / Docker Compose
+- （個別起動の場合）Node.js 22+、Ruby 3.2.2、Bundler
 
-#### 1. リポジトリのクローン
+---
+
+### Docker で起動する（推奨）
+
 ```bash
+# リポジトリをクローン
 git clone https://github.com/jinxin4869/Otter_Bank.git
 cd Otter_Bank
+
+# 環境変数ファイルを作成（下記「環境変数」を参照）
+cp back/.env.example back/.env        # バックエンド用
+cp front/.env.example front/.env.local  # フロントエンド用
+
+# コンテナをビルドして起動
+docker compose up --build
 ```
 
-## 📂 プロジェクト構造
+| サービス | URL |
+| --- | --- |
+| フロントエンド | http://localhost:4000 |
+| バックエンド API | http://localhost:3000 |
+| PostgreSQL | localhost:5433 |
+
+初回起動後にマイグレーションとシードを実行：
+
+```bash
+docker compose exec back bundle exec rails db:migrate
+docker compose exec back bundle exec rails db:seed
+```
+
+停止・ボリューム削除：
+
+```bash
+docker compose down -v
+```
+
+---
+
+### 個別に起動する
+
+#### バックエンド
+
+```bash
+cd back
+bundle install
+bundle exec rails db:migrate
+bundle exec rails db:seed
+bundle exec rails s -b 0.0.0.0   # http://localhost:3000
+```
+
+#### フロントエンド
+
+```bash
+cd front
+npm install
+npm run dev   # http://localhost:3000（バックとポートが被る場合は .env.local で調整）
+```
+
+---
+
+### 環境変数
+
+#### バックエンド（`back/.env`）
+
+```env
+JWT_SECRET=your_jwt_secret_here
+GOOGLE_CLIENT_ID=your_google_client_id
+GOOGLE_CLIENT_SECRET=your_google_client_secret
+FRONTEND_URL=http://localhost:4000
+FRONTEND_URL_PROD=https://your-production-frontend.vercel.app
+BACKEND_URL=http://localhost:3000
+```
+
+#### フロントエンド（`front/.env.local`）
+
+```env
+NEXT_PUBLIC_DEV_URL=http://localhost:3000
+NEXT_PUBLIC_API_URL=https://your-production-backend.onrender.com
+```
+
+## プロジェクト構造
 
 ```
 Otter_Bank/
+├── compose.yml              # Docker Compose 設定（front:4000, back:3000, db:5433）
+├── render.yaml              # Render デプロイ設定
 ├── back/                    # Ruby on Rails API
 │   ├── app/
-│   │   ├── controllers/     # APIコントローラー
-│   │   ├── models/         # データモデル
-│   │   └── services/       # ビジネスロジック
-│   ├── config/             # Rails設定
-│   ├── db/                 # データベース関連
-│   └── spec/               # テストファイル
-├── front/                  # Next.js フロントエンド
-│   ├── src/
-│   │   ├── app/            # アプリケーションページ
-│   │   ├── components/     # 再利用可能なコンポーネント
-│   │   ├── lib/            # ユーティリティ関数
-│   │   └── types/          # TypeScript型定義
-│   └── public/             # 静的ファイル
-├── render.yaml             # Renderデプロイ設定
-└── README.md
+│   │   ├── controllers/
+│   │   │   └── api/v1/      # API コントローラー（全て Api::V1 モジュール配下）
+│   │   ├── models/          # ActiveRecord モデル
+│   │   └── services/        # ビジネスロジック（AchievementService 等）
+│   ├── config/
+│   │   └── routes.rb        # 全 API ルート（/api/v1/ 名前空間）
+│   ├── db/                  # マイグレーション・シード
+│   └── spec/                # RSpec テスト
+│       ├── factories/        # FactoryBot ファクトリー
+│       ├── models/           # モデルスペック
+│       └── requests/api/v1/ # リクエストスペック
+└── front/                   # Next.js フロントエンド
+    └── src/
+        ├── app/             # App Router ページ
+        │   ├── dashboard/   # ダッシュボード
+        │   ├── board/       # コミュニティ掲示板
+        │   ├── collection/  # 実績コレクション
+        │   ├── login/       # ログイン
+        │   └── register/    # 新規登録
+        ├── components/      # 共通コンポーネント
+        │   └── ui/          # shadcn/ui コンポーネント
+        ├── hooks/           # カスタムフック（useAuth, useAchievements）
+        ├── lib/             # ユーティリティ（cn() 等）
+        └── types/           # TypeScript 型定義
 ```
 
-### CI/CD
-- GitHubへのプッシュで自動デプロイ(フロントエンド)
-- プルリクエストでgithub copilotによる自動レビュー
+## よく使うコマンド
 
-## 機能の実装方針予定
+### バックエンド
 
-| カテゴリー | 使用技術 |
+```bash
+cd back
+bundle exec rspec                    # 全テスト実行
+bundle exec rspec --format documentation  # 詳細出力
+bin/rubocop -f github               # RuboCop（スタイルチェック）
+bin/brakeman --no-pager             # Brakeman（セキュリティスキャン）
+```
+
+### フロントエンド
+
+```bash
+cd front
+npm run lint          # ESLint チェック
+npm run type-check    # TypeScript 型チェック
+npm run test          # テスト実行
+npm run build         # 本番ビルド
+```
+
+## CI/CD
+
+`main` / `feature/*` へのプッシュおよびプルリクエスト時に GitHub Actions が実行される。
+
+| ジョブ | 内容 |
 | --- | --- |
-| フロントエンド | HTML, JavaScript, Next.js|
-| バックエンド | Ruby on Rails |
-| サーバーサイド | Ruby on Rails |
-| CSSフレームワーク | TailwindCSS, shadcn UI |
-| DB | PostgreSQL |
-| Redis | Redis (キャッシュやセッション管理) |
-| 認証 | Devise (Railsの認証ライブラリ) |
-| CI / CD | GitHub Actions |
-| 開発環境 | Docker (コンテナ化), VSCode (エディタ) |
+| `scan_ruby` | Brakeman セキュリティスキャン |
+| `lint_ruby` | RuboCop |
+| `lint_frontend` | ESLint + TypeScript 型チェック |
+| `test_backend` | RSpec（PostgreSQL 使用） |
+| `test_frontend` | `npm run test` |
 
-## 👥 開発者
+フロントエンドは Vercel、バックエンドは Render に自動デプロイ。
 
-- **jinxin4869** - *メイン開発者* - [GitHub](https://github.com/jinxin4869)
+## ER 図・画面遷移図
 
-## 📞 サポート
+- [画面遷移図（Figma）](https://www.figma.com/board/336gqg7QemlRBOyX6Hyjk9/Untitled?node-id=0-1&p=f&t=pWqT6LtmUdhXr6q1-0)
+- [ER 図](docs/)
 
-質問や問題がある場合は、[GitHub Issues](https://github.com/jinxin4869/Otter_Bank/issues)で報告してください。
+## 開発者
 
-## 画面遷移図
-[Figmaリンク](https://www.figma.com/board/336gqg7QemlRBOyX6Hyjk9/Untitled?node-id=0-1&p=f&t=pWqT6LtmUdhXr6q1-0)
+- **jinxin4869** — [GitHub](https://github.com/jinxin4869)
 
-## ER図
+## サポート
 
-[ER図リンク](path/to/ER.drawio)
+質問・バグ報告は [GitHub Issues](https://github.com/jinxin4869/Otter_Bank/issues) へ。
