@@ -52,7 +52,6 @@ export const useAuth = () => {
         
         // JWT期限切れの場合の処理
         if (errorData.code === 'token_expired') {
-          console.log('[Auth] JWT Token expired');
           throw new Error('認証期限が切れました。再度ログインしてください。');
         }
         
@@ -107,7 +106,6 @@ export const useAuth = () => {
 
   // ログアウト関数の改善
   const logout = async () => {
-    console.log('[Auth] ログアウト実行');
     try {
       const currentToken = localStorage.getItem('authToken');
       if (currentToken) {
