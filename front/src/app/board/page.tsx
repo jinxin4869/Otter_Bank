@@ -16,8 +16,9 @@ import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { format } from "date-fns"
 import { ja } from "date-fns/locale"
-import { MessageSquare, Heart, Search, Filter, Plus, ThumbsUp, MessageCircle, MoreVertical, Edit, Trash2, Bookmark, BookmarkCheck, Send, Eye } from "lucide-react"
+import { MessageSquare, Heart, Search, Filter, Plus, ThumbsUp, MessageCircle, MoreVertical, Edit, Trash2, Bookmark, BookmarkCheck, Send, Eye, Loader2 } from "lucide-react"
 import { toast } from "sonner"
+import { useAuth } from "@/hooks/useAuth"
 
 // 掲示板カテゴリー
 const BOARD_CATEGORIES = [
@@ -38,142 +39,13 @@ const SORT_OPTIONS = [
   { value: "comments", label: "コメント数順" },
 ]
 
-// サンプル投稿データ
-const SAMPLE_POSTS = [
-  {
-    id: "1",
-    title: "毎月5000円を貯金するコツ",
-    content:
-      "私は毎月給料日に自動的に5000円を別口座に振り込む設定をしています。気づかないうちに貯金ができるのでおすすめです。皆さんはどのような方法で貯金していますか？",
-    author: "貯金好き",
-    authorEmail: "chokin@example.com",
-    category: ["savings"],
-    createdAt: new Date(2023, 0, 15).toISOString(),
-    likes: 24,
-    comments: 8,
-    views: 156,
-  },
-  {
-    id: "2",
-    title: "初心者向け投資の始め方",
-    content:
-      "投資を始めたいけど何から手をつければいいか分からない方へ。まずは少額から積立NISAを始めることをおすすめします。リスクを抑えながら長期的な資産形成ができます。",
-    author: "投資マスター",
-    authorEmail: "invest@example.com",
-    category: ["investment"],
-    createdAt: new Date(2023, 1, 3).toISOString(),
-    likes: 42,
-    comments: 15,
-    views: 230,
-  },
-  {
-    id: "3",
-    title: "家計簿アプリの比較",
-    content:
-      "様々な家計簿アプリを使ってきましたが、獭獭銀行が一番使いやすいと感じています。特に支出の分析機能が優れていて、無駄遣いの発見に役立っています。",
-    author: "アプリ評論家",
-    authorEmail: "app@example.com",
-    category: ["budget"],
-    createdAt: new Date(2023, 2, 20).toISOString(),
-    likes: 18,
-    comments: 6,
-    views: 95,
-  },
-  {
-    id: "4",
-    title: "学生ローンの返済計画",
-    content:
-      "学生ローンの返済に苦労していましたが、収入の20%を毎月返済に充てる計画を立てたところ、予想より早く返済できました。計画的な返済が重要です。",
-    author: "元借金持ち",
-    authorEmail: "debt@example.com",
-    category: ["debt"],
-    createdAt: new Date(2023, 3, 5).toISOString(),
-    likes: 31,
-    comments: 12,
-    views: 187,
-  },
-  {
-    id: "5",
-    title: "副業でのポイントサイト活用法",
-    content:
-      "空き時間を活用してポイントサイトで月に5000円ほど稼いでいます。特におすすめなのはアンケート回答とショッピング還元です。コツコツ続けることが大切です。",
-    author: "副収入マニア",
-    authorEmail: "side@example.com",
-    category: ["income"],
-    createdAt: new Date(2023, 4, 12).toISOString(),
-    likes: 27,
-    comments: 9,
-    views: 142,
-  },
-  {
-    id: "6",
-    title: "30代で住宅ローンを完済した体験談",
-    content:
-      "20代から徹底的に節約し、ボーナスのほとんどを繰り上げ返済に回したことで、30代で住宅ローンを完済できました。苦労もありましたが、今は大きな安心感があります。",
-    author: "早期完済者",
-    authorEmail: "house@example.com",
-    category: ["experience"],
-    createdAt: new Date(2023, 5, 28).toISOString(),
-    likes: 56,
-    comments: 21,
-    views: 310,
-  },
-  {
-    id: "7",
-    title: "投資信託と個別株、どちらがおすすめ？",
-    content:
-      "初心者には投資信託、ある程度知識がついてきたら個別株も検討するのがいいと思います。皆さんはどのような投資をしていますか？アドバイスをいただけると嬉しいです。",
-    author: "投資初心者",
-    authorEmail: "beginner@example.com",
-    category: ["question"],
-    createdAt: new Date(2023, 6, 9).toISOString(),
-    likes: 14,
-    comments: 18,
-    views: 124,
-  },
-  {
-    id: "8",
-    title: "家計の見直しで月5万円の節約に成功",
-    content:
-      "固定費の見直し、食費の削減、無駄な契約の解約などを行い、月5万円の節約に成功しました。具体的な方法を共有します。まずは自分の支出を把握することが大切です。",
-    author: "節約上手",
-    authorEmail: "save@example.com",
-    category: ["budget"],
-    createdAt: new Date(2023, 7, 17).toISOString(),
-    likes: 38,
-    comments: 11,
-    views: 205,
-  },
-]
-
-// サンプルコメントデータ
-const SAMPLE_COMMENTS: Comment[] = [
-  {
-    id: "c1",
-    postId: "1",
-    content: "とても参考になりました！私も自動振込を設定してみます。",
-    author: "節約初心者",
-    authorEmail: "beginner@example.com",
-    createdAt: new Date(2023, 0, 16).toISOString(),
-    likes: 3,
-  },
-  {
-    id: "c2",
-    postId: "1",
-    content: "自動振込以外にも、500円玉貯金もおすすめです。",
-    author: "コイン貯金マスター",
-    authorEmail: "coin@example.com",
-    createdAt: new Date(2023, 0, 17).toISOString(),
-    likes: 1,
-  },
-]
-
 type Comment = {
   id: string
   postId: string
   content: string
   author: string
   authorEmail: string
+  userId?: number
   createdAt: string
   likes: number
 }
@@ -184,22 +56,81 @@ type Post = {
   content: string
   author: string
   authorEmail: string
+  userId?: number
   category: string[]
   createdAt: string
   likes: number
   comments: number
   views: number
-  isBookmarked?: boolean // ブックマーク状態
+  isBookmarked?: boolean
 }
+
+type ApiPost = {
+  id: number
+  title: string
+  content: string
+  author: string
+  author_email: string
+  user_id: number
+  categories: string[]
+  likes_count: number
+  comments_count: number
+  views_count: number
+  liked_by_me: boolean
+  bookmarked_by_me: boolean
+  created_at: string
+}
+
+type ApiComment = {
+  id: number
+  post_id: number
+  content: string
+  author: string
+  author_email: string
+  user_id: number
+  likes_count: number
+  created_at: string
+}
+
+const mapApiPost = (p: ApiPost): Post => ({
+  id: String(p.id),
+  title: p.title,
+  content: p.content,
+  author: p.author || "",
+  authorEmail: p.author_email || "",
+  userId: p.user_id,
+  category: p.categories || [],
+  createdAt: p.created_at,
+  likes: p.likes_count || 0,
+  comments: p.comments_count || 0,
+  views: p.views_count || 0,
+})
+
+const mapApiComment = (c: ApiComment): Comment => ({
+  id: String(c.id),
+  postId: String(c.post_id),
+  content: c.content,
+  author: c.author || "",
+  authorEmail: c.author_email || "",
+  userId: c.user_id,
+  createdAt: c.created_at,
+  likes: c.likes_count || 0,
+})
 
 export default function BoardPage() {
   const router = useRouter()
+  const { user, token, isLoading: authIsLoading, isAuthenticated } = useAuth()
+
+  const apiUrl =
+    process.env.NODE_ENV === "development" ? process.env.NEXT_PUBLIC_DEV_URL : process.env.NEXT_PUBLIC_API_URL
+
   const [posts, setPosts] = useState<Post[]>([])
-  const [likedPostIds, setLikedPostIds] = useState<string[]>([]); // いいねした投稿IDを管理
-  const [likedCommentIds, setLikedCommentIds] = useState<string[]>([]); // いいねしたコメントIDを管理
+  const [likedPostIds, setLikedPostIds] = useState<string[]>([])
+  const [likedCommentIds, setLikedCommentIds] = useState<string[]>([])
   const [comments, setComments] = useState<Comment[]>([])
   const [filteredPosts, setFilteredPosts] = useState<Post[]>([])
   const [bookmarkedPosts, setBookmarkedPosts] = useState<string[]>([])
+  const [isPostsLoading, setIsPostsLoading] = useState(false)
 
   // ダイアログの状態
   const [isNewPostDialogOpen, setIsNewPostDialogOpen] = useState(false)
@@ -213,7 +144,6 @@ export default function BoardPage() {
   const [searchTerm, setSearchTerm] = useState("")
   const [sortOption, setSortOption] = useState("latest")
   const [selectedCategories, setSelectedCategories] = useState<string[]>([])
-  const [currentUserEmail, setCurrentUserEmail] = useState("")
 
   // 新規投稿の状態
   const [newPostTitle, setNewPostTitle] = useState("")
@@ -229,88 +159,78 @@ export default function BoardPage() {
   const [deletingPostId, setDeletingPostId] = useState<string | null>(null)
   const [selectedPost, setSelectedPost] = useState<Post | null>(null)
 
-  // ログイン状態を確認
+  // 認証チェック
   useEffect(() => {
-    const isLoggedIn = localStorage.getItem("isLoggedIn") === "true"
-    const userEmail = localStorage.getItem("currentUserEmail") || ""
-
-    if (!isLoggedIn) {
+    if (!authIsLoading && !isAuthenticated) {
       router.push("/login")
-      return
     }
+  }, [authIsLoading, isAuthenticated, router])
 
-    // ローカルストレージから投稿データを読み込み
-    const savedPosts = localStorage.getItem("boardPosts")
-    const initialPosts = savedPosts ? JSON.parse(savedPosts) : []
-
-    // ローカルストレージからコメントデータを読み込み
-    const savedComments = localStorage.getItem("boardComments")
-    const initialComments = savedComments ? JSON.parse(savedComments) : []
-
-    // サンプルデータを読み込み
-    setCurrentUserEmail(userEmail)
-    setPosts(initialPosts)
-    setComments(initialComments)
-
-    // ブックマークデータを読み込み
-    const savedBookmarks = localStorage.getItem("bookmarkedPosts")
-    if (savedBookmarks) {
-      setBookmarkedPosts(JSON.parse(savedBookmarks))
+  // 投稿一覧を取得
+  const fetchPosts = useCallback(async () => {
+    if (!token) return
+    setIsPostsLoading(true)
+    try {
+      const res = await fetch(`${apiUrl}/api/v1/posts`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      if (!res.ok) throw new Error("投稿の取得に失敗しました")
+      const data: ApiPost[] = await res.json()
+      setPosts(data.map(mapApiPost))
+      setLikedPostIds(data.filter((p) => p.liked_by_me).map((p) => String(p.id)))
+      setBookmarkedPosts(data.filter((p) => p.bookmarked_by_me).map((p) => String(p.id)))
+    } catch (err) {
+      console.error("投稿取得エラー:", err)
+      toast.error("投稿の取得に失敗しました")
+    } finally {
+      setIsPostsLoading(false)
     }
+  }, [token, apiUrl])
 
-    // ローカルストレージからいいね状態を読み込む
-    const storedLikedPosts = localStorage.getItem("likedPostIds");
-    if (storedLikedPosts) {
-      setLikedPostIds(JSON.parse(storedLikedPosts));
+  useEffect(() => {
+    if (isAuthenticated && token) {
+      fetchPosts()
     }
+  }, [isAuthenticated, token, fetchPosts])
 
-    // ローカルストレージからコメントいいね状態を読み込む
-    const storedLikedComments = localStorage.getItem("likedCommentIds");
-    if (storedLikedComments) {
-      setLikedCommentIds(JSON.parse(storedLikedComments));
-    }
+  // いいねの処理
+  const handleLike = async (postId: string) => {
+    if (!token) return
+    const isCurrentlyLiked = likedPostIds.includes(postId)
 
-  }, [router])
+    try {
+      const endpoint = isCurrentlyLiked ? "unlike" : "like"
+      const res = await fetch(`${apiUrl}/api/v1/posts/${postId}/${endpoint}`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      })
 
-  // いいねの処理を更新
-  const handleLike = (postId: string) => {
-    let updatedLikedPostIds: string[];
-    const isCurrentlyLiked = likedPostIds.includes(postId);
-
-    if (isCurrentlyLiked) {
-      // いいね解除
-      updatedLikedPostIds = likedPostIds.filter(id => id !== postId);
-      setPosts((prev) => {
-        const updatedPosts = prev.map((post) =>
-          post.id === postId ? { ...post, likes: Math.max(0, post.likes - 1) } : post
+      if (!res.ok) {
+        toast.error("いいねの操作に失敗しました")
+        return
+      }
+      if (isCurrentlyLiked) {
+        setLikedPostIds((prev) => prev.filter((id) => id !== postId))
+        setPosts((prev) =>
+          prev.map((post) => (post.id === postId ? { ...post, likes: Math.max(0, post.likes - 1) } : post))
         )
-        // ローカルストレージに保存
-        localStorage.setItem("boardPosts", JSON.stringify(updatedPosts))
-        return updatedPosts
-      });
-      toast.success("いいねを取り消しました");
-    } else {
-      // いいねする
-      updatedLikedPostIds = [...likedPostIds, postId];
-      setPosts((prev) => {
-        const updatedPosts = prev.map((post) =>
-          post.id === postId ? { ...post, likes: post.likes + 1 } : post
+        toast.success("いいねを取り消しました")
+      } else {
+        setLikedPostIds((prev) => [...prev, postId])
+        setPosts((prev) =>
+          prev.map((post) => (post.id === postId ? { ...post, likes: post.likes + 1 } : post))
         )
-        // ローカルストレージに保存
-        localStorage.setItem("boardPosts", JSON.stringify(updatedPosts))
-        return updatedPosts
-      });
-      toast.success("いいねしました");
+        toast.success("いいねしました")
+      }
+    } catch {
+      toast.error("操作に失敗しました")
     }
-    setLikedPostIds(updatedLikedPostIds);
-    localStorage.setItem("likedPostIds", JSON.stringify(updatedLikedPostIds));
   }
 
-  // 投稿のフィルタリングとソート - useCallbackでメモ化
+  // 投稿のフィルタリングとソート
   const filterAndSortPosts = useCallback(() => {
     let filtered = [...posts]
 
-    // 検索語でフィルタリング
     if (searchTerm) {
       const term = searchTerm.toLowerCase()
       filtered = filtered.filter(
@@ -324,7 +244,6 @@ export default function BoardPage() {
       )
     }
 
-    // カテゴリーでフィルタリング
     if (activeTab !== "all") {
       filtered = filtered.filter((post) => post.category.includes(activeTab))
     }
@@ -335,7 +254,6 @@ export default function BoardPage() {
       )
     }
 
-    // ソート
     switch (sortOption) {
       case "latest":
         filtered.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
@@ -350,103 +268,81 @@ export default function BoardPage() {
     setFilteredPosts(filtered)
   }, [posts, searchTerm, activeTab, selectedCategories, sortOption])
 
-  // カテゴリーの追加・削除
   const toggleCategory = (category: string) => {
     setNewPostCategories((prev) =>
-      prev.includes(category)
-        ? prev.filter((c) => c !== category) // 既に選択されている場合は削除
-        : [...prev, category] // 選択されていない場合は追加
+      prev.includes(category) ? prev.filter((c) => c !== category) : [...prev, category]
     )
   }
 
-  // フィルター条件が変更されたときにフィルターを適用
   useEffect(() => {
     filterAndSortPosts()
   }, [filterAndSortPosts])
 
   // ブックマークの切り替え
-  const toggleBookmark = (postId: string) => {
-    const newBookmarks = bookmarkedPosts.includes(postId)
-      ? bookmarkedPosts.filter(id => id !== postId)
-      : [...bookmarkedPosts, postId]
+  const toggleBookmark = async (postId: string) => {
+    if (!token) return
+    const isBookmarked = bookmarkedPosts.includes(postId)
 
-    setBookmarkedPosts(newBookmarks)
-    localStorage.setItem("bookmarkedPosts", JSON.stringify(newBookmarks))
-
-    toast.success(
-      bookmarkedPosts.includes(postId)
-        ? "ブックマークを削除しました"
-        : "ブックマークに追加しました"
-    )
+    try {
+      if (isBookmarked) {
+        const res = await fetch(`${apiUrl}/api/v1/posts/${postId}/bookmark`, {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        if (!res.ok) {
+          toast.error("ブックマークの削除に失敗しました")
+          return
+        }
+        setBookmarkedPosts((prev) => prev.filter((id) => id !== postId))
+        toast.success("ブックマークを削除しました")
+      } else {
+        const res = await fetch(`${apiUrl}/api/v1/posts/${postId}/bookmark`, {
+          method: "POST",
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        if (!res.ok) {
+          toast.error("ブックマークの追加に失敗しました")
+          return
+        }
+        setBookmarkedPosts((prev) => [...prev, postId])
+        toast.success("ブックマークに追加しました")
+      }
+    } catch {
+      toast.error("操作に失敗しました")
+    }
   }
 
-  // 新規投稿の追加
-  const handleAddPost = () => {
-    // エラーメッセージをリセット
+  // 新規投稿
+  const handleAddPost = async () => {
     setTitleError("")
     setContentError("")
     setCategoryError("")
 
     let hasError = false
-    // 入力検証
-    if (!newPostTitle.trim()) {
-      setTitleError("タイトルを入力してください。")
-      hasError = true
+    if (!newPostTitle.trim()) { setTitleError("タイトルを入力してください。"); hasError = true }
+    if (!newPostContent.trim()) { setContentError("内容を入力してください。"); hasError = true }
+    if (newPostCategories.length === 0) { setCategoryError("カテゴリーを1つ以上選択してください。"); hasError = true }
+    if (hasError || !token) return
+
+    try {
+      const res = await fetch(`${apiUrl}/api/v1/posts`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          post: { title: newPostTitle, content: newPostContent, category_names: newPostCategories },
+        }),
+      })
+      if (!res.ok) throw new Error()
+      const newPost: ApiPost = await res.json()
+      setPosts((prev) => [mapApiPost(newPost), ...prev])
+      setNewPostTitle("")
+      setNewPostContent("")
+      setNewPostCategories([])
+      setIsNewPostDialogOpen(false)
+      toast.success("投稿が完了しました", { description: "あなたの投稿が掲示板に追加されました。" })
+    } catch {
+      toast.error("投稿の作成に失敗しました")
     }
-
-    if (!newPostContent.trim()) {
-      setContentError("内容を入力してください。")
-      hasError = true
-    }
-
-    if (newPostCategories.length === 0) {
-      setCategoryError("カテゴリーを1つ以上選択してください。")
-      hasError = true
-    }
-
-    if (hasError) {
-      return
-    }
-
-    // ユーザー情報を取得
-    const userEmail = localStorage.getItem("currentUserEmail") || "user@example.com"
-    const username = userEmail.split("@")[0]
-
-    // 新しい投稿を作成
-    const newPost: Post = {
-      id: Date.now().toString(),
-      title: newPostTitle,
-      content: newPostContent,
-      author: username,
-      authorEmail: userEmail,
-      category: newPostCategories, // カテゴリーをカンマ区切りで保存
-      createdAt: new Date().toISOString(),
-      likes: 0,
-      comments: 0,
-      views: 0,
-    }
-
-    // 投稿リストに追加
-    setPosts((prev) => {
-      const updatedPosts = [newPost, ...prev]
-      // ローカルストレージに保存
-      localStorage.setItem("boardPosts", JSON.stringify(updatedPosts))
-      return updatedPosts
-    })
-
-    // フォームをリセット
-    setNewPostTitle("")
-    setNewPostContent("")
-    setNewPostCategories([])
-    setIsNewPostDialogOpen(false)
-    // エラーメッセージもリセット
-    setTitleError("")
-    setContentError("")
-    setCategoryError("")
-
-    toast.success("投稿が完了しました", {
-      description: "あなたの投稿が掲示板に追加されました。",
-    })
   }
 
   // 投稿の編集を開始
@@ -459,223 +355,203 @@ export default function BoardPage() {
   }
 
   // 投稿の編集を保存
-  const handleSaveEdit = () => {
-    if (!editingPost) return
-
-    // エラーメッセージをリセット
-    setTitleError("")
-    setContentError("")
-    setCategoryError("")
+  const handleSaveEdit = async () => {
+    if (!editingPost || !token) return
 
     let hasError = false
-    // 入力検証
-    if (!newPostTitle.trim()) {
-      setTitleError("タイトルを入力してください。")
-      toast.error("タイトルが入力されていません")
-      hasError = true
+    if (!newPostTitle.trim()) { toast.error("タイトルが入力されていません"); hasError = true }
+    if (!newPostContent.trim()) { toast.error("内容が入力されていません"); hasError = true }
+    if (newPostCategories.length === 0) { toast.error("カテゴリーが選択されていません"); hasError = true }
+    if (hasError) return
+
+    try {
+      const res = await fetch(`${apiUrl}/api/v1/posts/${editingPost.id}`, {
+        method: "PATCH",
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          post: { title: newPostTitle, content: newPostContent, category_names: newPostCategories },
+        }),
+      })
+      if (!res.ok) throw new Error()
+      const updated: ApiPost = await res.json()
+      setPosts((prev) => prev.map((p) => (p.id === editingPost.id ? mapApiPost(updated) : p)))
+      setNewPostTitle("")
+      setNewPostContent("")
+      setNewPostCategories([])
+      setEditingPost(null)
+      setIsEditPostDialogOpen(false)
+      toast.success("投稿を更新しました")
+    } catch {
+      toast.error("投稿の更新に失敗しました")
     }
-
-    if (!newPostContent.trim()) {
-      // setContentError("内容を入力してください。") // 必要であれば編集用エラーstateを別途用意
-      toast.error("内容が入力されていません")
-      hasError = true
-    }
-
-    if (newPostCategories.length === 0) {
-      // setCategoryError("カテゴリーを1つ以上選択してください。") // 必要であれば編集用エラーstateを別途用意
-      toast.error("カテゴリーが選択されていません")
-      hasError = true
-    }
-
-    if (hasError) {
-      return
-    }
-
-    // 投稿を更新
-    setPosts((prev) => {
-      const updatedPosts = prev.map((post) =>
-        post.id === editingPost.id
-          ? {
-            ...post,
-            title: newPostTitle,
-            content: newPostContent,
-            category: newPostCategories,
-          }
-          : post
-      )
-      // ローカルストレージに保存
-      localStorage.setItem("boardPosts", JSON.stringify(updatedPosts))
-      return updatedPosts
-    })
-
-    // フォームをリセット
-    setNewPostTitle("")
-    setNewPostContent("")
-    setNewPostCategories([])
-    setEditingPost(null)
-    setIsEditPostDialogOpen(false)
-    // エラーメッセージもリセット
-    setTitleError("")
-    setContentError("")
-    setCategoryError("")
-
-    toast.success("投稿を更新しました")
   }
 
-  // 投稿詳細を表示
-  const handleViewPost = (post: Post) => {
+  // 投稿詳細を表示＋コメント取得
+  const handleViewPost = async (post: Post) => {
     setSelectedPost(post)
     setIsPostDetailDialogOpen(true)
 
     // 閲覧数を増加
-    setPosts(prev => {
-      const updatedPosts = prev.map(p =>
-        p.id === post.id ? { ...p, views: p.views + 1 } : p
-      )
-      // ローカルストレージに保存
-      localStorage.setItem("boardPosts", JSON.stringify(updatedPosts))
-      return updatedPosts
-    })
+    try {
+      await fetch(`${apiUrl}/api/v1/posts/${post.id}/increment_views`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      setPosts((prev) => prev.map((p) => (p.id === post.id ? { ...p, views: p.views + 1 } : p)))
+    } catch { /* 閲覧数エラーは無視 */ }
+
+    // コメント取得
+    try {
+      const res = await fetch(`${apiUrl}/api/v1/posts/${post.id}/comments`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      if (!res.ok) return
+      const data: ApiComment[] = await res.json()
+      setComments((prev) => [
+        ...prev.filter((c) => c.postId !== post.id),
+        ...data.map(mapApiComment),
+      ])
+    } catch (err) {
+      console.error("コメント取得エラー:", err)
+    }
   }
 
   // コメントを追加
-  const handleAddComment = () => {
-    if (!selectedPost || !newCommentContent.trim()) {
+  const handleAddComment = async () => {
+    if (!selectedPost || !newCommentContent.trim() || !token) {
       toast.error("コメント内容を入力してください")
       return
     }
 
-    const userEmail = localStorage.getItem("currentUserEmail") || "user@example.com"
-    const username = userEmail.split("@")[0]
-
-    const newComment: Comment = {
-      id: Date.now().toString(),
-      postId: selectedPost.id,
-      content: newCommentContent,
-      author: username,
-      authorEmail: userEmail,
-      createdAt: new Date().toISOString(),
-      likes: 0,
-    }
-
-    setComments(prev => {
-      const updatedComments = [...prev, newComment]
-      // ローカルストレージに保存
-      localStorage.setItem("boardComments", JSON.stringify(updatedComments))
-      return updatedComments
-    })
-
-    // 投稿のコメント数を更新
-    setPosts(prev => {
-      const updatedPosts = prev.map(post =>
-        post.id === selectedPost.id
-          ? { ...post, comments: post.comments + 1 }
-          : post
+    try {
+      const res = await fetch(`${apiUrl}/api/v1/posts/${selectedPost.id}/comments`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ comment: { content: newCommentContent } }),
+      })
+      if (!res.ok) throw new Error()
+      const newComment: ApiComment = await res.json()
+      setComments((prev) => [...prev, mapApiComment(newComment)])
+      setPosts((prev) =>
+        prev.map((p) => (p.id === selectedPost.id ? { ...p, comments: p.comments + 1 } : p))
       )
-      // ローカルストレージに保存
-      localStorage.setItem("boardPosts", JSON.stringify(updatedPosts))
-      return updatedPosts
-    })
-
-    setNewCommentContent("")
-    toast.success("コメントを投稿しました")
+      setNewCommentContent("")
+      toast.success("コメントを投稿しました")
+    } catch {
+      toast.error("コメントの投稿に失敗しました")
+    }
   }
 
   // コメントにいいね
-  const handleLikeComment = (commentId: string) => {
-    let updatedLikedCommentIds: string[];
-    const isCurrentlyLiked = likedCommentIds.includes(commentId);
+  const handleLikeComment = async (commentId: string) => {
+    if (!selectedPost || !token) return
+    const isCurrentlyLiked = likedCommentIds.includes(commentId)
 
-    if (isCurrentlyLiked) {
-      // いいね解除
-      updatedLikedCommentIds = likedCommentIds.filter(id => id !== commentId);
-      setComments(prev => {
-        const updatedComments = prev.map(comment =>
-          comment.id === commentId
-            ? { ...comment, likes: Math.max(0, comment.likes - 1) }
-            : comment
-        )
-        // ローカルストレージに保存
-        localStorage.setItem("boardComments", JSON.stringify(updatedComments))
-        return updatedComments
+    try {
+      const endpoint = isCurrentlyLiked ? "unlike" : "like"
+      await fetch(`${apiUrl}/api/v1/posts/${selectedPost.id}/comments/${commentId}/${endpoint}`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
       })
-      toast.success("コメントのいいねを取り消しました");
-    } else {
-      // いいねする
-      updatedLikedCommentIds = [...likedCommentIds, commentId];
-      setComments(prev => {
-        const updatedComments = prev.map(comment =>
-          comment.id === commentId
-            ? { ...comment, likes: comment.likes + 1 }
-            : comment
+
+      if (isCurrentlyLiked) {
+        setLikedCommentIds((prev) => prev.filter((id) => id !== commentId))
+        setComments((prev) =>
+          prev.map((c) => (c.id === commentId ? { ...c, likes: Math.max(0, c.likes - 1) } : c))
         )
-        // ローカルストレージに保存
-        localStorage.setItem("boardComments", JSON.stringify(updatedComments))
-        return updatedComments
-      })
-      toast.success("コメントにいいねしました");
+        toast.success("コメントのいいねを取り消しました")
+      } else {
+        setLikedCommentIds((prev) => [...prev, commentId])
+        setComments((prev) =>
+          prev.map((c) => (c.id === commentId ? { ...c, likes: c.likes + 1 } : c))
+        )
+        toast.success("コメントにいいねしました")
+      }
+    } catch {
+      toast.error("操作に失敗しました")
     }
-    
-    setLikedCommentIds(updatedLikedCommentIds);
-    localStorage.setItem("likedCommentIds", JSON.stringify(updatedLikedCommentIds));
   }
 
-  // 選択された投稿のコメントを取得
   const getPostComments = (postId: string) => {
     return comments
-      .filter(comment => comment.postId === postId)
+      .filter((comment) => comment.postId === postId)
       .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
   }
 
   // 投稿の削除
-  const handleDeletePost = () => {
-    if (!deletingPostId) return
+  const handleDeletePost = async () => {
+    if (!deletingPostId || !token) return
 
-    setPosts((prev) => {
-      const updatedPosts = prev.filter((post) => post.id !== deletingPostId)
-      // ローカルストレージに保存
-      localStorage.setItem("boardPosts", JSON.stringify(updatedPosts))
-      return updatedPosts
-    })
-    
-    setDeletingPostId(null)
-    setIsDeleteDialogOpen(false)
+    try {
+      const res = await fetch(`${apiUrl}/api/v1/posts/${deletingPostId}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      })
 
-    toast.success("投稿を削除しました")
+      if (!res.ok) {
+        toast.error("投稿の削除に失敗しました")
+        return
+      }
+      setPosts((prev) => prev.filter((post) => post.id !== deletingPostId))
+      setDeletingPostId(null)
+      setIsDeleteDialogOpen(false)
+      toast.success("投稿を削除しました")
+    } catch {
+      toast.error("削除に失敗しました")
+    }
   }
 
-  // 削除ダイアログを開く
   const openDeleteDialog = (postId: string) => {
     setDeletingPostId(postId)
     setIsDeleteDialogOpen(true)
   }
 
-  // 現在のユーザーが投稿者かチェック
-  const isPostOwner = (post: Post) => {
-    return post.authorEmail === currentUserEmail
-  }
+  const isPostOwner = (post: Post) => post.userId === user?.id
 
-  // ユーザーのイニシャルを取得
-  const getUserInitial = (email: string) => {
-    return email.charAt(0).toUpperCase()
-  }
+  const getUserInitial = (email: string) => email.charAt(0).toUpperCase()
 
-  // カテゴリーに応じた色を返す関数
   const getCategoryColor = (categoryValue: string) => {
     switch (categoryValue) {
-      case 'savings': return 'bg-blue-50 text-blue-800 border-blue-200';
-      case 'investment': return 'bg-green-50 text-green-800 border-green-200';
-      case 'budget': return 'bg-purple-50 text-purple-800 border-purple-200';
-      case 'debt': return 'bg-red-50 text-red-800 border-red-200';
-      case 'income': return 'bg-yellow-50 text-yellow-800 border-yellow-200';
-      case 'experience': return 'bg-teal-50 text-teal-800 border-teal-200';
-      case 'question': return 'bg-orange-50 text-orange-800 border-orange-200';
-      default: return 'bg-cyan-50 text-cyan-800 border-cyan-200';
+      case "savings": return "bg-blue-50 text-blue-800 border-blue-200"
+      case "investment": return "bg-green-50 text-green-800 border-green-200"
+      case "budget": return "bg-purple-50 text-purple-800 border-purple-200"
+      case "debt": return "bg-red-50 text-red-800 border-red-200"
+      case "income": return "bg-yellow-50 text-yellow-800 border-yellow-200"
+      case "experience": return "bg-teal-50 text-teal-800 border-teal-200"
+      case "question": return "bg-orange-50 text-orange-800 border-orange-200"
+      default: return "bg-cyan-50 text-cyan-800 border-cyan-200"
     }
-  };
+  }
+
+  const handleNewPostDialogChange = (open: boolean) => {
+    setIsNewPostDialogOpen(open)
+    if (!open) {
+      setTitleError("")
+      setContentError("")
+      setCategoryError("")
+    }
+  }
+
+  const handleEditPostDialogChange = (open: boolean) => {
+    setIsEditPostDialogOpen(open)
+    if (!open) {
+      setTitleError("")
+      setContentError("")
+      setCategoryError("")
+      setEditingPost(null)
+    }
+  }
 
   // 投稿リストのレンダリング
   const renderPostList = (postsToRender: Post[]) => {
+    if (isPostsLoading) {
+      return (
+        <div className="flex justify-center py-10">
+          <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+        </div>
+      )
+    }
+
     if (postsToRender.length === 0) {
       return (
         <div className="text-center py-10">
@@ -692,22 +568,23 @@ export default function BoardPage() {
     return (
       <div className="space-y-4">
         {postsToRender.map((post) => {
-          const isLiked = likedPostIds.includes(post.id);
+          const isLiked = likedPostIds.includes(post.id)
           return (
             <Card key={post.id} className="hover:shadow-md transition-shadow">
               <CardHeader className="pb-2">
                 <div className="flex justify-between items-start">
                   <div className="flex flex-wrap gap-1 mb-2">
-                    {(post.category || []).map(categoryValue => {
-                      const categoryInfo = BOARD_CATEGORIES.find(cat => cat.value === categoryValue);
+                    {(post.category || []).map((categoryValue) => {
+                      const categoryInfo = BOARD_CATEGORIES.find((cat) => cat.value === categoryValue)
                       return (
-                        <Badge key={categoryValue}
+                        <Badge
+                          key={categoryValue}
                           variant="outline"
                           className={`text-xs ${getCategoryColor(categoryValue)}`}
                         >
                           {categoryInfo?.label || categoryValue}
                         </Badge>
-                      );
+                      )
                     })}
                   </div>
                   <div className="flex items-center gap-2">
@@ -739,8 +616,10 @@ export default function BoardPage() {
                     )}
                   </div>
                 </div>
-                <CardTitle className="text-xl cursor-pointer hover:text-blue-600"
-                  onClick={() => handleViewPost(post)}>
+                <CardTitle
+                  className="text-xl cursor-pointer hover:text-blue-600"
+                  onClick={() => handleViewPost(post)}
+                >
                   {post.title}
                 </CardTitle>
                 <div className="flex items-center mt-2">
@@ -756,9 +635,7 @@ export default function BoardPage() {
                 </div>
               </CardHeader>
               <CardContent>
-                <p className="line-clamp-3">
-                  {post.content}
-                </p>
+                <p className="line-clamp-3">{post.content}</p>
               </CardContent>
               <CardFooter className="flex justify-between pt-2">
                 <div className="flex space-x-4 text-sm text-muted-foreground">
@@ -777,7 +654,7 @@ export default function BoardPage() {
                 </div>
                 <div className="flex space-x-2">
                   <Button variant="ghost" size="sm" onClick={() => handleLike(post.id)}>
-                    <Heart className={`mr-1 h-4 w-4 ${isLiked ? 'fill-red-500 text-red-500' : ''}`} />
+                    <Heart className={`mr-1 h-4 w-4 ${isLiked ? "fill-red-500 text-red-500" : ""}`} />
                     いいね
                   </Button>
                   <Button variant="ghost" size="sm" onClick={() => toggleBookmark(post.id)}>
@@ -795,43 +672,21 @@ export default function BoardPage() {
                 </div>
               </CardFooter>
             </Card>
-          );
+          )
         })}
       </div>
     )
   }
 
-  // 新規投稿ダイアログ
-  const handleNewPostDialogChange = (open: boolean) => {
-    setIsNewPostDialogOpen(open)
-    if (!open) {
-      // ダイアログが閉じる時にエラーメッセージをリセット
-      setTitleError("")
-      setContentError("")
-      setCategoryError("")
-      // フォーム内容もリセットした方が良い場合
-      // setNewPostTitle("")
-      // setNewPostContent("")
-      // setNewPostCategories([])
-    }
+  if (authIsLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-12 w-12 animate-spin text-blue-600" />
+      </div>
+    )
   }
 
-  // 編集ダイアログ
-  const handleEditPostDialogChange = (open: boolean) => {
-    setIsEditPostDialogOpen(open)
-    if (!open) {
-      // ダイアログが閉じる時にエラーメッセージをリセット (編集用エラーstateがあればそれも)
-      setTitleError("") // 新規投稿と共用している場合は注意
-      setContentError("")
-      setCategoryError("")
-      setEditingPost(null) // 編集対象もリセット
-      // フォーム内容もリセット
-      // setNewPostTitle("")
-      // setNewPostContent("")
-      // setNewPostCategories([])
-    }
-  }
-
+  if (!isAuthenticated) return null
 
   return (
     <div className="container mx-auto max-w-6xl py-6 px-4 md:px-6 lg:px-8">
@@ -840,9 +695,7 @@ export default function BoardPage() {
           <h1 className="text-3xl font-bold">掲示板</h1>
           <p className="text-muted-foreground">お金の管理や貯金のコツ、投資の経験などを共有しましょう</p>
         </div>
-        <Button onClick={() => setIsNewPostDialogOpen(true)}
-          className="bg-blue-600 hover:bg-blue-700 text-white"
-        >
+        <Button onClick={() => setIsNewPostDialogOpen(true)} className="bg-blue-600 hover:bg-blue-700 text-white">
           <Plus className="mr-2 h-4 w-4" />
           新規投稿
         </Button>
@@ -934,10 +787,7 @@ export default function BoardPage() {
                 <Badge
                   key={category.value}
                   variant={newPostCategories.includes(category.value) ? "default" : "outline"}
-                  className={`cursor-pointer ${newPostCategories.includes(category.value)
-                    ? getCategoryColor(category.value)
-                    : ""
-                    }`}
+                  className={`cursor-pointer ${newPostCategories.includes(category.value) ? getCategoryColor(category.value) : ""}`}
                   aria-pressed={newPostCategories.includes(category.value)}
                   onClick={() => toggleCategory(category.value)}
                 >
@@ -946,7 +796,7 @@ export default function BoardPage() {
               ))}
             </div>
             {categoryError && <p className="text-sm text-red-500 mt-1">{categoryError}</p>}
-            <div className="grid gap-2 mt-4"> {/* mt-4 を追加してスペースを調整 */}
+            <div className="grid gap-2 mt-4">
               <Label htmlFor="content">内容</Label>
               <Textarea
                 id="content"
@@ -972,9 +822,7 @@ export default function BoardPage() {
         <DialogContent className="sm:max-w-[600px] board-dialog-content">
           <DialogHeader>
             <DialogTitle>投稿を編集</DialogTitle>
-            <DialogDescription>
-              投稿の内容を編集できます。
-            </DialogDescription>
+            <DialogDescription>投稿の内容を編集できます。</DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
@@ -994,10 +842,7 @@ export default function BoardPage() {
                   <Badge
                     key={category.value}
                     variant={newPostCategories.includes(category.value) ? "default" : "outline"}
-                    className={`cursor-pointer ${newPostCategories.includes(category.value)
-                      ? getCategoryColor(category.value)
-                      : ""
-                      }`}
+                    className={`cursor-pointer ${newPostCategories.includes(category.value) ? getCategoryColor(category.value) : ""}`}
                     onClick={() => toggleCategory(category.value)}
                   >
                     {category.label}
@@ -1032,16 +877,17 @@ export default function BoardPage() {
             <>
               <DialogHeader>
                 <div className="flex flex-wrap gap-1 mb-2">
-                  {selectedPost.category.map(categoryValue => {
-                    const categoryInfo = BOARD_CATEGORIES.find(cat => cat.value === categoryValue);
+                  {selectedPost.category.map((categoryValue) => {
+                    const categoryInfo = BOARD_CATEGORIES.find((cat) => cat.value === categoryValue)
                     return (
-                      <Badge key={categoryValue}
+                      <Badge
+                        key={categoryValue}
                         variant="outline"
                         className={`text-xs ${getCategoryColor(categoryValue)}`}
                       >
                         {categoryInfo?.label || categoryValue}
                       </Badge>
-                    );
+                    )
                   })}
                 </div>
                 <DialogTitle className="text-xl text-primary dark:text-primary-dark">{selectedPost.title}</DialogTitle>
@@ -1065,13 +911,14 @@ export default function BoardPage() {
 
                 {/* コメントセクション */}
                 <div className="border-t pt-4">
-                  <h3 className="font-medium mb-4 text-gray-900 dark:text-gray-100">コメント ({getPostComments(selectedPost.id).length})</h3> {/* コメント数を動的に */}
+                  <h3 className="font-medium mb-4 text-gray-900 dark:text-gray-100">
+                    コメント ({getPostComments(selectedPost.id).length})
+                  </h3>
 
-                  {/* 新しいコメントを追加 */}
                   <div className="mb-4">
                     <div className="flex space-x-2">
                       <Avatar className="h-8 w-8">
-                        <AvatarFallback>{getUserInitial(currentUserEmail)}</AvatarFallback>
+                        <AvatarFallback>{getUserInitial(user?.email || "")}</AvatarFallback>
                       </Avatar>
                       <div className="flex-1">
                         <Textarea
@@ -1094,8 +941,8 @@ export default function BoardPage() {
                   {/* コメント一覧 */}
                   <div className="space-y-4">
                     {getPostComments(selectedPost.id).map((comment) => {
-                      const isOwnComment = comment.authorEmail === currentUserEmail;
-                      const isCommentLiked = likedCommentIds.includes(comment.id);
+                      const isOwnComment = comment.userId === user?.id
+                      const isCommentLiked = likedCommentIds.includes(comment.id)
                       return (
                         <div key={comment.id} className="flex space-x-2">
                           <Avatar className="h-8 w-8">
@@ -1104,7 +951,10 @@ export default function BoardPage() {
                           <div className="flex-1">
                             <div className={`rounded-lg p-3 ${isOwnComment ? "comment-own" : "comment-other"}`}>
                               <div className="flex items-center justify-between mb-1">
-                                <span className="font-medium text-sm comment-author">{comment.author} {isOwnComment && <span className="text-xs text-blue-500">(自分)</span>}</span>
+                                <span className="font-medium text-sm comment-author">
+                                  {comment.author}{" "}
+                                  {isOwnComment && <span className="text-xs text-blue-500">(自分)</span>}
+                                </span>
                                 <span className="text-xs comment-time">
                                   {format(new Date(comment.createdAt), "MM月dd日 HH:mm", { locale: ja })}
                                 </span>
@@ -1116,15 +966,15 @@ export default function BoardPage() {
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => handleLikeComment(comment.id)}
-                                className={`h-6 px-2 text-xs ${isCommentLiked ? 'text-blue-600' : ''}`}
+                                className={`h-6 px-2 text-xs ${isCommentLiked ? "text-blue-600" : ""}`}
                               >
-                                <ThumbsUp className={`mr-1 h-3 w-3 ${isCommentLiked ? 'fill-blue-600 text-blue-600' : ''}`} />
+                                <ThumbsUp className={`mr-1 h-3 w-3 ${isCommentLiked ? "fill-blue-600 text-blue-600" : ""}`} />
                                 {comment.likes}
                               </Button>
                             </div>
                           </div>
                         </div>
-                      );
+                      )
                     })}
                     {getPostComments(selectedPost.id).length === 0 && (
                       <p className="text-sm text-gray-600 dark:text-gray-400">まだコメントはありません。</p>
@@ -1148,10 +998,7 @@ export default function BoardPage() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>キャンセル</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDeletePost}
-              className="bg-red-600 hover:bg-red-700"
-            >
+            <AlertDialogAction onClick={handleDeletePost} className="bg-red-600 hover:bg-red-700">
               削除する
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -1172,10 +1019,7 @@ export default function BoardPage() {
                   <Badge
                     key={category.value}
                     variant={selectedCategories.includes(category.value) ? "default" : "outline"}
-                    className={`cursor-pointer ${selectedCategories.includes(category.value)
-                      ? getCategoryColor(category.value)
-                      : ""
-                      }`}
+                    className={`cursor-pointer ${selectedCategories.includes(category.value) ? getCategoryColor(category.value) : ""}`}
                     aria-pressed={selectedCategories.includes(category.value)}
                     onClick={() => {
                       if (selectedCategories.includes(category.value)) {
@@ -1195,11 +1039,10 @@ export default function BoardPage() {
             <Button variant="outline" className="text-red-300 hover:text-red-400" onClick={() => setSelectedCategories([])}>
               リセット
             </Button>
-            <Button className=" hover:bg-blue-400" onClick={() => setIsFilterDialogOpen(false)}>適用</Button>
+            <Button className="hover:bg-blue-400" onClick={() => setIsFilterDialogOpen(false)}>適用</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
   )
 }
-

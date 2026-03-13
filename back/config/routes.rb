@@ -4,7 +4,8 @@ Rails.application.routes.draw do
   namespace :api do
     namespace :v1 do
       # 認証関連
-      resources :users, only: %i[create update destroy]
+      resources :users, only: %i[create]
+      resource :user, only: %i[show update destroy]
       resources :sessions, only: %i[create destroy]
       get 'auth/verify', to: 'auth#verify'
       post 'auth/logout', to: 'auth#logout'
@@ -33,7 +34,7 @@ Rails.application.routes.draw do
           end
         end
         # ブックマーク関連
-        resources :bookmarks, only: %i[create destroy]
+        resource :bookmark, only: %i[create destroy]
       end
 
       # ヘルスチェック
