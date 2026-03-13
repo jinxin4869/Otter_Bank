@@ -4,6 +4,7 @@ module Api
   module V1
     class AuthController < ApplicationController
       include ActionController::Cookies
+
       skip_before_action :authorize_request, only: %i[google google_callback auth_failure verify logout]
 
       # Googleログインへのリダイレクト
