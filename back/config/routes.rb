@@ -34,7 +34,7 @@ Rails.application.routes.draw do
           end
         end
         # ブックマーク関連
-        resources :bookmarks, only: %i[create destroy]
+        resource :bookmark, only: %i[create destroy]
       end
 
       # ヘルスチェック
