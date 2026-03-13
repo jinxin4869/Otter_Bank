@@ -33,7 +33,7 @@ module Api
       end
 
       def create_comment_like
-        comment = Comment.find(params[:comment_id])
+        comment = Comment.find(params[:id])
         like = comment.likes.new(user: current_api_v1_user)
 
         if like.save
@@ -48,7 +48,7 @@ module Api
       end
 
       def destroy_comment_like
-        comment = Comment.find(params[:comment_id])
+        comment = Comment.find(params[:id])
         like = comment.likes.find_by(user: current_api_v1_user)
 
         if like
