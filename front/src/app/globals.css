@@ -1,0 +1,362 @@
+@layer theme, base, components, utilities;
+
+@import "tw-animate-css";
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/preflight.css" layer(base);
+@import "tailwindcss/utilities.css" layer(utilities);
+
+@layer base {
+  :root {
+    --background: 25 100% 96%; /* 柔らかいオレンジ色 */
+    --foreground: 25 50% 30%; /* 濃い茶色 */
+
+    --card: 30 100% 98%; /* 背景より少し明るいオレンジがかった白 */
+    --card-foreground: 25 50% 25%; /* 文字色より少し濃い茶色 */
+
+    --popover: 30 100% 98%; /* カード背景に合わせる */
+    --popover-foreground: 25 50% 25%; /* カード文字色に合わせる */
+
+    --primary: 15 80% 55%; /* 温かみのあるオレンジ色 */
+    --primary-foreground: 25 100% 98%; /* 明るいクリーム色 */
+
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 222.2 84% 4.9%;
+
+    --radius: 0.75rem; /* ボーダー半径 */
+
+    --z-dropdown: 100;
+    --z-sticky: 200;
+    --z-fixed: 300;
+    --z-modal-backdrop: 400;
+    --z-modal: 500;
+    --z-popover: 600;
+    --z-tooltip: 700;
+    --z-toast: 800;
+
+    /* ヘッダーとフッターのテーマ変数 (ライト) */
+    --header-bg: var(--primary);
+    --header-fg: var(--primary-foreground);
+    --footer-bg: 25 50% 20%; /* 例: 濃い茶系のフッター */
+    --footer-fg: 25 100% 96%; /* 例: 明るいフッターテキスト */
+  }
+
+  .dark {
+    --background: 210 50% 6%; /* より青に近い濃い背景色 */
+    --foreground: 210 50% 92%; /* 明るい青白いテキスト */
+
+    --card: 210 50% 10%; /* カード背景をより青系に */
+    --card-foreground: 210 50% 92%; /* カードテキスト */
+
+    --popover: 210 50% 10%; /* ポップオーバー背景 */
+    --popover-foreground: 210 50% 92%; /* ポップオーバーテキスト */
+
+    /* プライマリカラーも寒色系に調整 */
+    --primary: 217 91% 65%; /* より明るい青色 */
+    --primary-foreground: 210 50% 6%; /* プライマリー上のテキスト */
+
+    --secondary: 210 50% 14%; /* セカンダリも青系に */
+    --secondary-foreground: 210 50% 92%;
+
+    --muted: 210 50% 14%; /* ミュートも青系に */
+    --muted-foreground: 210 30% 70%;
+
+    --accent: 210 50% 14%; /* アクセントも青系に */
+    --accent-foreground: 210 50% 92%;
+
+    --destructive: 0 70% 55%; /* 赤色は少し明るく調整 */
+    --destructive-foreground: 210 50% 92%;
+
+    --border: 210 50% 16%; /* ボーダーも青系に */
+    --input: 210 50% 16%; /* インプット背景も青系に */
+    --ring: 217 91% 65%; /* リングをプライマリと同じ青に */
+
+    /* ヘッダーとフッターも寒色系に調整 */
+    --header-bg: 210 50% 8%; /* より青系のヘッダー */
+    --header-fg: 210 50% 92%; /* ヘッダーテキスト */
+    --footer-bg: 210 50% 8%; /* フッター背景 */
+    --footer-fg: 210 50% 92%; /* フッターテキスト */
+  }
+  /* グローバルなスタイル */
+
+  body {
+    @apply antialiased;
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+  }
+
+  /* 各ページのメインコンテンツエリアの背景調整が必要な場合 */
+  .main-content-area {
+    background-color: hsl(var(--background));
+  }
+
+  /* カードコンポーネントの背景 */
+  .card-custom-bg {
+    background-color: hsl(var(--card));
+    color: hsl(var(--card-foreground));
+  }
+
+  header {
+    background-color: hsl(var(--header-bg));
+    color: hsl(var(--header-fg));
+  }
+
+  footer {
+    background-color: hsl(var(--footer-bg));
+    color: hsl(var(--footer-fg));
+  }
+
+  /* 取引履歴カテゴリーアイコン */
+  .transaction-history-icon {
+    color: #0f172a !important; /* ライトモードで非常に濃い色 */
+  }
+
+  .dark .transaction-history-icon {
+    color: #ffffff !important; /* ダークモードで白色 */
+  }
+
+  /* 暖色背景用アイコン */
+  .warm-bg-icon {
+    color: #0c0a09 !important; /* ライトモードで非常に濃い茶色 */
+  }
+
+  .dark .warm-bg-icon {
+    color: #ffffff !important; /* ダークモードで白色 */
+  }
+
+  /* 収入カテゴリーのカスタムスタイル */
+  .income-category-item {
+    @apply flex items-center gap-2 text-blue-700 dark:text-blue-300;
+  }
+
+  /* 支出カテゴリーのカスタムスタイル */
+  .expense-category-item {
+    @apply flex items-center gap-2 text-rose-700 dark:text-rose-300;
+  }
+
+  /* カテゴリードロップダウンメニューのスタイル */
+  .category-dropdown-menu {
+    background-color: #fef7ed !important; /* 暖色系のクリーム色 */
+  }
+
+  .dark .category-dropdown-menu {
+    border-color: #92400e !important;
+  }
+
+  /* ドロップダウンアイテムの基本スタイル */
+  .select-item-custom {
+    padding: 8px 12px !important;
+    cursor: pointer !important;
+    border-radius: 4px !important;
+    margin: 2px 4px !important;
+  }
+
+  .select-item-custom:hover {
+    background-color: #fed7aa !important; /* ホバー時の明るいオレンジ */
+  }
+
+  .dark .select-item-custom:hover {
+    background-color: #92400e !important; /* ダークモードのホバー */
+  }
+
+  /* ダイアログのオーバーレイを調整 - 重複削除して統一 */
+  [data-radix-dialog-overlay] {
+    background-color: hsla(
+      25,
+      50%,
+      20%,
+      0.3
+    ) !important; /* より薄い暖色系オーバーレイ */
+    z-index: var(--z-modal-backdrop) !important;
+  }
+
+  .dark [data-radix-dialog-overlay] {
+    background-color: rgba(
+      0,
+      0,
+      0,
+      0.4
+    ) !important; /* ダークモードでもより薄く */
+  }
+
+  /* AlertDialogのオーバーレイも同様に */
+  [data-radix-alert-dialog-overlay] {
+    background-color: hsla(25, 50%, 20%, 0.3) !important;
+  }
+
+  .dark [data-radix-alert-dialog-overlay] {
+    background-color: rgba(0, 0, 0, 0.4) !important;
+  }
+
+  /* ダイアログコンテンツのz-indexも統一 */
+  [data-radix-dialog-content] {
+    z-index: var(--z-modal) !important;
+    background-color: hsl(var(--background)) !important;
+    border: 1px solid hsl(var(--border)) !important;
+  }
+
+  [data-radix-alert-dialog-content] {
+    z-index: var(--z-modal) !important;
+    background-color: hsl(var(--background)) !important;
+    border: 1px solid hsl(var(--border)) !important;
+  }
+
+  /* 掲示板ダイアログの背景色を明示的に設定 */
+  .board-dialog-content {
+    background-color: #fef7ed !important; /* ライトモード: 暖色系のクリーム色 */
+    color: #0c0a09 !important; /* ライトモード: 濃い茶色の文字 */
+  }
+
+  .dark .board-dialog-content {
+    background-color: #1e293b !important; /* ダークモード: 落ち着いた青灰色 */
+    color: #f1f5f9 !important; /* ダークモード: 明るい灰色の文字 */
+    border-color: #475569 !important; /* ダークモード: ボーダー色も調整 */
+  }
+
+  /* コメントの背景色設定 */
+  .comment-own {
+    background-color: #fef3c7 !important; /* ライトモード: 自分のコメント - 薄い黄色 */
+  }
+
+  .comment-other {
+    background-color: #f3f4f6 !important; /* ライトモード: 他人のコメント - 薄い灰色 */
+  }
+
+  .dark .comment-own {
+    background-color: #334155; /* ダークモード: 自分のコメント - より明るい青灰色 */
+  }
+
+  .dark .comment-other {
+    background-color: #475569 !important; /* ダークモード: 他人のコメント - 中間の青灰色 */
+  }
+
+  /* テーマ切替ダイアログの文字色を統一 */
+  .theme-dropdown-item {
+    color: #0c0a09 !important; /* ライトモード: board-dialog-contentと同じ濃い茶色 */
+  }
+
+  .dark .theme-dropdown-item {
+    color: #f1f5f9 !important; /* ダークモード: board-dialog-contentと同じ明るい灰色 */
+  }
+
+  .theme-dropdown-label {
+    color: #0c0a09 !important; /* ライトモード: ラベルの色 */
+  }
+
+  .dark .theme-dropdown-label {
+    color: #f1f5f9 !important; /* ダークモード: ラベルの色 */
+  }
+
+  /* コメント内の文字色を明示的に指定 */
+  .comment-author {
+    color: #0c0a09 !important; /* ライトモード: 濃い茶色 */
+  }
+
+  .comment-content {
+    color: #0c0a09 !important; /* ライトモード: 濃い茶色 */
+  }
+
+  .comment-time {
+    color: #6b7280 !important; /* ライトモード: ミュート色 */
+  }
+
+  .dark .comment-author {
+    color: #f1f5f9 !important; /* ダークモード: 明るい灰色 */
+  }
+
+  .dark .comment-content {
+    color: #f1f5f9 !important; /* ダークモード: 明るい灰色 */
+  }
+
+  .dark .comment-time {
+    color: #9ca3af !important; /* ダークモード: 明るいミュート色 */
+  }
+
+  /* コメント入力欄の文字色を明示的に指定 */
+  .comment-textarea {
+    color: #0c0a09 !important; /* ライトモード: 濃い茶色 */
+  }
+
+  .dark .comment-textarea {
+    color: #f1f5f9 !important; /* ダークモード: 明るい灰色 */
+  }
+
+  /* ヘッダー専用のコンテナクラス - 完全な右寄せ対応 */
+  .header-container {
+    width: 100%;
+    margin-left: 0;
+    margin-right: 0;
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+}
+
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-5px);
+  }
+  50% {
+    transform: translateX(5px);
+  }
+  75% {
+    transform: translateX(-5px);
+  }
+}
+
+.animate-shake {
+  animation: shake 0.5s ease-in-out;
+}
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
