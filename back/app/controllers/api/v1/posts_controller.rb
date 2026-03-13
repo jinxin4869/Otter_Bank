@@ -39,8 +39,8 @@ module Api
           return
         end
 
-        assign_categories(@post)
         if @post.update(post_params)
+          assign_categories(@post)
           render json: post_json(@post)
         else
           render json: @post.errors, status: :unprocessable_entity
@@ -76,7 +76,7 @@ module Api
 
       def assign_categories(post)
         category_names = params.dig(:post, :category_names)
-        return unless category_names.is_a?(Array) && category_names.any?
+        return unless category_names.is_a?(Array)
 
         post.categories = category_names.map { |name| Category.find_or_create_by(name: name) }
       end
