@@ -62,6 +62,7 @@ RSpec.describe 'Api::V1::Achievements', type: :request do
       expect(response).to have_http_status(:ok)
       json = response.parsed_body
       expect(json['progress']).to eq(5)
+      expect(achievement.reload.progress).to eq(5)
     end
 
     it '他ユーザーの実績は更新できない' do
