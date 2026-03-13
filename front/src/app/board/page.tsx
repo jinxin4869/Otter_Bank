@@ -196,11 +196,15 @@ export default function BoardPage() {
 
     try {
       const endpoint = isCurrentlyLiked ? "unlike" : "like"
-      await fetch(`${apiUrl}/api/v1/posts/${postId}/${endpoint}`, {
+      const res = await fetch(`${apiUrl}/api/v1/posts/${postId}/${endpoint}`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
       })
 
+      if (!res.ok) {
+        toast.error("いいねの操作に失敗しました")
+        return
+      }
       if (isCurrentlyLiked) {
         setLikedPostIds((prev) => prev.filter((id) => id !== postId))
         setPosts((prev) =>
