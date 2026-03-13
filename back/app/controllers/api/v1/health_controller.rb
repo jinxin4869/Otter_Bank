@@ -4,7 +4,7 @@ module Api
   module V1
     class HealthController < ApplicationController
       def skip_authorization?
-        true
+        action_name == 'index'
       end
 
       def index
