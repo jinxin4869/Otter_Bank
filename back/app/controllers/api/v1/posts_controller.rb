@@ -12,7 +12,16 @@ module Api
 
       def index
         @posts = Post.includes(:user, :categories).order(created_at: :desc)
-        render json: @posts.map { |post| post_json(post) }
+        viewer = optional_current_user
+        post_ids = @posts.map(&:id)
+        liked_ids = if viewer
+                      Like.where(likeable_type: 'Post', likeable_id: post_ids,
+                                 user: viewer).pluck(:likeable_id).to_set
+                    else
+                      [].to_set
+                    end
+        bookmarked_ids = viewer ? Bookmark.where(post_id: post_ids, user: viewer).pluck(:post_id).to_set : [].to_set
+        render json: @posts.map { |post| post_json(post, liked_ids: liked_ids, bookmarked_ids: bookmarked_ids) }
       end
 
       def show
@@ -78,7 +87,7 @@ module Api
         category_names = params.dig(:post, :category_names)
         return unless category_names.is_a?(Array)
 
-        normalized_names = category_names.map { |name| name.to_s.strip }.reject(&:blank?).uniq
+        normalized_names = category_names.map { |name| name.to_s.strip }.compact_blank.uniq
         return if normalized_names.empty?
 
         existing_categories = Category.where(name: normalized_names).index_by(&:name)
@@ -88,7 +97,17 @@ module Api
         post.categories = existing_categories.values + new_categories
       end
 
-      def post_json(post)
+      def optional_current_user
+        return nil unless auth_header
+
+        token = auth_header.split.last
+        decoded = JsonWebToken.decode(token)
+        User.find_by(id: decoded[:user_id])
+      rescue StandardError
+        nil
+      end
+
+      def post_json(post, liked_ids: [].to_set, bookmarked_ids: [].to_set)
         {
           id: post.id,
           title: post.title,
@@ -100,6 +119,8 @@ module Api
           likes_count: post.likes_count || 0,
           comments_count: post.comments_count || 0,
           views_count: post.views_count || 0,
+          liked_by_me: liked_ids.include?(post.id),
+          bookmarked_by_me: bookmarked_ids.include?(post.id),
           created_at: post.created_at,
           updated_at: post.updated_at
         }
