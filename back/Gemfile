@@ -57,7 +57,7 @@ gem 'bootsnap', require: false
 gem 'rack-cors'
 
 group :production, :test do
-  gem 'pg', '~> 1.1'
+  gem 'pg', '~> 1.6'
 end
 
 group :development, :test do
