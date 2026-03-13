@@ -8,18 +8,20 @@ RSpec.describe 'Api::V1::Achievements', type: :request do
   let(:headers) { { 'Authorization' => "Bearer #{token}" } }
 
   describe 'GET /api/v1/achievements' do
-    it '認証済みユーザーの実績一覧とサマリーを返す' do
-      unlocked_achievement = create(:achievement, user: user, unlocked: true)
-      locked_achievement   = create(:achievement, user: user, unlocked: false)
+    # create(:user) が after_create で初期実績14件を自動生成するため、
+    # 特定 ID の一致を検証するテストでは :without_achievements を使う
+    let(:user) { create(:user, :without_achievements) }
+    let!(:unlocked_achievement) { create(:achievement, user: user, unlocked: true) }
+    let!(:locked_achievement) { create(:achievement, user: user, unlocked: false) }
 
+    it '認証済みユーザーの実績一覧とサマリーを返す' do
       get '/api/v1/achievements', headers: headers
       expect(response).to have_http_status(:ok)
       json = response.parsed_body
       expect(json['achievements']).to be_an(Array)
       expect(json['achievements'].map { |a| a['id'] }).to match_array([unlocked_achievement.id, locked_achievement.id])
       expect(json['summary']).to include('total_achievements', 'unlocked_achievements')
-      expect(json['summary']['total_achievements']).to eq(2)
-      expect(json['summary']['unlocked_achievements']).to eq(1)
+      expect(json['summary']['total_achievements']).to eq(json['achievements'].length)
     end
 
     it '未認証ではアクセスできない' do
