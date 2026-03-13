@@ -69,6 +69,57 @@ RSpec.describe 'Api::V1::Transactions', type: :request do
       post '/api/v1/transactions', params: { transaction: { amount: nil } }, headers: headers
       expect(response).to have_http_status(:unprocessable_entity)
     end
+
+    context '実績連携' do
+      it '収入取引を作成すると初めての貯金実績が解除される' do
+        post '/api/v1/transactions',
+             params: { transaction: { amount: 5000, transaction_type: 'income', description: '給料', category: '給与',
+                                      date: Date.current } },
+             headers: headers
+
+        expect(response).to have_http_status(:created)
+        first_savings = user.achievements.find_by(original_achievement_id: 'first_savings')
+        expect(first_savings.reload.unlocked).to be true
+      end
+
+      it '収入取引を作成するとマイルストーン実績の進捗が更新される' do
+        post '/api/v1/transactions',
+             params: { transaction: { amount: 5000, transaction_type: 'income', description: '給料', category: '給与',
+                                      date: Date.current } },
+             headers: headers
+
+        milestone = user.achievements.find_by(original_achievement_id: 'savings_milestone_5000')
+        expect(milestone.reload.unlocked).to be true
+      end
+
+      it '支出取引を作成しても貯金実績は更新されない' do
+        post '/api/v1/transactions',
+             params: { transaction: { amount: 1000, transaction_type: 'expense', description: '食費', category: '食費',
+                                      date: Date.current } },
+             headers: headers
+
+        expect(response).to have_http_status(:created)
+        first_savings = user.achievements.find_by(original_achievement_id: 'first_savings')
+        expect(first_savings.reload.unlocked).to be false
+      end
+    end
+  end
+
+  describe 'PATCH /api/v1/transactions/:id - 実績連携' do
+    let!(:income_transaction) do
+      create(:transaction, user: user, amount: 1000, transaction_type: :income, description: '給料', category: '給与',
+                           date: Date.current)
+    end
+
+    it '収入取引を更新するとマイルストーン実績が再計算される' do
+      patch "/api/v1/transactions/#{income_transaction.id}",
+            params: { transaction: { amount: 30_000 } },
+            headers: headers
+
+      expect(response).to have_http_status(:ok)
+      milestone = user.achievements.find_by(original_achievement_id: 'savings_milestone_30000')
+      expect(milestone.reload.unlocked).to be true
+    end
   end
 
   describe 'PATCH /api/v1/transactions/:id' do

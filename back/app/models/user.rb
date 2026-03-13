@@ -98,14 +98,12 @@ class User < ApplicationRecord
     username.length >= 3 ? username : "#{username}#{SecureRandom.hex(2)}"
   end
 
-  def password_required
-    password_digest.present? || !password.nil?
-  end
-
   def setup_initial_achievements
     achievement_service = AchievementService.new(self)
     achievement_service.create_initial_achievements
   end
+
+  public
 
   def total_savings
     # ユーザーの総貯金額を計算するロジック
