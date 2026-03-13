@@ -77,12 +77,10 @@ export default function MonthlyTrend({ transactions }: MonthlyTrendProps) {
   }
 
   const tooltipFormatter = (value: number, name: string, props: any) => {
-    console.log("Tooltip props:", name, "value", value, "props:", props); // デバッグ用
     return [`${value.toLocaleString()} 円`, name];
   }
 
   const legendFormatter = (value: string, entry: any, index: number) => {
-    console.log("Legend value:", value, "entry:", entry); // デバッグ用
     if (value === "income") return "収入"
     if (value === "expense") return "支出"
     if (value === "balance") return "収支"

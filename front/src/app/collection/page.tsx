@@ -116,8 +116,6 @@ export default function CollectionPage() {
           return process.env.NEXT_PUBLIC_API_URL;
         };
         
-        console.log("Token found:", !!token); // デバッグログ追加
-        
         // Rails APIから取得
         const response = await fetch(`${getApiUrl()}/api/v1/achievements`, {
           method: 'GET',
@@ -128,15 +126,11 @@ export default function CollectionPage() {
           credentials: 'include', // CSRFトークンを含めるために必要
         }); // Rails側の実績APIエンドポイント
 
-        console.log("Fetching achievements from API...", response.status);
-
         if (!response.ok) {
           throw new Error(`実績データの取得に失敗しました。ステータス: ${response.status}`);
         }
 
         const data = await response.json();
-        console.log("Achievements data received:", data);
-
         //APIのデータ構造に合わせて実績データを設定
         setAchievements(data.achievements || []);
         setFilteredAchievements(data.achievements || []);
