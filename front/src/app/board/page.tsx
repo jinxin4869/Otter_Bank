@@ -471,10 +471,15 @@ export default function BoardPage() {
     if (!deletingPostId || !token) return
 
     try {
-      await fetch(`${apiUrl}/api/v1/posts/${deletingPostId}`, {
+      const res = await fetch(`${apiUrl}/api/v1/posts/${deletingPostId}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       })
+
+      if (!res.ok) {
+        toast.error("投稿の削除に失敗しました")
+        return
+      }
       setPosts((prev) => prev.filter((post) => post.id !== deletingPostId))
       setDeletingPostId(null)
       setIsDeleteDialogOpen(false)
