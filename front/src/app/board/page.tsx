@@ -285,17 +285,25 @@ export default function BoardPage() {
 
     try {
       if (isBookmarked) {
-        await fetch(`${apiUrl}/api/v1/posts/${postId}/bookmark`, {
+        const res = await fetch(`${apiUrl}/api/v1/posts/${postId}/bookmark`, {
           method: "DELETE",
           headers: { Authorization: `Bearer ${token}` },
         })
+        if (!res.ok) {
+          toast.error("ブックマークの削除に失敗しました")
+          return
+        }
         setBookmarkedPosts((prev) => prev.filter((id) => id !== postId))
         toast.success("ブックマークを削除しました")
       } else {
-        await fetch(`${apiUrl}/api/v1/posts/${postId}/bookmark`, {
+        const res = await fetch(`${apiUrl}/api/v1/posts/${postId}/bookmark`, {
           method: "POST",
           headers: { Authorization: `Bearer ${token}` },
         })
+        if (!res.ok) {
+          toast.error("ブックマークの追加に失敗しました")
+          return
+        }
         setBookmarkedPosts((prev) => [...prev, postId])
         toast.success("ブックマークに追加しました")
       }
