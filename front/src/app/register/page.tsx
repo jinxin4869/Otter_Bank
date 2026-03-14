@@ -72,7 +72,13 @@ export default function RegisterPage() {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
+        let errorData: unknown;
+        try {
+          errorData = await response.json();
+        } catch {
+          // レスポンスボディがJSONでない場合や空の場合は、汎用エラーメッセージを使用
+          errorData = null;
+        }
         throw new Error(parseApiError(errorData, "登録に失敗しました。"));
       }
 
