@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label"
 import { toast } from "sonner"
 import { Loader2, Mail, Lock, User, AlertCircle } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { parseApiError } from "@/lib/api-error"
 
 export default function RegisterPage() {
   const router = useRouter()
@@ -72,7 +73,7 @@ export default function RegisterPage() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || "登録に失敗しました。");
+        throw new Error(parseApiError(errorData, "登録に失敗しました。"));
       }
 
       const data = await response.json();

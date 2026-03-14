@@ -25,7 +25,7 @@ module Api
             token: token
           }, status: :created
         else
-          render json: { error: user.errors.full_messages.join(', ') }, status: :unprocessable_entity
+          render json: { errors: user.errors.full_messages }, status: :unprocessable_entity
         end
       end
 

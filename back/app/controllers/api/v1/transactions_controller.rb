@@ -38,7 +38,7 @@ module Api
           update_achievements_for_transaction(@transaction)
           render json: @transaction, status: :created
         else
-          render json: @transaction.errors, status: :unprocessable_entity
+          render json: { errors: @transaction.errors.full_messages }, status: :unprocessable_entity
         end
       end
 
@@ -47,7 +47,7 @@ module Api
           update_achievements_for_transaction(@transaction)
           render json: @transaction
         else
-          render json: @transaction.errors, status: :unprocessable_entity
+          render json: { errors: @transaction.errors.full_messages }, status: :unprocessable_entity
         end
       end
 
