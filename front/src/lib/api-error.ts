@@ -10,9 +10,24 @@ export type ApiErrorResponse = {
  * - {error: "..."} — 単一エラー文字列 → そのまま返す
  * - どちらもなければ fallback を返す
  */
-export function parseApiError(data: ApiErrorResponse, fallback: string): string {
-  if (data.errors && data.errors.length > 0) {
-    return data.errors.join('、')
+export function parseApiError(data: unknown, fallback: string): string {
+  if (!data || typeof data !== 'object') {
+    return fallback
   }
-  return data.error || fallback
+
+  const maybe = data as { errors?: unknown; error?: unknown }
+
+  if (
+    Array.isArray(maybe.errors) &&
+    maybe.errors.length > 0 &&
+    maybe.errors.every((e) => typeof e === 'string')
+  ) {
+    return (maybe.errors as string[]).join('、')
+  }
+
+  if (typeof maybe.error === 'string' && maybe.error.trim() !== '') {
+    return maybe.error
+  }
+
+  return fallback
 }
