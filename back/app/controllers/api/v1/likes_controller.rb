@@ -4,7 +4,7 @@ module Api
   module V1
     class LikesController < ApplicationController
       def create_post_like
-        post = Post.find(params[:post_id])
+        post = Post.find(params[:id])
         like = post.likes.new(user: current_api_v1_user)
 
         if like.save
@@ -18,7 +18,7 @@ module Api
       end
 
       def destroy_post_like
-        post = Post.find(params[:post_id])
+        post = Post.find(params[:id])
         like = post.likes.find_by(user: current_api_v1_user)
 
         if like
