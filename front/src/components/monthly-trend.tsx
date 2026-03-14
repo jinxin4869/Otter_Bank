@@ -76,7 +76,7 @@ export default function MonthlyTrend({ transactions }: MonthlyTrendProps) {
     return `${(value).toLocaleString()}` // 単位
   }
 
-  const tooltipFormatter = (value: number | string | (string | number)[] | undefined, name: string) => {
+  const tooltipFormatter = (value: unknown, name: string) => {
     return [`${typeof value === 'number' ? value.toLocaleString() : String(value ?? '')} 円`, name];
   }
 
