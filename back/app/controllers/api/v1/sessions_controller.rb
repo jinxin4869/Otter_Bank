@@ -18,7 +18,6 @@ module Api
         if user.nil?
           Rails.logger.info "User not found for email: #{email}" if Rails.env.development?
           render json: {
-            status: 'error',
             error: 'アカウントが見つかりません',
             code: 'account_not_found'
           }, status: :not_found
@@ -42,7 +41,6 @@ module Api
         else
           Rails.logger.info "Authentication failed for user: #{user.email}" if Rails.env.development?
           render json: {
-            status: 'error',
             error: 'メールアドレスまたはパスワードが無効です',
             code: 'invalid_credentials'
           }, status: :unauthorized

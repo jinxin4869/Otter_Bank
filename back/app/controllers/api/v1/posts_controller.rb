@@ -38,7 +38,7 @@ module Api
         if @post.save
           render json: post_json(@post), status: :created
         else
-          render json: @post.errors, status: :unprocessable_entity
+          render json: { errors: @post.errors.full_messages }, status: :unprocessable_entity
         end
       end
 
@@ -52,7 +52,7 @@ module Api
           assign_categories(@post)
           render json: post_json(@post)
         else
-          render json: @post.errors, status: :unprocessable_entity
+          render json: { errors: @post.errors.full_messages }, status: :unprocessable_entity
         end
       end
 
@@ -76,7 +76,7 @@ module Api
       def set_post
         @post = Post.includes(:categories).find(params[:id])
       rescue ActiveRecord::RecordNotFound
-        render json: { error: 'Post not found' }, status: :not_found
+        render json: { error: '投稿が見つかりません' }, status: :not_found
       end
 
       def post_params
