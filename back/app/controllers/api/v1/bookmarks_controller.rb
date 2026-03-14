@@ -9,7 +9,7 @@ module Api
         bookmark = @post.bookmarks.new(user: current_api_v1_user)
 
         if @post.bookmarks.exists?(user: current_api_v1_user)
-          render json: { error: 'すでにブックマーク済みです' }, status: :unprocessable_entity
+          render json: { errors: ['すでにブックマーク済みです'] }, status: :unprocessable_entity
           return
         end
 
