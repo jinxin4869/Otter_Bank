@@ -31,6 +31,15 @@ class User < ApplicationRecord
     false # デフォルトではロックされていない
   end
 
+  # ゲストユーザーを取得または作成する
+  def self.guest
+    find_or_create_by!(email: 'guest@otter-bank.example.com') do |user|
+      user.username = 'guest_user'
+      user.name = 'ゲストユーザー'
+      user.password = SecureRandom.alphanumeric(32)
+    end
+  end
+
   # OAuthからユーザーを作成または検索
   def self.find_or_create_from_oauth(auth)
     return nil unless auth&.info&.email
