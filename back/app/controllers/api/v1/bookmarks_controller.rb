@@ -9,14 +9,14 @@ module Api
         bookmark = @post.bookmarks.new(user: current_api_v1_user)
 
         if @post.bookmarks.exists?(user: current_api_v1_user)
-          render json: { status: 'error', message: 'Post already bookmarked' }, status: :unprocessable_entity
+          render json: { errors: ['すでにブックマーク済みです'] }, status: :unprocessable_entity
           return
         end
 
         if bookmark.save
-          render json: { status: 'success', message: 'Post bookmarked' }, status: :created
+          render json: { message: 'Post bookmarked' }, status: :created
         else
-          render json: { status: 'error', error: bookmark.errors.full_messages }, status: :unprocessable_entity
+          render json: { errors: bookmark.errors.full_messages }, status: :unprocessable_entity
         end
       end
 
@@ -25,9 +25,9 @@ module Api
 
         if bookmark
           bookmark.destroy
-          render json: { status: 'success', message: 'Post unbookmarked' }, status: :ok
+          render json: { message: 'Post unbookmarked' }, status: :ok
         else
-          render json: { status: 'error', message: 'Bookmark not found' }, status: :not_found
+          render json: { error: 'ブックマークが見つかりません' }, status: :not_found
         end
       end
 
@@ -36,7 +36,7 @@ module Api
       def set_post
         @post = Post.find(params[:post_id])
       rescue ActiveRecord::RecordNotFound
-        render json: { error: 'Post not found' }, status: :not_found
+        render json: { error: '投稿が見つかりません' }, status: :not_found
       end
     end
   end

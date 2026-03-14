@@ -9,12 +9,12 @@ module Api
 
         if like.save
           post.increment!(:likes_count)
-          render json: { status: 'success', message: 'Post liked', likes_count: post.likes_count }, status: :created
+          render json: { message: 'Post liked', likes_count: post.likes_count }, status: :created
         else
-          render json: { status: 'error', error: like.errors.full_messages }, status: :unprocessable_entity
+          render json: { errors: like.errors.full_messages }, status: :unprocessable_entity
         end
       rescue ActiveRecord::RecordNotFound
-        render json: { error: 'Post not found' }, status: :not_found
+        render json: { error: '投稿が見つかりません' }, status: :not_found
       end
 
       def destroy_post_like
@@ -24,12 +24,12 @@ module Api
         if like
           like.destroy
           post.decrement!(:likes_count) if post.likes_count.to_i.positive?
-          render json: { status: 'success', message: 'Post unliked', likes_count: post.likes_count }
+          render json: { message: 'Post unliked', likes_count: post.likes_count }
         else
-          render json: { error: 'Like not found' }, status: :not_found
+          render json: { error: 'いいねが見つかりません' }, status: :not_found
         end
       rescue ActiveRecord::RecordNotFound
-        render json: { error: 'Post not found' }, status: :not_found
+        render json: { error: '投稿が見つかりません' }, status: :not_found
       end
 
       def create_comment_like
@@ -38,13 +38,13 @@ module Api
 
         if like.save
           comment.increment!(:likes_count)
-          render json: { status: 'success', message: 'Comment liked', likes_count: comment.likes_count },
+          render json: { message: 'Comment liked', likes_count: comment.likes_count },
                  status: :created
         else
-          render json: { status: 'error', error: like.errors.full_messages }, status: :unprocessable_entity
+          render json: { errors: like.errors.full_messages }, status: :unprocessable_entity
         end
       rescue ActiveRecord::RecordNotFound
-        render json: { error: 'Comment not found' }, status: :not_found
+        render json: { error: 'コメントが見つかりません' }, status: :not_found
       end
 
       def destroy_comment_like
@@ -54,12 +54,12 @@ module Api
         if like
           like.destroy
           comment.decrement!(:likes_count) if comment.likes_count.to_i.positive?
-          render json: { status: 'success', message: 'Comment unliked', likes_count: comment.likes_count }
+          render json: { message: 'Comment unliked', likes_count: comment.likes_count }
         else
-          render json: { error: 'Like not found' }, status: :not_found
+          render json: { error: 'いいねが見つかりません' }, status: :not_found
         end
       rescue ActiveRecord::RecordNotFound
-        render json: { error: 'Comment not found' }, status: :not_found
+        render json: { error: 'コメントが見つかりません' }, status: :not_found
       end
     end
   end
