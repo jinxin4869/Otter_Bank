@@ -64,13 +64,13 @@ export default function ExpensePieChart({ transactions }: ExpensePieChartProps) 
           outerRadius={80} // サイズは適宜調整
           fill="#8884d8" // デフォルトの塗りつぶし色 (Cellで上書きされる)
           dataKey="value"
-          label={({ name, percent, value }) => `${name} ${value.toLocaleString()}円 (${(percent * 100).toFixed(0)}%)`} // ラベル表示を調整
+          label={({ name, percent, value }) => `${name} ${value.toLocaleString()}円 (${percent !== undefined ? (percent * 100).toFixed(0) : '0'}%)`} // ラベル表示を調整
         >
           {expenseData.map((entry, index) => (
             <Cell key={`cell-${index}`} fill={COLORS[EXPENSE_CATEGORIES.findIndex(cat => cat.label === entry.name) % COLORS.length]} />
           ))}
         </Pie>
-        <Tooltip formatter={(value: number, name: string, entry: any) => [`${value.toLocaleString()} 円`, entry.payload.name]} />
+        <Tooltip formatter={(value, _name, entry) => [`${typeof value === 'number' ? value.toLocaleString() : String(value ?? '')} 円`, entry.payload.name]} />
         <Legend formatter={(value) => value} />
       </PieChart>
     </ResponsiveContainer>
