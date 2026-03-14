@@ -20,6 +20,7 @@ class User < ApplicationRecord
   validates :password, presence: true, length: { minimum: 8 }, if: :password_required? # パスワード長を8文字に変更 (フロントエンドと合わせる)
 
   after_create :setup_initial_achievements # ユーザー作成時に初期実績を生成
+  before_update :protect_guest_user
 
   # OAuthアカウントのみかどうか
   def oauth_only?
@@ -33,10 +34,39 @@ class User < ApplicationRecord
 
   # ゲストユーザーを取得または作成する
   def self.guest
-    find_or_create_by!(email: 'guest@otter-bank.example.com') do |user|
-      user.username = 'guest_user'
-      user.name = 'ゲストユーザー'
-      user.password = SecureRandom.alphanumeric(32)
+    user = find_or_create_by!(email: 'guest@otter-bank.example.com') do |u|
+      u.username = 'guest_user'
+      u.name = 'ゲストユーザー'
+      u.password = SecureRandom.alphanumeric(32)
+    end
+
+    # 既存のゲストユーザーが外部から書き換えられていても、毎回期待値に戻す
+    expected_username = 'guest_user'
+    expected_name = 'ゲストユーザー'
+
+    if user.username != expected_username || user.name != expected_name
+      # バリデーションやコールバックを通さずにシステム側で強制リセットする
+      user.update_columns(username: expected_username, name: expected_name)
+    end
+
+    user
+
+    private
+
+    # ゲストユーザー（固定メールアドレスを持つユーザー）かどうかを判定
+    def guest_account?
+      # email_was を使うことで、ゲストメールアドレスから他のメールアドレスへの変更も検知する
+      email_was == 'guest@otter-bank.example.com'
+    end
+
+    # ゲストユーザーの名前やメールアドレスなどが変更されないように保護する
+    def protect_guest_user
+      return unless guest_account?
+
+      if will_save_change_to_email? || will_save_change_to_username? || will_save_change_to_name?
+        errors.add(:base, 'ゲストユーザーの情報は変更できません。')
+        throw(:abort)
+      end
     end
   end
 
