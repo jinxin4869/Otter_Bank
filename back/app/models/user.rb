@@ -50,24 +50,6 @@ class User < ApplicationRecord
     end
 
     user
-
-    private
-
-    # ゲストユーザー（固定メールアドレスを持つユーザー）かどうかを判定
-    def guest_account?
-      # email_was を使うことで、ゲストメールアドレスから他のメールアドレスへの変更も検知する
-      email_was == 'guest@otter-bank.example.com'
-    end
-
-    # ゲストユーザーの名前やメールアドレスなどが変更されないように保護する
-    def protect_guest_user
-      return unless guest_account?
-
-      if will_save_change_to_email? || will_save_change_to_username? || will_save_change_to_name?
-        errors.add(:base, 'ゲストユーザーの情報は変更できません。')
-        throw(:abort)
-      end
-    end
   end
 
   # OAuthからユーザーを作成または検索
@@ -140,6 +122,21 @@ class User < ApplicationRecord
   def setup_initial_achievements
     achievement_service = AchievementService.new(self)
     achievement_service.create_initial_achievements
+  end
+
+  # ゲストユーザー（固定メールアドレスを持つユーザー）かどうかを判定
+  def guest_account?
+    # email_was を使うことで、ゲストメールアドレスから他のメールアドレスへの変更も検知する
+    email_was == 'guest@otter-bank.example.com'
+  end
+
+  # ゲストユーザーの名前やメールアドレスなどが変更されないように保護する
+  def protect_guest_user
+    return unless guest_account?
+    return unless will_save_change_to_email? || will_save_change_to_username? || will_save_change_to_name?
+
+    errors.add(:base, 'ゲストユーザーの情報は変更できません。')
+    throw(:abort)
   end
 
   public
