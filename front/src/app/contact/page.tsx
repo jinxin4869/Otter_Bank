@@ -37,12 +37,35 @@ export default function ContactPage() {
   // フォーム送信処理
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    // バリデーション
+    if (!name.trim() || !email.trim() || !subject || !message.trim()) {
+      toast.error("入力エラー", {
+        description: "すべての項目を入力してください。",
+      })
+      return
+    }
+
     setIsSubmitting(true)
 
     try {
-      // 実際のアプリではここでAPIを呼び出します
-      // デモ用に送信成功をシミュレート
-      await new Promise((resolve) => setTimeout(resolve, 1500))
+      const apiUrl =
+        process.env.NODE_ENV === "development"
+          ? process.env.NEXT_PUBLIC_DEV_URL
+          : process.env.NEXT_PUBLIC_API_URL
+
+      const res = await fetch(`${apiUrl}/api/v1/contacts`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ contact: { name, email, subject, message } }),
+      })
+
+      if (!res.ok) {
+        const errorData = await res.json()
+        throw new Error(errorData.errors?.join(", ") || "エラーが発生しました")
+      }
 
       // 成功メッセージを表示
       toast.success("送信完了", {
@@ -58,10 +81,9 @@ export default function ContactPage() {
       // ホームページにリダイレクト
       router.push("/")
     } catch (error) {
-      console.error("Contact form submission error:", error);
-      // エラーメッセージを表示
+      console.error("Contact form submission error:", error)
       toast.error("エラー", {
-        description: "送信に失敗しました。後ほど再度お試しください。",
+        description: error instanceof Error ? error.message : "送信に失敗しました。後ほど再度お試しください。",
       })
     } finally {
       setIsSubmitting(false)
