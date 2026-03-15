@@ -81,17 +81,25 @@ module Api
           return
         end
 
-        refresh_token = RefreshToken.find_by(token: token_value)
+        new_token = nil
+        new_refresh_token = nil
 
-        unless refresh_token&.active?
-          render json: { error: 'リフレッシュトークンが無効または期限切れです', code: 'invalid_refresh_token' }, status: :unauthorized
-          return
+        ActiveRecord::Base.transaction do
+          refresh_token = RefreshToken.lock.find_by(token: token_value)
+
+          unless refresh_token&.active?
+            render json: { error: 'リフレッシュトークンが無効または期限切れです', code: 'invalid_refresh_token' },
+                   status: :unauthorized
+            raise ActiveRecord::Rollback
+          end
+
+          user = refresh_token.user
+          refresh_token.revoke!
+          new_token = JsonWebToken.encode(user_id: user.id)
+          new_refresh_token = RefreshToken.generate_for(user)
         end
 
-        user = refresh_token.user
-        new_token = JsonWebToken.encode(user_id: user.id)
-        new_refresh_token = RefreshToken.generate_for(user)
-        refresh_token.revoke!
+        return unless new_token
 
         render json: {
           token: new_token,
