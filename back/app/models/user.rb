@@ -11,6 +11,7 @@ class User < ApplicationRecord
   has_many :comments, dependent: :destroy
   has_many :likes, dependent: :destroy
   has_many :bookmarks, dependent: :destroy
+  has_many :user_actions, dependent: :destroy
 
   # 貯金関連のアソシエーション（transactions の中から income タイプを取得）
   has_many :savings, -> { where(transaction_type: 'income') }, class_name: 'Transaction'
