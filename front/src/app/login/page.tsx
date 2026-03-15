@@ -71,6 +71,9 @@ export default function LoginPage() {
 
       // トークンの保存とリダイレクト
       localStorage.setItem("authToken", data.token);
+      if (data.refresh_token) {
+        localStorage.setItem("refreshToken", data.refresh_token);
+      }
       localStorage.setItem("isLoggedIn", "true");
       localStorage.setItem("currentUserEmail", email);
 

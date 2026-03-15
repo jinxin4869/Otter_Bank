@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_03_14_151959) do
+ActiveRecord::Schema[8.1].define(version: 2026_03_15_012647) do
   create_table "achievements", force: :cascade do |t|
     t.integer "category", default: 0, null: false
     t.datetime "created_at", null: false
@@ -121,6 +121,17 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_14_151959) do
     t.index ["user_id"], name: "index_posts_on_user_id"
   end
 
+  create_table "refresh_tokens", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.datetime "expires_at", null: false
+    t.boolean "revoked", default: false, null: false
+    t.string "token", null: false
+    t.datetime "updated_at", null: false
+    t.integer "user_id", null: false
+    t.index ["token"], name: "index_refresh_tokens_on_token", unique: true
+    t.index ["user_id"], name: "index_refresh_tokens_on_user_id"
+  end
+
   create_table "savings_goals", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.decimal "current_amount"
@@ -176,6 +187,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_14_151959) do
   add_foreign_key "post_categories", "categories"
   add_foreign_key "post_categories", "posts"
   add_foreign_key "posts", "users"
+  add_foreign_key "refresh_tokens", "users"
   add_foreign_key "savings_goals", "users"
   add_foreign_key "transactions", "users"
   add_foreign_key "user_actions", "users"
