@@ -9,6 +9,7 @@ RSpec.describe 'Rack::Attack レート制限', type: :request do
   end
 
   after do
+    Rack::Attack.reset!
     Rack::Attack.enabled = false
   end
 
