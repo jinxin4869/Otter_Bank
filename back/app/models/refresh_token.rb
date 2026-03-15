@@ -12,7 +12,7 @@ class RefreshToken < ApplicationRecord
     create!(
       user: user,
       token: SecureRandom.hex(32),
-      expires_at: 30.days.from_now
+      expires_at: 14.days.from_now
     )
   end
 
