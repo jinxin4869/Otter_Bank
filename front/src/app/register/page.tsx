@@ -90,6 +90,9 @@ export default function RegisterPage() {
       if (data.token) {
         localStorage.setItem("authToken", data.token)
       }
+      if (data.refresh_token) {
+        localStorage.setItem("refreshToken", data.refresh_token)
+      }
       localStorage.setItem("tutorialSeen", "false")
 
       // 成功メッセージを表示

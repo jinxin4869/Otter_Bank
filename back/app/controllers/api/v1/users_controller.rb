@@ -18,11 +18,13 @@ module Api
         user = User.new(user_params)
         if user.save
           token = JsonWebToken.encode(user_id: user.id)
+          refresh_token = RefreshToken.generate_for(user)
           render json: {
             status: 'success',
             message: 'ユーザー登録が正常に完了しました。',
             user: user.as_json(only: %i[id email username]),
-            token: token
+            token: token,
+            refresh_token: refresh_token.token
           }, status: :created
         else
           render json: { errors: user.errors.full_messages }, status: :unprocessable_entity

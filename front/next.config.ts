@@ -1,7 +1,9 @@
 import type { NextConfig } from "next";
+import path from "path";
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  outputFileTracingRoot: path.join(__dirname, "../"),
   images: {
     domains: [
       'hebbkx1anhila5yf.public.blob.vercel-storage.com',

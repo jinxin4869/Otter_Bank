@@ -32,10 +32,12 @@ module Api
         if user&.authenticate(password)
           Rails.logger.info "Authentication successful for user: #{user.email}" if Rails.env.development?
           token = JsonWebToken.encode(user_id: user.id)
+          refresh_token = RefreshToken.generate_for(user)
           render json: {
             status: 'success',
             message: 'ログインに成功しました。',
             token: token,
+            refresh_token: refresh_token.token,
             user: user.as_json(only: %i[id email username]) # 必要に応じてユーザー情報を返す
           }, status: :ok
         else
