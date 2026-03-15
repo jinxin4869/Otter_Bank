@@ -23,7 +23,7 @@ type ApiRequestOptions = {
 export async function apiRequest<T>(
   path: string,
   options: ApiRequestOptions = {}
-): Promise<T> {
+): Promise<T | undefined> {
   const { method = 'GET', token, body } = options
   const url = `${getBaseUrl()}/api/v1${path}`
 
@@ -37,9 +37,15 @@ export async function apiRequest<T>(
     body: body !== undefined ? JSON.stringify(body) : undefined,
   })
 
-  if (res.status === 204) return undefined as T
+  if (res.status === 204) return undefined
 
-  const data = await res.json()
+  let data: unknown
+  try {
+    data = await res.json()
+  } catch {
+    throw new Error(res.ok ? 'レスポンスの解析に失敗しました' : 'エラーが発生しました')
+  }
+
   if (!res.ok) {
     throw new Error(parseApiError(data, 'エラーが発生しました'))
   }
@@ -52,6 +58,6 @@ export async function apiRequest<T>(
 export async function publicApiRequest<T>(
   path: string,
   options: Omit<ApiRequestOptions, 'token'> = {}
-): Promise<T> {
+): Promise<T | undefined> {
   return apiRequest<T>(path, options)
 }
