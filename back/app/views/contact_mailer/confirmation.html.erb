@@ -1,0 +1,30 @@
+<h2><%= @contact.name %> 様</h2>
+
+<p>このたびはOtter Bankへお問い合わせいただき、ありがとうございます。</p>
+<p>以下の内容でお問い合わせを受け付けました。担当者より順次ご連絡いたします。</p>
+
+<hr>
+
+<table>
+  <tr>
+    <th>お名前</th>
+    <td><%= @contact.name %></td>
+  </tr>
+  <tr>
+    <th>メールアドレス</th>
+    <td><%= @contact.email %></td>
+  </tr>
+  <tr>
+    <th>件名</th>
+    <td><%= @contact.subject %></td>
+  </tr>
+  <tr>
+    <th>お問い合わせ内容</th>
+    <td><%= simple_format(@contact.message) %></td>
+  </tr>
+</table>
+
+<hr>
+
+<p>※このメールは自動送信されています。このメールへの返信はできません。</p>
+<p>Otter Bank（獺獺銀行）</p>
