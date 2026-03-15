@@ -26,6 +26,7 @@ export default function ContactPage() {
     formState: { errors, isSubmitting },
   } = useForm<ContactFormValues>({
     resolver: zodResolver(contactSchema),
+    defaultValues: { subject: "" },
   })
 
   // ログイン中のメールアドレスを自動入力
