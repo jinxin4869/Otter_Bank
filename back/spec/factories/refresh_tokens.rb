@@ -6,13 +6,13 @@ FactoryBot.define do
     sequence(:token) { |n| "refresh_token_#{n}_#{SecureRandom.hex(8)}" }
     expires_at { 30.days.from_now }
     revoked { false }
-  end
 
-  trait :expired do
-    expires_at { 1.day.ago }
-  end
+    trait :expired do
+      expires_at { 1.day.ago }
+    end
 
-  trait :revoked do
-    revoked { true }
+    trait :revoked do
+      revoked { true }
+    end
   end
 end
