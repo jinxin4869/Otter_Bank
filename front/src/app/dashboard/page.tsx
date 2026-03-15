@@ -38,6 +38,17 @@ import OtterAnimation from "@/components/otter-animation"
 import ExpensePieChart from "@/components/expense-pie-chart"
 import MonthlyTrend from "@/components/monthly-trend"
 import { Tutorial } from "@/components/tutorial"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 import { cn } from "@/lib/utils"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/hooks/useAuth"
@@ -483,14 +494,34 @@ export default function DashboardPage() {
                             {format(new Date(transaction.date), "yyyy/MM/dd")}
                           </div>
                         </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => deleteTransaction(transaction.id)}
-                          className="text-muted-foreground hover:text-destructive"
-                        >
-                          削除
-                        </Button>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="text-muted-foreground hover:text-destructive"
+                            >
+                              削除
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>取引を削除しますか？</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                この操作は取り消せません。取引履歴から完全に削除されます。
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>キャンセル</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => deleteTransaction(transaction.id)}
+                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                              >
+                                削除する
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
                       </div>
                     </div>
                   ))}
