@@ -1,9 +1,9 @@
 "use client"
 
-import type React from "react"
-
-import { useState, useEffect } from "react"
+import { useEffect } from "react"
 import { useRouter } from "next/navigation"
+import { useForm, Controller } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -12,42 +12,35 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { toast } from "sonner"
 import { Loader2 } from "lucide-react"
+import { contactSchema, type ContactFormValues } from "@/lib/schemas/auth"
 
 export default function ContactPage() {
-  // フォームの状態管理
-  const [name, setName] = useState("")
-  const [email, setEmail] = useState("")
-  const [subject, setSubject] = useState("")
-  const [message, setMessage] = useState("")
-  const [isSubmitting, setIsSubmitting] = useState(false)
   const router = useRouter()
 
-  // ログイン状態の確認とメールアドレスの自動入力
+  const {
+    register,
+    handleSubmit,
+    control,
+    setValue,
+    reset,
+    formState: { errors, isSubmitting },
+  } = useForm<ContactFormValues>({
+    resolver: zodResolver(contactSchema),
+    defaultValues: { subject: "" },
+  })
+
+  // ログイン中のメールアドレスを自動入力
   useEffect(() => {
-    // ログイン状態をチェック
     const isLoggedIn = localStorage.getItem("isLoggedIn") === "true"
     if (isLoggedIn) {
       const userEmail = localStorage.getItem("currentUserEmail")
       if (userEmail) {
-        setEmail(userEmail)
+        setValue("email", userEmail)
       }
     }
-  }, [])
+  }, [setValue])
 
-  // フォーム送信処理
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-
-    // バリデーション
-    if (!name.trim() || !email.trim() || !subject || !message.trim()) {
-      toast.error("入力エラー", {
-        description: "すべての項目を入力してください。",
-      })
-      return
-    }
-
-    setIsSubmitting(true)
-
+  const onSubmit = async (data: ContactFormValues) => {
     try {
       const apiUrl =
         process.env.NODE_ENV === "development"
@@ -56,10 +49,8 @@ export default function ContactPage() {
 
       const res = await fetch(`${apiUrl}/api/v1/contacts`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ contact: { name, email, subject, message } }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ contact: data }),
       })
 
       if (!res.ok) {
@@ -67,26 +58,14 @@ export default function ContactPage() {
         throw new Error(errorData.errors?.join(", ") || "エラーが発生しました")
       }
 
-      // 成功メッセージを表示
-      toast.success("送信完了", {
-        description: "お問い合わせを受け付けました。回答をお待ちください。",
-      })
-
-      // フォームをリセット
-      setName("")
-      setEmail("")
-      setSubject("")
-      setMessage("")
-
-      // ホームページにリダイレクト
+      toast.success("送信完了", { description: "お問い合わせを受け付けました。回答をお待ちください。" })
+      reset()
       router.push("/")
     } catch (error) {
       console.error("Contact form submission error:", error)
       toast.error("エラー", {
         description: error instanceof Error ? error.message : "送信に失敗しました。後ほど再度お試しください。",
       })
-    } finally {
-      setIsSubmitting(false)
     }
   }
 
@@ -98,56 +77,51 @@ export default function ContactPage() {
           <CardDescription className="text-center">ご質問、ご意見、不具合の報告などをお寄せください</CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="name">お名前</Label>
-              <Input
-                id="name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="山田 太郎"
-                required
-              />
+              <Input id="name" placeholder="山田 太郎" {...register("name")} />
+              {errors.name && <p className="text-sm text-destructive">{errors.name.message}</p>}
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="email">メールアドレス</Label>
-              <Input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="example@example.com"
-                required
-              />
+              <Input id="email" type="email" placeholder="example@example.com" {...register("email")} />
+              {errors.email && <p className="text-sm text-destructive">{errors.email.message}</p>}
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="subject">お問い合わせ種類</Label>
-              <Select value={subject} onValueChange={setSubject} required>
-                <SelectTrigger id="subject">
-                  <SelectValue placeholder="お問い合わせ種類を選択" />
-                </SelectTrigger>
-                <SelectContent className="board-dialog-content">
-                  <SelectItem value="question">ご質問・ご相談</SelectItem>
-                  <SelectItem value="feedback">ご意見・ご感想</SelectItem>
-                  <SelectItem value="bug">不具合の報告</SelectItem>
-                  <SelectItem value="feature">機能リクエスト</SelectItem>
-                  <SelectItem value="other">その他</SelectItem>
-                </SelectContent>
-              </Select>
+              <Controller
+                name="subject"
+                control={control}
+                render={({ field }) => (
+                  <Select value={field.value} onValueChange={field.onChange}>
+                    <SelectTrigger id="subject">
+                      <SelectValue placeholder="お問い合わせ種類を選択" />
+                    </SelectTrigger>
+                    <SelectContent className="board-dialog-content">
+                      <SelectItem value="question">ご質問・ご相談</SelectItem>
+                      <SelectItem value="feedback">ご意見・ご感想</SelectItem>
+                      <SelectItem value="bug">不具合の報告</SelectItem>
+                      <SelectItem value="feature">機能リクエスト</SelectItem>
+                      <SelectItem value="other">その他</SelectItem>
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+              {errors.subject && <p className="text-sm text-destructive">{errors.subject.message}</p>}
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="message">お問い合わせ内容</Label>
               <Textarea
                 id="message"
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
                 placeholder="お問い合わせ内容を詳しくご記入ください"
                 rows={5}
-                required
+                {...register("message")}
               />
+              {errors.message && <p className="text-sm text-destructive">{errors.message.message}</p>}
             </div>
 
             <Button type="submit" className="w-full" disabled={isSubmitting}>
@@ -169,4 +143,3 @@ export default function ContactPage() {
     </div>
   )
 }
-
