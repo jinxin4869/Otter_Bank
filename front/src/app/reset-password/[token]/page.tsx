@@ -1,7 +1,7 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
+import { useState } from "react"
+import { useRouter, useParams } from "next/navigation"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Button } from "@/components/ui/button"
@@ -12,24 +12,11 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { AlertCircle, CheckCircle2, Loader2 } from "lucide-react"
 import { resetPasswordSchema, type ResetPasswordFormValues } from "@/lib/schemas/auth"
 
-export default function ResetPasswordPage({
-  params,
-}: {
-  params: Promise<{ token: string }>
-}) {
-  const [token, setToken] = useState<string>("")
+export default function ResetPasswordPage() {
+  const { token } = useParams<{ token: string }>()
   const [successMessage, setSuccessMessage] = useState("")
   const [apiError, setApiError] = useState("")
   const router = useRouter()
-
-  // paramsを非同期で取得
-  useEffect(() => {
-    const getParams = async () => {
-      const resolvedParams = await params
-      setToken(resolvedParams.token)
-    }
-    getParams()
-  }, [params])
 
   const {
     register,
@@ -68,14 +55,6 @@ export default function ResetPasswordPage({
       console.error("Password reset error:", err)
       setApiError("ネットワークエラーが発生しました")
     }
-  }
-
-  if (!token) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
-      </div>
-    )
   }
 
   return (
