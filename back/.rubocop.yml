@@ -42,6 +42,7 @@ Metrics/BlockLength:
     - 'spec/**/*'
     - 'db/schema.rb'
     - 'config/routes.rb'
+    - 'config/environments/**/*'
 
 # マイグレーション済みのカラムに対する警告を無効化
 Rails/ThreeStateBooleanColumn:
