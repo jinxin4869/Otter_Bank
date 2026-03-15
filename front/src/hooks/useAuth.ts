@@ -163,13 +163,19 @@ export const useAuth = () => {
     try {
       const currentToken = localStorage.getItem('authToken');
       const currentRefreshToken = localStorage.getItem('refreshToken');
-      if (currentToken) {
+
+      if (currentRefreshToken) {
+        const headers: Record<string, string> = {
+          'Content-Type': 'application/json',
+        };
+
+        if (currentToken) {
+          headers['Authorization'] = `Bearer ${currentToken}`;
+        }
+
         await fetch(`${getApiUrl()}/api/v1/auth/logout`, {
           method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${currentToken}`,
-            'Content-Type': 'application/json',
-          },
+          headers,
           body: JSON.stringify({ refresh_token: currentRefreshToken }),
         });
       }
