@@ -35,10 +35,18 @@ class Rack::Attack
   end
 
   # レート制限超過時のレスポンス（429 Too Many Requests）
-  self.throttled_responder = lambda do |_req|
+  self.throttled_responder = lambda do |req|
+    match_data = req.env['rack.attack.match_data']
+    retry_after = match_data && match_data[:period] ? match_data[:period].to_s : nil
+
+    headers = {
+      'Content-Type' => 'application/json'
+    }
+    headers['Retry-After'] = retry_after if retry_after
+
     [
       429,
-      { 'Content-Type' => 'application/json' },
+      headers,
       [{ error: 'リクエストが多すぎます。しばらくしてから再試行してください。' }.to_json]
     ]
   end
