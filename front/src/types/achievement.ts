@@ -1,4 +1,4 @@
-export type AchievementCategory = 'savings' | 'streak' | 'milestone' | 'special';
+export type AchievementCategory = 'savings' | 'streak' | 'expense' | 'special';
 
 export type AchievementTier = 'bronze' | 'silver' | 'gold' | 'platinum';
 
