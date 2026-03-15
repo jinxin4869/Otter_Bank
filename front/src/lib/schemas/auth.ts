@@ -28,10 +28,10 @@ export const resetPasswordSchema = z
   })
 
 export const contactSchema = z.object({
-  name: z.string().min(1, "お名前を入力してください"),
-  email: z.string().email("有効なメールアドレスを入力してください"),
-  subject: z.string().min(1, "お問い合わせ種類を選択してください"),
-  message: z.string().min(1, "お問い合わせ内容を入力してください"),
+  name: z.string().trim().min(1, "お名前を入力してください"),
+  email: z.string().trim().email("有効なメールアドレスを入力してください"),
+  subject: z.string().trim().min(1, "お問い合わせ種類を選択してください"),
+  message: z.string().trim().min(1, "お問い合わせ内容を入力してください"),
 })
 
 export type LoginFormValues = z.infer<typeof loginSchema>
