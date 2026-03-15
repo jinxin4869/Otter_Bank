@@ -26,8 +26,8 @@ RSpec.describe 'Api::V1::Contacts', type: :request do
         expect(json['message']).to eq('お問い合わせを受け付けました。')
       end
 
-      it '認証なしでも送信できる' do
-        post '/api/v1/contacts', params: valid_params
+      it '不正なAuthorizationヘッダーが付与されていても送信できる' do
+        post '/api/v1/contacts', params: valid_params, headers: { 'Authorization' => 'Bearer invalid-token' }
         expect(response).to have_http_status(:created)
       end
     end
