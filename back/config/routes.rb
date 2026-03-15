@@ -38,6 +38,9 @@ Rails.application.routes.draw do
         resource :bookmark, only: %i[create destroy]
       end
 
+      # お問い合わせ
+      resources :contacts, only: %i[create]
+
       # ヘルスチェック
       get 'health', to: 'health#index'
     end
