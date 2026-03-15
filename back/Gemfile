@@ -29,17 +29,8 @@ gem 'jwt', '>= 2.5'
 # OAuth認証 Google
 gem 'omniauth-google-oauth2', '~> 1.2.2'
 
-# JSONシリアライザ (後でちゃんと調べます)
-gem 'active_model_serializers', '~> 0.10'
-
-# 多言語対応
-gem 'i18n-js', '~> 4.2'
-
-# エラー監視・通知
-gem 'exception_notification', '~> 5.0'
-
-# ページネーション
-gem 'kaminari', '~> 1.2'
+# レート制限・ブルートフォース対策
+gem 'rack-attack', '~> 6.7'
 
 # 環境変数管理
 gem 'dotenv-rails', '~> 3.2', groups: %i[development test]
@@ -80,10 +71,4 @@ end
 group :development do
   # Speed up commands on slow machines / big apps [https://github.com/rails/spring]
   # gem "spring"
-
-  gem 'rack-mini-profiler', require: false
-
-  # エラー表示が変わるらしいので
-  gem 'better_errors'
-  gem 'binding_of_caller'
 end
