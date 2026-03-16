@@ -6,11 +6,11 @@ Rails.application.routes.draw do
       # 認証関連
       resources :users, only: %i[create]
       resource :user, only: %i[show update destroy]
-      resources :sessions, only: %i[create destroy]
+      post 'sessions', to: 'sessions#create'
+      delete 'sessions', to: 'sessions#destroy'
       post 'guest_sessions', to: 'guest_sessions#create'
       get 'auth/verify', to: 'auth#verify'
       post 'auth/refresh', to: 'auth#refresh'
-      post 'auth/logout', to: 'auth#logout'
       get 'auth/google', to: 'auth#google'
       get 'auth/google/callback', to: 'auth#google_callback'
 

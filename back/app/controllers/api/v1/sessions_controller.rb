@@ -3,7 +3,7 @@
 module Api
   module V1
     class SessionsController < ApplicationController
-      skip_before_action :authorize_request, only: [:create]
+      skip_before_action :authorize_request, only: %i[create destroy]
 
       # POST /api/v1/sessions
       def create
@@ -47,6 +47,20 @@ module Api
             code: 'invalid_credentials'
           }, status: :unauthorized
         end
+      end
+
+      # DELETE /api/v1/sessions
+      def destroy
+        token_value = params[:refresh_token]
+        if token_value
+          refresh_token = RefreshToken.find_by(token: token_value)
+          refresh_token&.revoke!
+        end
+
+        render json: {
+          status: 'success',
+          message: 'ログアウトしました'
+        }, status: :ok
       end
     end
   end
