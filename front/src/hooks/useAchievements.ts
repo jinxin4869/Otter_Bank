@@ -1,6 +1,10 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '@/hooks/useAuth'
 import { api } from '@/lib/api'
+import {
+  mapApiAchievement,
+  mapApiAchievementSummary,
+} from '@/types/achievement'
 import type { Achievement, AchievementCategory, AchievementSummary } from '@/types/achievement'
 
 type UseAchievementsReturn = {
@@ -31,10 +35,10 @@ export function useAchievements(): UseAchievementsReturn {
     try {
       const data = await api.achievements.list(token)
       if (data) {
-        const list = data.achievements ?? []
+        const list = (data.achievements ?? []).map(mapApiAchievement)
         setAchievements(list)
         setFilteredAchievements(list)
-        setAchievementSummary(data.summary ?? null)
+        setAchievementSummary(data.summary ? mapApiAchievementSummary(data.summary) : null)
         setActiveTab('all')
       }
     } catch (err) {
