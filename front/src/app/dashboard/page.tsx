@@ -52,24 +52,8 @@ import {
 import { cn } from "@/lib/utils"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/hooks/useAuth"
-
-type Transaction = {
-  id: string
-  amount: number
-  type: "income" | "expense"
-  category: string
-  description: string
-  date: string
-}
-
-type ApiTransaction = {
-  id: number
-  amount: string | number
-  transaction_type: string
-  category: string
-  description: string | null
-  date: string
-}
+import { api } from "@/lib/api"
+import { type Transaction, mapApiTransaction } from "@/types/transaction"
 
 const EXPENSE_CATEGORIES = [
   { value: "food", label: "食費", icon: <Coffee className="h-4 w-4" /> },
@@ -92,15 +76,6 @@ const INCOME_CATEGORIES = [
   { value: "other", label: "その他", icon: <DollarSign className="h-4 w-4" /> },
 ]
 
-const mapApiTransaction = (t: ApiTransaction): Transaction => ({
-  id: String(t.id),
-  amount: Number(t.amount),
-  type: t.transaction_type as "income" | "expense",
-  category: t.category,
-  description: t.description || "",
-  date: t.date ? t.date.split("T")[0] : "",
-})
-
 export default function DashboardPage() {
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [amount, setAmount] = useState("")
@@ -116,9 +91,6 @@ export default function DashboardPage() {
   const router = useRouter()
   const { user, token, isLoading: authIsLoading, isAuthenticated } = useAuth()
 
-  const apiUrl =
-    process.env.NODE_ENV === "development" ? process.env.NEXT_PUBLIC_DEV_URL : process.env.NEXT_PUBLIC_API_URL
-
   useEffect(() => {
     if (!authIsLoading && !isAuthenticated) {
       router.push("/login")
@@ -132,12 +104,10 @@ export default function DashboardPage() {
     const fetchTransactions = async () => {
       setIsDataLoading(true)
       try {
-        const res = await fetch(`${apiUrl}/api/v1/transactions`, {
-          headers: { Authorization: `Bearer ${token}` },
-        })
-        if (!res.ok) throw new Error("取引データの取得に失敗しました")
-        const data = await res.json()
-        setTransactions((data.transactions as ApiTransaction[]).map(mapApiTransaction))
+        const data = await api.transactions.list(token)
+        if (data) {
+          setTransactions(data.transactions.map(mapApiTransaction))
+        }
       } catch (err) {
         console.error("取引データ取得エラー:", err)
       } finally {
@@ -146,7 +116,7 @@ export default function DashboardPage() {
     }
 
     fetchTransactions()
-  }, [isAuthenticated, token, apiUrl])
+  }, [isAuthenticated, token])
 
   // Update otter mood based on financial health
   useEffect(() => {
@@ -202,25 +172,16 @@ export default function DashboardPage() {
     const numericAmount = Number.parseFloat(amount.replace(/,/g, ""))
 
     try {
-      const res = await fetch(`${apiUrl}/api/v1/transactions`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          transaction: {
-            amount: numericAmount,
-            transaction_type: type,
-            category,
-            description,
-            date: format(date, "yyyy-MM-dd"),
-          },
-        }),
+      const newTx = await api.transactions.create(token, {
+        amount: numericAmount,
+        transaction_type: type,
+        category,
+        description,
+        date: format(date, "yyyy-MM-dd"),
       })
-      if (!res.ok) throw new Error("取引の登録に失敗しました")
-      const newTx: ApiTransaction = await res.json()
-      setTransactions((prev) => [...prev, mapApiTransaction(newTx)])
+      if (newTx) {
+        setTransactions((prev) => [...prev, mapApiTransaction(newTx)])
+      }
       setAmount("")
       setAmountError(null)
       setDescription("")
@@ -233,13 +194,7 @@ export default function DashboardPage() {
   const deleteTransaction = async (id: string) => {
     if (!token) return
     try {
-      const res = await fetch(`${apiUrl}/api/v1/transactions/${id}`, {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      if (!res.ok) {
-        throw new Error("取引の削除に失敗しました")
-      }
+      await api.transactions.delete(token, id)
       setTransactions((prev) => prev.filter((t) => t.id !== id))
     } catch (err) {
       console.error("取引削除エラー:", err)
