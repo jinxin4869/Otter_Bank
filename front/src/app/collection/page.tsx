@@ -9,25 +9,9 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import Image from "next/image"
 import { cn } from "@/lib/utils"
 import { LockIcon, UnlockIcon, AlertTriangle, Trophy } from 'lucide-react';
-
-// 実績の型定義 (Rails APIのレスポンスに合わせて調整)
-interface Achievement {
-  id: number | string;
-  original_achievement_id: string; // Rails APIから
-  title: string;
-  description: string;
-  category: string; // 文字列として受け取る
-  tier: string; // 文字列として受け取る
-  unlocked: boolean; // Rails APIでは `unlocked`
-  progress: number;
-  progress_percentage: number; // Rails APIから
-  progress_target: number; // Rails APIから
-  image_url?: string; // Rails APIでは `image_url`
-  reward: string;
-  created_at: string; // Rails APIから
-  updated_at: string; // Rails APIから
-  unlocked_at?: string | null; // Rails APIから
-}
+import { useAuth } from "@/hooks/useAuth"
+import { api } from "@/lib/api"
+import type { Achievement, AchievementSummary } from "@/types/achievement"
 
 // カテゴリ表示用の日本語マッピング
 const categoryLabels: Record<string, string> = {
@@ -46,38 +30,23 @@ const tierLabels: Record<string, string> = {
   platinum: 'プラチナ'
 };
 
-// APIレスポンス全体の型 (必要であれば)
-interface AchievementsApiResponse {
-  achievements: Achievement[];
-  summary: {
-    total_achievements: number;
-    unlocked_achievements: number;
-    progress_by_category: Record<string, { total: number; unlocked: number; progress_percentage: number }>;
-  };
-}
-
 export default function CollectionPage() {
   const router = useRouter();
+  const { token, isLoading: authIsLoading, isAuthenticated } = useAuth();
   // 実績関連
   const [achievements, setAchievements] = useState<Achievement[]>([])
   const [filteredAchievements, setFilteredAchievements] = useState<Achievement[]>([]);
   const [activeTab, setActiveTab] = useState("all");
   const [loadingAchievements, setLoadingAchievements] = useState(true);
   const [errorAchievements, setErrorAchievements] = useState<string | null>(null);
-  const [achievementSummary, setAchievementSummary] = useState<AchievementsApiResponse['summary'] | null>(null);
+  const [achievementSummary, setAchievementSummary] = useState<AchievementSummary | null>(null);
 
-
-  // ログイン状態を確認
+  // 認証チェック
   useEffect(() => {
-    // ログイン状態をチェック
-    const isLoggedIn = localStorage.getItem("isLoggedIn") === "true"
-
-    if (!isLoggedIn) {
-      // ログインしていない場合
+    if (!authIsLoading && !isAuthenticated) {
       router.push("/login")
-      return
     }
-  }, [router])
+  }, [authIsLoading, isAuthenticated, router])
 
   /*
       // 隠し実績
@@ -101,50 +70,29 @@ export default function CollectionPage() {
 */
 
   useEffect(() => {
+    if (!isAuthenticated || !token) return
+
     // 実績データを取得
     const fetchAchievements = async () => {
       setLoadingAchievements(true);
       setErrorAchievements(null);
       try {
-        // JWTトークンを取得（正しいキー名を使用）
-        const token = localStorage.getItem("authToken");
-        
-        const getApiUrl = () => {
-          if (process.env.NODE_ENV === 'development') {
-            return process.env.NEXT_PUBLIC_DEV_URL;
-          }
-          return process.env.NEXT_PUBLIC_API_URL;
-        };
-        
-        // Rails APIから取得
-        const response = await fetch(`${getApiUrl()}/api/v1/achievements`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            ...(token && { 'Authorization': `Bearer ${token}` })
-          },
-          credentials: 'include', // CSRFトークンを含めるために必要
-        }); // Rails側の実績APIエンドポイント
-
-        if (!response.ok) {
-          throw new Error(`実績データの取得に失敗しました。ステータス: ${response.status}`);
+        const data = await api.achievements.list(token);
+        if (data) {
+          setAchievements(data.achievements || []);
+          setFilteredAchievements(data.achievements || []);
+          setAchievementSummary(data.summary || null);
         }
-
-        const data = await response.json();
-        //APIのデータ構造に合わせて実績データを設定
-        setAchievements(data.achievements || []);
-        setFilteredAchievements(data.achievements || []);
-        setAchievementSummary(data.summary || null);
-
-      } catch (err: any) {
-        setErrorAchievements(err.message);
+      } catch (err) {
+        const message = err instanceof Error ? err.message : "実績データの取得に失敗しました"
+        setErrorAchievements(message);
         console.error("Error fetching achievements:", err);
       } finally {
         setLoadingAchievements(false);
       }
     };
     fetchAchievements();
-  }, []);
+  }, [isAuthenticated, token]);
 
   const filterAchievements = (category: string) => {
     setActiveTab(category);
