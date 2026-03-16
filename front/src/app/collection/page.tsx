@@ -62,17 +62,17 @@ export default function CollectionPage() {
           <h3 className="text-xl font-semibold mb-3 text-card-foreground">実績サマリー</h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
             <div>
-              <p className="text-2xl font-bold text-primary">{achievementSummary.total_achievements}</p>
+              <p className="text-2xl font-bold text-primary">{achievementSummary.totalAchievements}</p>
               <p className="text-sm text-muted-foreground">総実績数</p>
             </div>
             <div>
-              <p className="text-2xl font-bold text-green-600 dark:text-green-400">{achievementSummary.unlocked_achievements}</p>
+              <p className="text-2xl font-bold text-green-600 dark:text-green-400">{achievementSummary.unlockedAchievements}</p>
               <p className="text-sm text-muted-foreground">達成済み</p>
             </div>
-            {Object.entries(achievementSummary.progress_by_category).map(([category, summary]) => (
-              summary.total > 0 && (
+            {Object.entries(achievementSummary.progressByCategory).map(([category, summary]) => (
+              summary && summary.total > 0 && (
                 <div key={category}>
-                  <p className="text-2xl font-bold text-accent-foreground">{summary.progress_percentage}%</p>
+                  <p className="text-2xl font-bold text-accent-foreground">{summary.progressPercentage}%</p>
                   <p className="text-sm text-muted-foreground capitalize">{categoryLabels[category] ?? category} 達成率</p>
                 </div>
               )
@@ -149,7 +149,7 @@ export default function CollectionPage() {
                 <CardHeader className="p-4">
                   <div className="relative w-full aspect-video mb-3">
                     <Image
-                      src={ach.image_url || "/placeholder.svg?text=No+Image"}
+                      src={ach.imageUrl || "/placeholder.svg?text=No+Image"}
                       alt={ach.title}
                       fill
                       style={{ objectFit: "cover" }}
@@ -171,9 +171,9 @@ export default function CollectionPage() {
                 </CardHeader>
                 <CardContent className="grow p-4 pt-0">
                   {ach.tier && <Badge variant="secondary" className="mb-2 text-xs bg-secondary text-secondary-foreground">{tierLabels[ach.tier] ?? ach.tier}</Badge>}
-                  <Progress value={ach.progress_percentage} className="w-full h-2 my-1" />
+                  <Progress value={ach.progressPercentage} className="w-full h-2 my-1" />
                   <p className="text-xs text-muted-foreground mt-1">
-                    {ach.progress_percentage}% 完了 ({ach.progress} / {ach.progress_target})
+                    {ach.progressPercentage}% 完了 ({ach.progress} / {ach.progressTarget})
                   </p>
                 </CardContent>
                 {ach.reward && (
