@@ -3,13 +3,9 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
-
-interface User {
-  id: number;
-  email: string;
-  username: string;
-  name?: string;
-}
+import { api } from '@/lib/api';
+import { ApiError } from '@/lib/api-error';
+import type { User } from '@/types/user';
 
 export const useAuth = () => {
   const router = useRouter();
@@ -21,31 +17,17 @@ export const useAuth = () => {
     checkAuth();
   }, []);
 
-  const getApiUrl = () => {
-    if (process.env.NODE_ENV === 'development') {
-      return process.env.NEXT_PUBLIC_DEV_URL;
-    }
-    return process.env.NEXT_PUBLIC_API_URL;
-  };
-
   // リフレッシュトークンを使ってアクセストークンを更新する
   const refreshAccessToken = async (): Promise<string | null> => {
     const storedRefreshToken = localStorage.getItem('refreshToken');
     if (!storedRefreshToken) return null;
 
     try {
-      const response = await fetch(`${getApiUrl()}/api/v1/auth/refresh`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ refresh_token: storedRefreshToken }),
-      });
-
-      if (!response.ok) return null;
-
-      const data = await response.json();
+      const data = await api.auth.refresh(storedRefreshToken);
+      if (!data) return null;
       localStorage.setItem('authToken', data.token);
       localStorage.setItem('refreshToken', data.refresh_token);
-      return data.token as string;
+      return data.token;
     } catch {
       return null;
     }
@@ -62,47 +44,31 @@ export const useAuth = () => {
     }
 
     try {
-      const response = await fetch(`${getApiUrl()}/api/v1/auth/verify`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${storedToken}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-
-        // JWT期限切れの場合はリフレッシュを試みる
-        if (errorData.code === 'token_expired') {
-          const newToken = await refreshAccessToken();
-          if (newToken) {
-            // リフレッシュ成功: 新しいトークンで再検証
-            await checkAuthWithToken(newToken);
-            return;
-          }
-          // リフレッシュ失敗: ログアウト状態に
-          throw new Error('認証期限が切れました。再度ログインしてください。');
-        }
-
-        throw new Error(errorData.error || 'Token verification failed');
-      }
-
-      const data = await response.json();
-      setUser(data.user || data);
+      const data = await api.auth.verify(storedToken);
+      setUser(data?.user ?? null);
       setToken(storedToken);
       localStorage.setItem('isLoggedIn', 'true');
     } catch (error) {
-      console.error('[Auth] JWT Token verification failed:', error);
-      clearAuthStorage();
-      setUser(null);
-      setToken(null);
-
-      // JWT期限切れ（リフレッシュ失敗含む）の場合のみトーストを表示
-      if (error instanceof Error && error.message.includes('認証期限が切れました')) {
+      // JWT期限切れの場合はリフレッシュを試みる
+      if (error instanceof ApiError && error.code === 'token_expired') {
+        const newToken = await refreshAccessToken();
+        if (newToken) {
+          // リフレッシュ成功: 新しいトークンで再検証
+          await checkAuthWithToken(newToken);
+          return;
+        }
+        // リフレッシュ失敗: ログアウト状態に
+        clearAuthStorage();
+        setUser(null);
+        setToken(null);
         toast.error('認証期限切れ', {
-          description: error.message,
+          description: '認証期限が切れました。再度ログインしてください。',
         });
+      } else {
+        console.error('[Auth] JWT Token verification failed:', error);
+        clearAuthStorage();
+        setUser(null);
+        setToken(null);
       }
     } finally {
       setIsLoading(false);
@@ -112,18 +78,8 @@ export const useAuth = () => {
   // 指定したトークンで検証する（リフレッシュ後の再検証用）
   const checkAuthWithToken = async (accessToken: string) => {
     try {
-      const response = await fetch(`${getApiUrl()}/api/v1/auth/verify`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (!response.ok) throw new Error('Token verification failed');
-
-      const data = await response.json();
-      setUser(data.user || data);
+      const data = await api.auth.verify(accessToken);
+      setUser(data?.user ?? null);
       setToken(accessToken);
       localStorage.setItem('isLoggedIn', 'true');
     } catch {
@@ -140,7 +96,19 @@ export const useAuth = () => {
     localStorage.removeItem('currentUserEmail');
   };
 
-  // 新しい関数: 認証エラーの共通処理
+  /** ログイン・登録後に認証トークンを localStorage に保存する */
+  const saveAuthTokens = (
+    authToken: string,
+    refreshToken?: string | null,
+    email?: string
+  ) => {
+    localStorage.setItem('authToken', authToken);
+    if (refreshToken) localStorage.setItem('refreshToken', refreshToken);
+    localStorage.setItem('isLoggedIn', 'true');
+    if (email) localStorage.setItem('currentUserEmail', email);
+  };
+
+  // 認証エラーの共通処理
   const handleAuthError = (error: unknown) => {
     clearAuthStorage();
     setToken(null);
@@ -165,19 +133,7 @@ export const useAuth = () => {
       const currentRefreshToken = localStorage.getItem('refreshToken');
 
       if (currentRefreshToken) {
-        const headers: Record<string, string> = {
-          'Content-Type': 'application/json',
-        };
-
-        if (currentToken) {
-          headers['Authorization'] = `Bearer ${currentToken}`;
-        }
-
-        await fetch(`${getApiUrl()}/api/v1/auth/logout`, {
-          method: 'POST',
-          headers,
-          body: JSON.stringify({ refresh_token: currentRefreshToken }),
-        });
+        await api.auth.logout(currentToken, currentRefreshToken);
       }
     } catch (error) {
       console.error('[Auth] ログアウトエラー:', error);
@@ -199,5 +155,6 @@ export const useAuth = () => {
     checkAuth,
     refreshAccessToken,
     handleAuthError,
+    saveAuthTokens,
   };
 };
