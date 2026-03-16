@@ -3,10 +3,12 @@
 import { useEffect, useState, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { api } from '@/lib/api'
+import { useAuth } from '@/hooks/useAuth'
 
 function CallbackContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
+  const { saveAuthTokens } = useAuth()
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading')
   const [message, setMessage] = useState('')
 
@@ -32,8 +34,7 @@ function CallbackContent() {
         const data = await api.auth.googleCallback(code)
 
         if (data?.token) {
-          localStorage.setItem('authToken', data.token)
-          localStorage.setItem('isLoggedIn', 'true')
+          saveAuthTokens(data.token)
           setStatus('success')
           setMessage('ログインしました。リダイレクトしています...')
           setTimeout(() => {

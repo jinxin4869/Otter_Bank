@@ -16,11 +16,13 @@ import { useState } from "react"
 import { loginSchema, type LoginFormValues } from "@/lib/schemas/auth"
 import { api } from "@/lib/api"
 import { getBaseUrl } from "@/lib/api-client"
+import { useAuth } from "@/hooks/useAuth"
 
 export default function LoginPage() {
   const [apiError, setApiError] = useState<string | null>(null)
   const [isGoogleLoading, setIsGoogleLoading] = useState(false)
   const router = useRouter()
+  const { saveAuthTokens } = useAuth()
 
   const {
     register,
@@ -40,12 +42,7 @@ export default function LoginPage() {
         throw new Error("認証トークンの取得に失敗しました")
       }
 
-      localStorage.setItem("authToken", responseData.token)
-      if (responseData.refresh_token) {
-        localStorage.setItem("refreshToken", responseData.refresh_token)
-      }
-      localStorage.setItem("isLoggedIn", "true")
-      localStorage.setItem("currentUserEmail", data.email)
+      saveAuthTokens(responseData.token, responseData.refresh_token, data.email)
 
       toast.success("ログイン成功", { description: "ダッシュボードにリダイレクトします" })
       router.push("/dashboard")
