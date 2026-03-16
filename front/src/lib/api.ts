@@ -96,6 +96,14 @@ export const api = {
     /** 実績一覧を取得する */
     list: (token: string) =>
       apiRequest<AchievementResponse>('/achievements', { token }),
+
+    /** 実績の進捗・解除状態を更新する */
+    update: (token: string, id: number, params: { progress?: number; unlocked?: boolean }) =>
+      apiRequest<AchievementResponse['achievements'][number]>(`/achievements/${id}`, {
+        method: 'PATCH',
+        token,
+        body: { achievement: params },
+      }),
   },
 
   /** お問い合わせ */
