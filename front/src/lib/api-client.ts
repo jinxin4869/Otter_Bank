@@ -1,4 +1,4 @@
-import { parseApiError } from '@/lib/api-error'
+import { parseApiError, ApiError } from '@/lib/api-error'
 
 /** 環境に応じたベース URL を返す */
 export function getBaseUrl(): string {
@@ -47,7 +47,15 @@ export async function apiRequest<T>(
   }
 
   if (!res.ok) {
-    throw new Error(parseApiError(data, 'エラーが発生しました'))
+    const message = parseApiError(data, 'エラーが発生しました')
+    const code =
+      data !== null &&
+      typeof data === 'object' &&
+      'code' in data &&
+      typeof (data as { code: unknown }).code === 'string'
+        ? (data as { code: string }).code
+        : undefined
+    throw new ApiError(message, code)
   }
   return data as T
 }

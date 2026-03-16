@@ -113,7 +113,6 @@ module Api
           title: post.title,
           content: post.content,
           author: post.user&.username,
-          author_email: post.user&.email,
           user_id: post.user_id,
           categories: post.categories.map(&:name),
           likes_count: post.likes_count || 0,

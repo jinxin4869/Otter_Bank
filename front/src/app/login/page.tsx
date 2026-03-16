@@ -14,11 +14,15 @@ import { AlertCircle, Loader2 } from "lucide-react"
 import Image from "next/image"
 import { useState } from "react"
 import { loginSchema, type LoginFormValues } from "@/lib/schemas/auth"
+import { api } from "@/lib/api"
+import { getBaseUrl } from "@/lib/api-client"
+import { useAuth } from "@/hooks/useAuth"
 
 export default function LoginPage() {
   const [apiError, setApiError] = useState<string | null>(null)
   const [isGoogleLoading, setIsGoogleLoading] = useState(false)
   const router = useRouter()
+  const { saveAuthTokens } = useAuth()
 
   const {
     register,
@@ -28,49 +32,17 @@ export default function LoginPage() {
     resolver: zodResolver(loginSchema),
   })
 
-  const getApiUrl = () => {
-    if (process.env.NODE_ENV === "development") {
-      return process.env.NEXT_PUBLIC_DEV_URL
-    }
-    return process.env.NEXT_PUBLIC_API_URL
-  }
-
   const onSubmit = async (data: LoginFormValues) => {
     setApiError(null)
 
     try {
-      const response = await fetch(`${getApiUrl()}/api/v1/sessions`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: data.email, password: data.password }),
-      })
+      const responseData = await api.auth.login(data.email, data.password)
 
-      if (!response.ok) {
-        const errorData = await response.json()
-        switch (response.status) {
-          case 401:
-            throw new Error("メールアドレスまたはパスワードが正しくありません")
-          case 403:
-            throw new Error("アカウントがロックされています")
-          case 404:
-            throw new Error("アカウントが見つかりません")
-          default:
-            throw new Error(errorData.error || "ログインに失敗しました")
-        }
-      }
-
-      const responseData = await response.json()
-
-      if (!responseData.token) {
+      if (!responseData?.token) {
         throw new Error("認証トークンの取得に失敗しました")
       }
 
-      localStorage.setItem("authToken", responseData.token)
-      if (responseData.refresh_token) {
-        localStorage.setItem("refreshToken", responseData.refresh_token)
-      }
-      localStorage.setItem("isLoggedIn", "true")
-      localStorage.setItem("currentUserEmail", data.email)
+      saveAuthTokens(responseData.token, responseData.refresh_token, data.email)
 
       toast.success("ログイン成功", { description: "ダッシュボードにリダイレクトします" })
       router.push("/dashboard")
@@ -86,7 +58,7 @@ export default function LoginPage() {
     setIsGoogleLoading(true)
 
     try {
-      window.location.href = `${getApiUrl()}/api/v1/auth/google`
+      window.location.href = `${getBaseUrl()}/api/v1/auth/google`
     } catch (error) {
       console.error("Google認証エラー:", error)
       setApiError("Google認証中にエラーが発生しました。後でもう一度お試しください。")

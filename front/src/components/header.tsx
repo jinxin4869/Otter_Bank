@@ -13,41 +13,14 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Sun, Moon, Menu, LogIn, LogOut, UserPlus, Home, BookOpen, MessageSquare, UserCircle, Award, Palette, Check } from "lucide-react"
 import Image from "next/image"
-import { usePathname, useRouter } from 'next/navigation'
-import { useEffect, useState } from "react"
+import { usePathname } from 'next/navigation'
+import { useAuth } from "@/hooks/useAuth"
+
 export default function Header() {
   const { theme, setTheme } = useTheme()
   const pathname = usePathname()
-  const router = useRouter()
-  const [isLoggedIn, setIsLoggedIn] = useState(false)
-  const [mounted, setMounted] = useState(false)
-  const logoHref = isLoggedIn ? "/dashboard" : "/";
-
-  useEffect(() => {
-    setMounted(true)
-    const loggedInStatus = localStorage.getItem("isLoggedIn") === "true"
-    setIsLoggedIn(loggedInStatus)
-
-    const handleStorageChange = () => {
-      const newLoggedInStatus = localStorage.getItem("isLoggedIn") === "true";
-      if (isLoggedIn !== newLoggedInStatus) {
-        setIsLoggedIn(newLoggedInStatus);
-        if (!newLoggedInStatus && (pathname === "/dashboard" || pathname === "/collection" || pathname === "/board")) {
-          router.push("/");
-        }
-      }
-    };
-    window.addEventListener('storage', handleStorageChange);
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-    };
-  }, [isLoggedIn, pathname, router, theme])
-
-  const handleLogout = () => {
-    localStorage.removeItem("isLoggedIn");
-    setIsLoggedIn(false);
-    router.push("/");
-  };
+  const { isAuthenticated, isLoading, logout } = useAuth()
+  const logoHref = isAuthenticated ? "/dashboard" : "/";
 
   const commonLinks = [
     { href: "/tutorial", label: "使い方", icon: <BookOpen className="mr-2 h-4 w-4" /> },
@@ -67,9 +40,9 @@ export default function Header() {
     ...commonLinks,
   ];
 
-  const navLinks = isLoggedIn ? loggedInLinks : loggedOutLinks;
+  const navLinks = isAuthenticated ? loggedInLinks : loggedOutLinks;
 
-  if (!mounted) {
+  if (isLoading) {
     return (
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 dark:border-slate-800">
         <div className="header-container flex h-16 items-center justify-between">
@@ -110,12 +83,12 @@ export default function Header() {
               </Link>
             </Button>
           ))}
-          {isLoggedIn && (
+          {isAuthenticated && (
             <Button
               variant="ghost"
               size="sm"
               className="rounded-full px-3 text-red-500 hover:bg-red-500/10 hover:text-red-600 dark:text-red-400 dark:hover:bg-red-400/10 dark:hover:text-red-500"
-              onClick={handleLogout}
+              onClick={logout}
             >
               <LogOut className="mr-2 h-4 w-4" />
               ログアウト
@@ -143,11 +116,11 @@ export default function Header() {
                   </Link>
                 </DropdownMenuItem>
               ))}
-              {isLoggedIn && (
+              {isAuthenticated && (
                 <>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
-                    onClick={handleLogout}
+                    onClick={logout}
                     className="flex items-center text-red-500 hover:!bg-red-500/10 hover:!text-red-600 dark:text-red-400 dark:hover:!bg-red-400/10 dark:hover:!text-red-500"
                   >
                     <LogOut className="mr-2 h-4 w-4" />

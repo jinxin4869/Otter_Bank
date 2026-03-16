@@ -2,10 +2,13 @@
 
 import { useEffect, useState, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
+import { api } from '@/lib/api'
+import { useAuth } from '@/hooks/useAuth'
 
 function CallbackContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
+  const { saveAuthTokens } = useAuth()
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading')
   const [message, setMessage] = useState('')
 
@@ -27,25 +30,11 @@ function CallbackContent() {
           return
         }
 
-        const getApiUrl = () => {
-          if (process.env.NODE_ENV === 'development') {
-            return process.env.NEXT_PUBLIC_DEV_URL;
-          }
-          return process.env.NEXT_PUBLIC_API_URL;
-        };
-
         // バックエンドにコードを送信してトークンを取得
-        const response = await fetch(`${getApiUrl()}/api/v1/auth/google/callback`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ code }),
-        })
+        const data = await api.auth.googleCallback(code)
 
-        if (response.ok) {
-          const { token } = await response.json()
-          localStorage.setItem('authToken', token)
+        if (data?.token) {
+          saveAuthTokens(data.token)
           setStatus('success')
           setMessage('ログインしました。リダイレクトしています...')
           setTimeout(() => {
