@@ -173,8 +173,8 @@ export const useAuth = () => {
           headers['Authorization'] = `Bearer ${currentToken}`;
         }
 
-        await fetch(`${getApiUrl()}/api/v1/auth/logout`, {
-          method: 'POST',
+        await fetch(`${getApiUrl()}/api/v1/sessions`, {
+          method: 'DELETE',
           headers,
           body: JSON.stringify({ refresh_token: currentRefreshToken }),
         });

@@ -5,7 +5,7 @@ module Api
     class AuthController < ApplicationController
       include ActionController::Cookies
 
-      skip_before_action :authorize_request, only: %i[google google_callback auth_failure verify logout refresh]
+      skip_before_action :authorize_request, only: %i[google google_callback auth_failure verify refresh]
 
       # Googleログインへのリダイレクト
       def google
@@ -104,20 +104,6 @@ module Api
         render json: {
           token: new_token,
           refresh_token: new_refresh_token.token
-        }, status: :ok
-      end
-
-      # ログアウト処理
-      def logout
-        token_value = params[:refresh_token]
-        if token_value
-          refresh_token = RefreshToken.find_by(token: token_value)
-          refresh_token&.revoke!
-        end
-
-        render json: {
-          status: 'success',
-          message: 'ログアウトしました'
         }, status: :ok
       end
     end
