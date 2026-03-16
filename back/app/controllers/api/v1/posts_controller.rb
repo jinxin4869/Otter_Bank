@@ -74,7 +74,7 @@ module Api
       private
 
       def set_post
-        @post = Post.includes(:categories).find(params[:id])
+        @post = Post.includes(:user, :categories).find(params[:id])
       rescue ActiveRecord::RecordNotFound
         render json: { error: '投稿が見つかりません' }, status: :not_found
       end
