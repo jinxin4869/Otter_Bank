@@ -2,12 +2,22 @@ import { apiRequest, publicApiRequest } from '@/lib/api-client'
 import type { ApiTransaction } from '@/types/transaction'
 import type { ApiPost, ApiComment } from '@/types/post'
 import type { AchievementResponse } from '@/types/achievement'
+import type { User } from '@/types/user'
 
 // ========== 型定義 ==========
 
 type LoginResponse = {
   token: string
   refresh_token?: string
+}
+
+type RefreshResponse = {
+  token: string
+  refresh_token: string
+}
+
+type VerifyResponse = {
+  user: User
 }
 
 type RegisterParams = {
@@ -69,6 +79,25 @@ export const api = {
       publicApiRequest<void>('/auth/reset-password', {
         method: 'POST',
         body: { token, password },
+      }),
+
+    /** JWT トークンを検証してユーザー情報を取得する */
+    verify: (token: string) =>
+      apiRequest<VerifyResponse>('/auth/verify', { token }),
+
+    /** リフレッシュトークンを使ってアクセストークンを更新する */
+    refresh: (refreshToken: string) =>
+      publicApiRequest<RefreshResponse>('/auth/refresh', {
+        method: 'POST',
+        body: { refresh_token: refreshToken },
+      }),
+
+    /** ログアウトしてリフレッシュトークンを無効化する */
+    logout: (token: string | null, refreshToken: string) =>
+      apiRequest<void>('/auth/logout', {
+        method: 'POST',
+        token: token ?? undefined,
+        body: { refresh_token: refreshToken },
       }),
   },
 

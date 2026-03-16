@@ -4,6 +4,14 @@ export type ApiErrorResponse = {
   code?: string
 }
 
+/** APIエラーをコード付きで表現するクラス */
+export class ApiError extends Error {
+  constructor(message: string, public readonly code?: string) {
+    super(message)
+    this.name = 'ApiError'
+  }
+}
+
 /**
  * APIエラーレスポンスからユーザー向けメッセージを取得する
  * - {errors: [...]} — バリデーションエラー配列 → 読点で連結
