@@ -4,7 +4,6 @@ export type ApiPost = {
   title: string
   content: string
   author: string
-  author_email: string
   user_id: number
   categories: string[]
   likes_count: number
@@ -21,7 +20,6 @@ export type ApiComment = {
   post_id: number
   content: string
   author: string
-  author_email: string
   user_id: number
   likes_count: number
   created_at: string
@@ -33,7 +31,6 @@ export type Post = {
   title: string
   content: string
   author: string
-  authorEmail: string
   userId?: number
   category: string[]
   createdAt: string
@@ -49,7 +46,6 @@ export type Comment = {
   postId: string
   content: string
   author: string
-  authorEmail: string
   userId?: number
   createdAt: string
   likes: number
@@ -61,7 +57,6 @@ export const mapApiPost = (p: ApiPost): Post => ({
   title: p.title,
   content: p.content,
   author: p.author || "",
-  authorEmail: p.author_email || "",
   userId: p.user_id,
   category: p.categories || [],
   createdAt: p.created_at,
@@ -77,7 +72,6 @@ export const mapApiComment = (c: ApiComment): Comment => ({
   postId: String(c.post_id),
   content: c.content,
   author: c.author || "",
-  authorEmail: c.author_email || "",
   userId: c.user_id,
   createdAt: c.created_at,
   likes: c.likes_count || 0,

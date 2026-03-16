@@ -41,4 +41,26 @@ RSpec.describe 'Api::V1::Sessions', type: :request do
       end
     end
   end
+
+  describe 'DELETE /api/v1/sessions' do
+    let!(:refresh_token) { RefreshToken.generate_for(user) }
+
+    it 'ログアウト時にリフレッシュトークンを失効させる' do
+      delete '/api/v1/sessions', params: { refresh_token: refresh_token.token }
+      expect(response).to have_http_status(:ok)
+      json = response.parsed_body
+      expect(json['status']).to eq('success')
+      expect(refresh_token.reload.revoked).to be true
+    end
+
+    it 'リフレッシュトークンなしでもログアウトできる' do
+      delete '/api/v1/sessions'
+      expect(response).to have_http_status(:ok)
+    end
+
+    it '未認証（Authorizationヘッダーなし）でもログアウトできる' do
+      delete '/api/v1/sessions', params: { refresh_token: refresh_token.token }
+      expect(response).to have_http_status(:ok)
+    end
+  end
 end
