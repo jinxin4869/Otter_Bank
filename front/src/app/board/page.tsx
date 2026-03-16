@@ -389,7 +389,7 @@ export default function BoardPage() {
 
   const isPostOwner = (post: Post) => post.userId === user?.id
 
-  const getUserInitial = (email: string) => email.charAt(0).toUpperCase()
+  const getUserInitial = (name: string) => name.charAt(0).toUpperCase()
 
   const getCategoryColor = (categoryValue: string) => {
     switch (categoryValue) {
@@ -505,7 +505,7 @@ export default function BoardPage() {
                 </CardTitle>
                 <div className="flex items-center mt-2">
                   <Avatar className="h-6 w-6 mr-2">
-                    <AvatarFallback className="text-xs">{getUserInitial(post.authorEmail)}</AvatarFallback>
+                    <AvatarFallback className="text-xs">{getUserInitial(post.author)}</AvatarFallback>
                   </Avatar>
                   <CardDescription>{post.author}</CardDescription>
                   {isPostOwner(post) && (
@@ -774,7 +774,7 @@ export default function BoardPage() {
                 <DialogTitle className="text-xl text-primary dark:text-primary-dark">{selectedPost.title}</DialogTitle>
                 <div className="flex items-center">
                   <Avatar className="h-8 w-8 mr-2">
-                    <AvatarFallback>{getUserInitial(selectedPost.authorEmail)}</AvatarFallback>
+                    <AvatarFallback>{getUserInitial(selectedPost.author)}</AvatarFallback>
                   </Avatar>
                   <div>
                     <p className="font-medium text-gray-900 dark:text-gray-100">{selectedPost.author}</p>
@@ -827,7 +827,7 @@ export default function BoardPage() {
                       return (
                         <div key={comment.id} className="flex space-x-2">
                           <Avatar className="h-8 w-8">
-                            <AvatarFallback>{getUserInitial(comment.authorEmail)}</AvatarFallback>
+                            <AvatarFallback>{getUserInitial(comment.author)}</AvatarFallback>
                           </Avatar>
                           <div className="flex-1">
                             <div className={`rounded-lg p-3 ${isOwnComment ? "comment-own" : "comment-other"}`}>
