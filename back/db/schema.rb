@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_03_15_012647) do
+ActiveRecord::Schema[8.1].define(version: 2026_03_16_000000) do
   create_table "achievements", force: :cascade do |t|
     t.integer "category", default: 0, null: false
     t.datetime "created_at", null: false
@@ -38,7 +38,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_15_012647) do
     t.datetime "created_at", null: false
     t.integer "post_id", null: false
     t.datetime "updated_at", null: false
-    t.string "user_email"
     t.integer "user_id"
     t.index ["post_id"], name: "index_bookmarks_on_post_id"
     t.index ["user_id", "post_id"], name: "index_bookmarks_on_user_and_post", unique: true
@@ -53,7 +52,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_15_012647) do
 
   create_table "comments", force: :cascade do |t|
     t.string "author"
-    t.string "author_email"
     t.text "content"
     t.datetime "created_at", null: false
     t.integer "likes_count"
@@ -79,7 +77,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_15_012647) do
     t.integer "likeable_id", null: false
     t.string "likeable_type", null: false
     t.datetime "updated_at", null: false
-    t.string "user_email"
     t.integer "user_id"
     t.index ["likeable_type", "likeable_id"], name: "index_likes_on_likeable"
     t.index ["user_id", "likeable_type", "likeable_id"], name: "index_likes_on_user_and_likeable", unique: true
@@ -109,7 +106,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_15_012647) do
 
   create_table "posts", force: :cascade do |t|
     t.string "author"
-    t.string "author_email"
     t.integer "comments_count"
     t.text "content"
     t.datetime "created_at", null: false
