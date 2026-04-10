@@ -38,14 +38,16 @@ export default function RegisterPage() {
         password_confirmation: data.confirmPassword,
       })
 
-      localStorage.setItem("isLoggedIn", "true")
-      localStorage.setItem("currentUserEmail", data.email)
-      if (responseData?.token) {
-        localStorage.setItem("authToken", responseData.token)
+      if (!responseData?.token) {
+        throw new Error("認証トークンを取得できませんでした。もう一度お試しください。")
       }
-      if (responseData?.refresh_token) {
+
+      localStorage.setItem("authToken", responseData.token)
+      if (responseData.refresh_token) {
         localStorage.setItem("refreshToken", responseData.refresh_token)
       }
+      localStorage.setItem("isLoggedIn", "true")
+      localStorage.setItem("currentUserEmail", data.email)
       localStorage.setItem("tutorialSeen", "false")
 
       toast.success("登録完了", { description: "アカウントが正常に作成されました。" })
