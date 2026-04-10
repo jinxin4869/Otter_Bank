@@ -4,7 +4,8 @@ module Api
   module V1
     class PostsController < ApplicationController
       before_action :authenticate_user!, except: %i[index show increment_views]
-      before_action :set_post, only: %i[show update destroy increment_views]
+      before_action :set_post_with_associations, only: %i[show update]
+      before_action :set_post, only: %i[destroy increment_views]
 
       def skip_authorization?
         action_name.in?(%w[index show increment_views])
@@ -73,8 +74,14 @@ module Api
 
       private
 
-      def set_post
+      def set_post_with_associations
         @post = Post.includes(:user, :categories).find(params[:id])
+      rescue ActiveRecord::RecordNotFound
+        render json: { error: '投稿が見つかりません' }, status: :not_found
+      end
+
+      def set_post
+        @post = Post.find(params[:id])
       rescue ActiveRecord::RecordNotFound
         render json: { error: '投稿が見つかりません' }, status: :not_found
       end
