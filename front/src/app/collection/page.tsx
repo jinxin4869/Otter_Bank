@@ -84,8 +84,7 @@ export default function CollectionPage() {
           setAchievementSummary(data.summary || null);
         }
       } catch (err) {
-        const message = err instanceof Error ? err.message : "実績データの取得に失敗しました"
-        setErrorAchievements(message);
+        setErrorAchievements("実績データの取得に失敗しました。時間をおいて再度お試しください。");
         console.error("Error fetching achievements:", err);
       } finally {
         setLoadingAchievements(false);
