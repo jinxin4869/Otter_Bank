@@ -59,7 +59,7 @@ group :development, :test do
 
   # テスト
   gem 'factory_bot_rails', '~> 6.5'
-  gem 'rspec-rails', '~> 7.1'
+  gem 'rspec-rails', '~> 8.0'
   gem 'shoulda-matchers', '~> 7.0'
 
   # コード品質
