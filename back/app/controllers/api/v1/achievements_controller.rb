@@ -6,10 +6,7 @@ module Api
       # before_action :authorize を削除（ApplicationControllerで処理済み）
 
       def index
-        Rails.logger.info "AchievementsController#index: current_user = #{@current_user&.id}"
-        Rails.logger.info "AchievementsController#index: achievements count = #{@current_user&.achievements&.count}"
-
-        achievements = @current_user.achievements.order(:tier, :original_achievement_id)
+        achievements = @current_user.achievements.order(:tier, :original_achievement_id).to_a
 
         render json: {
           achievements: achievements.map do |ach|
@@ -32,8 +29,8 @@ module Api
             }
           end,
           summary: {
-            total_achievements: achievements.count,
-            unlocked_achievements: achievements.where(unlocked: true).count,
+            total_achievements: achievements.size,
+            unlocked_achievements: achievements.count(&:unlocked),
             progress_by_category: achievements.group_by(&:category).transform_values do |achs|
               {
                 total: achs.count,
