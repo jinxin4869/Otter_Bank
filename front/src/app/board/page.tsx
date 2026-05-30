@@ -19,6 +19,8 @@ import { ja } from "date-fns/locale"
 import { MessageSquare, Heart, Search, Filter, Plus, ThumbsUp, MessageCircle, MoreVertical, Edit, Trash2, Bookmark, BookmarkCheck, Send, Eye, Loader2 } from "lucide-react"
 import { toast } from "sonner"
 import { useAuth } from "@/hooks/useAuth"
+import { api } from "@/lib/api"
+import { mapApiPost, mapApiComment, type Post, type Comment } from "@/types/post"
 
 // 掲示板カテゴリー
 const BOARD_CATEGORIES = [
@@ -39,90 +41,9 @@ const SORT_OPTIONS = [
   { value: "comments", label: "コメント数順" },
 ]
 
-type Comment = {
-  id: string
-  postId: string
-  content: string
-  author: string
-  authorEmail: string
-  userId?: number
-  createdAt: string
-  likes: number
-}
-
-type Post = {
-  id: string
-  title: string
-  content: string
-  author: string
-  authorEmail: string
-  userId?: number
-  category: string[]
-  createdAt: string
-  likes: number
-  comments: number
-  views: number
-  isBookmarked?: boolean
-}
-
-type ApiPost = {
-  id: number
-  title: string
-  content: string
-  author: string
-  author_email: string
-  user_id: number
-  categories: string[]
-  likes_count: number
-  comments_count: number
-  views_count: number
-  liked_by_me: boolean
-  bookmarked_by_me: boolean
-  created_at: string
-}
-
-type ApiComment = {
-  id: number
-  post_id: number
-  content: string
-  author: string
-  author_email: string
-  user_id: number
-  likes_count: number
-  created_at: string
-}
-
-const mapApiPost = (p: ApiPost): Post => ({
-  id: String(p.id),
-  title: p.title,
-  content: p.content,
-  author: p.author || "",
-  authorEmail: p.author_email || "",
-  userId: p.user_id,
-  category: p.categories || [],
-  createdAt: p.created_at,
-  likes: p.likes_count || 0,
-  comments: p.comments_count || 0,
-  views: p.views_count || 0,
-})
-
-const mapApiComment = (c: ApiComment): Comment => ({
-  id: String(c.id),
-  postId: String(c.post_id),
-  content: c.content,
-  author: c.author || "",
-  authorEmail: c.author_email || "",
-  userId: c.user_id,
-  createdAt: c.created_at,
-  likes: c.likes_count || 0,
-})
-
 export default function BoardPage() {
   const router = useRouter()
   const { user, token, isLoading: authIsLoading, isAuthenticated } = useAuth()
-
-  const apiUrl =
-    process.env.NODE_ENV === "development" ? process.env.NEXT_PUBLIC_DEV_URL : process.env.NEXT_PUBLIC_API_URL
 
   const [posts, setPosts] = useState<Post[]>([])
   const [likedPostIds, setLikedPostIds] = useState<string[]>([])
@@ -171,21 +92,19 @@ export default function BoardPage() {
     if (!token) return
     setIsPostsLoading(true)
     try {
-      const res = await fetch(`${apiUrl}/api/v1/posts`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      if (!res.ok) throw new Error("投稿の取得に失敗しました")
-      const data: ApiPost[] = await res.json()
-      setPosts(data.map(mapApiPost))
-      setLikedPostIds(data.filter((p) => p.liked_by_me).map((p) => String(p.id)))
-      setBookmarkedPosts(data.filter((p) => p.bookmarked_by_me).map((p) => String(p.id)))
+      const data = await api.posts.list(token)
+      if (data) {
+        setPosts(data.map(mapApiPost))
+        setLikedPostIds(data.filter((p) => p.liked_by_me).map((p) => String(p.id)))
+        setBookmarkedPosts(data.filter((p) => p.bookmarked_by_me).map((p) => String(p.id)))
+      }
     } catch (err) {
       console.error("投稿取得エラー:", err)
       toast.error("投稿の取得に失敗しました")
     } finally {
       setIsPostsLoading(false)
     }
-  }, [token, apiUrl])
+  }, [token])
 
   useEffect(() => {
     if (isAuthenticated && token) {
@@ -199,15 +118,10 @@ export default function BoardPage() {
     const isCurrentlyLiked = likedPostIds.includes(postId)
 
     try {
-      const endpoint = isCurrentlyLiked ? "unlike" : "like"
-      const res = await fetch(`${apiUrl}/api/v1/posts/${postId}/${endpoint}`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
-      })
-
-      if (!res.ok) {
-        toast.error("いいねの操作に失敗しました")
-        return
+      if (isCurrentlyLiked) {
+        await api.posts.unlike(token, postId)
+      } else {
+        await api.posts.like(token, postId)
       }
       if (isCurrentlyLiked) {
         setLikedPostIds((prev) => prev.filter((id) => id !== postId))
@@ -285,25 +199,11 @@ export default function BoardPage() {
 
     try {
       if (isBookmarked) {
-        const res = await fetch(`${apiUrl}/api/v1/posts/${postId}/bookmark`, {
-          method: "DELETE",
-          headers: { Authorization: `Bearer ${token}` },
-        })
-        if (!res.ok) {
-          toast.error("ブックマークの削除に失敗しました")
-          return
-        }
+        await api.posts.unbookmark(token, postId)
         setBookmarkedPosts((prev) => prev.filter((id) => id !== postId))
         toast.success("ブックマークを削除しました")
       } else {
-        const res = await fetch(`${apiUrl}/api/v1/posts/${postId}/bookmark`, {
-          method: "POST",
-          headers: { Authorization: `Bearer ${token}` },
-        })
-        if (!res.ok) {
-          toast.error("ブックマークの追加に失敗しました")
-          return
-        }
+        await api.posts.bookmark(token, postId)
         setBookmarkedPosts((prev) => [...prev, postId])
         toast.success("ブックマークに追加しました")
       }
@@ -325,16 +225,14 @@ export default function BoardPage() {
     if (hasError || !token) return
 
     try {
-      const res = await fetch(`${apiUrl}/api/v1/posts`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-        body: JSON.stringify({
-          post: { title: newPostTitle, content: newPostContent, category_names: newPostCategories },
-        }),
+      const newPost = await api.posts.create(token, {
+        title: newPostTitle,
+        content: newPostContent,
+        category_names: newPostCategories,
       })
-      if (!res.ok) throw new Error()
-      const newPost: ApiPost = await res.json()
-      setPosts((prev) => [mapApiPost(newPost), ...prev])
+      if (newPost) {
+        setPosts((prev) => [mapApiPost(newPost), ...prev])
+      }
       setNewPostTitle("")
       setNewPostContent("")
       setNewPostCategories([])
@@ -365,16 +263,14 @@ export default function BoardPage() {
     if (hasError) return
 
     try {
-      const res = await fetch(`${apiUrl}/api/v1/posts/${editingPost.id}`, {
-        method: "PATCH",
-        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-        body: JSON.stringify({
-          post: { title: newPostTitle, content: newPostContent, category_names: newPostCategories },
-        }),
+      const updated = await api.posts.update(token, editingPost.id, {
+        title: newPostTitle,
+        content: newPostContent,
+        category_names: newPostCategories,
       })
-      if (!res.ok) throw new Error()
-      const updated: ApiPost = await res.json()
-      setPosts((prev) => prev.map((p) => (p.id === editingPost.id ? mapApiPost(updated) : p)))
+      if (updated) {
+        setPosts((prev) => prev.map((p) => (p.id === editingPost.id ? mapApiPost(updated) : p)))
+      }
       setNewPostTitle("")
       setNewPostContent("")
       setNewPostCategories([])
@@ -392,27 +288,24 @@ export default function BoardPage() {
     setIsPostDetailDialogOpen(true)
 
     // 閲覧数を増加
-    try {
-      await fetch(`${apiUrl}/api/v1/posts/${post.id}/increment_views`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      setPosts((prev) => prev.map((p) => (p.id === post.id ? { ...p, views: p.views + 1 } : p)))
-    } catch { /* 閲覧数エラーは無視 */ }
+    if (token) {
+      try {
+        await api.posts.incrementViews(token, post.id)
+        setPosts((prev) => prev.map((p) => (p.id === post.id ? { ...p, views: p.views + 1 } : p)))
+      } catch { /* 閲覧数エラーは無視 */ }
 
-    // コメント取得
-    try {
-      const res = await fetch(`${apiUrl}/api/v1/posts/${post.id}/comments`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      if (!res.ok) return
-      const data: ApiComment[] = await res.json()
-      setComments((prev) => [
-        ...prev.filter((c) => c.postId !== post.id),
-        ...data.map(mapApiComment),
-      ])
-    } catch (err) {
-      console.error("コメント取得エラー:", err)
+      // コメント取得
+      try {
+        const data = await api.posts.comments.list(token, post.id)
+        if (data) {
+          setComments((prev) => [
+            ...prev.filter((c) => c.postId !== post.id),
+            ...data.map(mapApiComment),
+          ])
+        }
+      } catch (err) {
+        console.error("コメント取得エラー:", err)
+      }
     }
   }
 
@@ -424,17 +317,13 @@ export default function BoardPage() {
     }
 
     try {
-      const res = await fetch(`${apiUrl}/api/v1/posts/${selectedPost.id}/comments`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-        body: JSON.stringify({ comment: { content: newCommentContent } }),
-      })
-      if (!res.ok) throw new Error()
-      const newComment: ApiComment = await res.json()
-      setComments((prev) => [...prev, mapApiComment(newComment)])
-      setPosts((prev) =>
-        prev.map((p) => (p.id === selectedPost.id ? { ...p, comments: p.comments + 1 } : p))
-      )
+      const newComment = await api.posts.comments.create(token, selectedPost.id, newCommentContent)
+      if (newComment) {
+        setComments((prev) => [...prev, mapApiComment(newComment)])
+        setPosts((prev) =>
+          prev.map((p) => (p.id === selectedPost.id ? { ...p, comments: p.comments + 1 } : p))
+        )
+      }
       setNewCommentContent("")
       toast.success("コメントを投稿しました")
     } catch {
@@ -448,11 +337,11 @@ export default function BoardPage() {
     const isCurrentlyLiked = likedCommentIds.includes(commentId)
 
     try {
-      const endpoint = isCurrentlyLiked ? "unlike" : "like"
-      await fetch(`${apiUrl}/api/v1/posts/${selectedPost.id}/comments/${commentId}/${endpoint}`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
-      })
+      if (isCurrentlyLiked) {
+        await api.posts.comments.unlike(token, selectedPost.id, commentId)
+      } else {
+        await api.posts.comments.like(token, selectedPost.id, commentId)
+      }
 
       if (isCurrentlyLiked) {
         setLikedCommentIds((prev) => prev.filter((id) => id !== commentId))
@@ -483,15 +372,7 @@ export default function BoardPage() {
     if (!deletingPostId || !token) return
 
     try {
-      const res = await fetch(`${apiUrl}/api/v1/posts/${deletingPostId}`, {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
-      })
-
-      if (!res.ok) {
-        toast.error("投稿の削除に失敗しました")
-        return
-      }
+      await api.posts.delete(token, deletingPostId)
       setPosts((prev) => prev.filter((post) => post.id !== deletingPostId))
       setDeletingPostId(null)
       setIsDeleteDialogOpen(false)

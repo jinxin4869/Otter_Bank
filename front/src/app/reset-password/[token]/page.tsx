@@ -11,6 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { AlertCircle, CheckCircle2, Loader2 } from "lucide-react"
 import { resetPasswordSchema, type ResetPasswordFormValues } from "@/lib/schemas/auth"
+import { api } from "@/lib/api"
 
 export default function ResetPasswordPage() {
   const { token } = useParams<{ token: string }>()
@@ -26,34 +27,27 @@ export default function ResetPasswordPage() {
     resolver: zodResolver(resetPasswordSchema),
   })
 
-  const getApiUrl = () => {
-    if (process.env.NODE_ENV === "development") {
-      return process.env.NEXT_PUBLIC_DEV_URL
-    }
-    return process.env.NEXT_PUBLIC_API_URL
-  }
-
   const onSubmit = async (data: ResetPasswordFormValues) => {
     setApiError("")
     setSuccessMessage("")
 
     try {
-      const response = await fetch(`${getApiUrl()}/api/v1/auth/reset-password`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token, password: data.password }),
-      })
-
-      if (response.ok) {
-        setSuccessMessage("パスワードがリセットされました。ログインページにリダイレクトします。")
-        setTimeout(() => router.push("/login"), 3000)
-      } else {
-        const errorData = await response.json()
-        setApiError(errorData.message || "パスワードのリセットに失敗しました")
-      }
+      await api.auth.resetPassword(token, data.password)
+      setSuccessMessage("パスワードがリセットされました。ログインページにリダイレクトします。")
+      setTimeout(() => router.push("/login"), 3000)
     } catch (err) {
       console.error("Password reset error:", err)
-      setApiError("ネットワークエラーが発生しました")
+      const isNetworkError =
+        err instanceof Error &&
+        (err.message.toLowerCase().includes("failed to fetch") ||
+          err.message.toLowerCase().includes("network"))
+      setApiError(
+        isNetworkError
+          ? "ネットワークエラーが発生しました。時間をおいて再度お試しください。"
+          : err instanceof Error
+            ? err.message
+            : "パスワードのリセットに失敗しました"
+      )
     }
   }
 

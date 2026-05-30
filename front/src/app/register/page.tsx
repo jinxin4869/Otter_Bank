@@ -12,8 +12,8 @@ import { Label } from "@/components/ui/label"
 import { toast } from "sonner"
 import { Loader2, Mail, Lock, User, AlertCircle } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { parseApiError } from "@/lib/api-error"
 import { registerSchema, type RegisterFormValues } from "@/lib/schemas/auth"
+import { api } from "@/lib/api"
 
 export default function RegisterPage() {
   const router = useRouter()
@@ -27,50 +27,27 @@ export default function RegisterPage() {
     resolver: zodResolver(registerSchema),
   })
 
-  const getApiUrl = () => {
-    if (process.env.NODE_ENV === "development") {
-      return process.env.NEXT_PUBLIC_DEV_URL
-    }
-    return process.env.NEXT_PUBLIC_API_URL
-  }
-
   const onSubmit = async (data: RegisterFormValues) => {
     setApiError(null)
 
     try {
-      const response = await fetch(`${getApiUrl()}/api/v1/users`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          user: {
-            username: data.username,
-            email: data.email,
-            password: data.password,
-            password_confirmation: data.confirmPassword,
-          },
-        }),
+      const responseData = await api.auth.register({
+        username: data.username,
+        email: data.email,
+        password: data.password,
+        password_confirmation: data.confirmPassword,
       })
 
-      if (!response.ok) {
-        let errorData: unknown
-        try {
-          errorData = await response.json()
-        } catch {
-          errorData = null
-        }
-        throw new Error(parseApiError(errorData, "登録に失敗しました。"))
+      if (!responseData?.token) {
+        throw new Error("認証トークンを取得できませんでした。もう一度お試しください。")
       }
 
-      const responseData = await response.json()
-
-      localStorage.setItem("isLoggedIn", "true")
-      localStorage.setItem("currentUserEmail", data.email)
-      if (responseData.token) {
-        localStorage.setItem("authToken", responseData.token)
-      }
+      localStorage.setItem("authToken", responseData.token)
       if (responseData.refresh_token) {
         localStorage.setItem("refreshToken", responseData.refresh_token)
       }
+      localStorage.setItem("isLoggedIn", "true")
+      localStorage.setItem("currentUserEmail", data.email)
       localStorage.setItem("tutorialSeen", "false")
 
       toast.success("登録完了", { description: "アカウントが正常に作成されました。" })

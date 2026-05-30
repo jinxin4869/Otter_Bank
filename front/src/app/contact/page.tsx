@@ -13,9 +13,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner"
 import { Loader2 } from "lucide-react"
 import { contactSchema, type ContactFormValues } from "@/lib/schemas/auth"
+import { api } from "@/lib/api"
+import { useAuth } from "@/hooks/useAuth"
 
 export default function ContactPage() {
   const router = useRouter()
+  const { user, isAuthenticated } = useAuth()
 
   const {
     register,
@@ -31,33 +34,14 @@ export default function ContactPage() {
 
   // ログイン中のメールアドレスを自動入力
   useEffect(() => {
-    const isLoggedIn = localStorage.getItem("isLoggedIn") === "true"
-    if (isLoggedIn) {
-      const userEmail = localStorage.getItem("currentUserEmail")
-      if (userEmail) {
-        setValue("email", userEmail)
-      }
+    if (isAuthenticated && user?.email) {
+      setValue("email", user.email)
     }
-  }, [setValue])
+  }, [isAuthenticated, user, setValue])
 
   const onSubmit = async (data: ContactFormValues) => {
     try {
-      const apiUrl =
-        process.env.NODE_ENV === "development"
-          ? process.env.NEXT_PUBLIC_DEV_URL
-          : process.env.NEXT_PUBLIC_API_URL
-
-      const res = await fetch(`${apiUrl}/api/v1/contacts`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ contact: data }),
-      })
-
-      if (!res.ok) {
-        const errorData = await res.json()
-        throw new Error(errorData.errors?.join(", ") || "エラーが発生しました")
-      }
-
+      await api.contacts.send(data)
       toast.success("送信完了", { description: "お問い合わせを受け付けました。回答をお待ちください。" })
       reset()
       router.push("/")
