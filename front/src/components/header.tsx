@@ -15,38 +15,24 @@ import { Sun, Moon, Menu, LogIn, LogOut, UserPlus, Home, BookOpen, MessageSquare
 import Image from "next/image"
 import { usePathname, useRouter } from 'next/navigation'
 import { useEffect, useState } from "react"
+import { useAuth } from "@/hooks/useAuth"
+
 export default function Header() {
   const { theme, setTheme } = useTheme()
   const pathname = usePathname()
   const router = useRouter()
-  const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const { isAuthenticated, logout, isLoading } = useAuth()
   const [mounted, setMounted] = useState(false)
-  const logoHref = isLoggedIn ? "/dashboard" : "/";
+  const logoHref = isAuthenticated ? "/dashboard" : "/";
 
   useEffect(() => {
     setMounted(true)
-    const loggedInStatus = localStorage.getItem("isLoggedIn") === "true"
-    setIsLoggedIn(loggedInStatus)
+  }, [])
 
-    const handleStorageChange = () => {
-      const newLoggedInStatus = localStorage.getItem("isLoggedIn") === "true";
-      if (isLoggedIn !== newLoggedInStatus) {
-        setIsLoggedIn(newLoggedInStatus);
-        if (!newLoggedInStatus && (pathname === "/dashboard" || pathname === "/collection" || pathname === "/board")) {
-          router.push("/");
-        }
-      }
-    };
-    window.addEventListener('storage', handleStorageChange);
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-    };
-  }, [isLoggedIn, pathname, router, theme])
-
-  const handleLogout = () => {
-    localStorage.removeItem("isLoggedIn");
-    setIsLoggedIn(false);
-    router.push("/");
+  const handleLogout = async () => {
+    await logout()
+    // router.push("/") は logout 内で行われるか、ここで行うかは実装による
+    // useAuth の logout 内で router.push('/login') が呼ばれるはずなので十分
   };
 
   const commonLinks = [
@@ -67,13 +53,13 @@ export default function Header() {
     ...commonLinks,
   ];
 
-  const navLinks = isLoggedIn ? loggedInLinks : loggedOutLinks;
+  const navLinks = isAuthenticated ? loggedInLinks : loggedOutLinks;
 
-  if (!mounted) {
+  if (!mounted || isLoading) {
     return (
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 dark:border-slate-800">
         <div className="header-container flex h-16 items-center justify-between">
-          <Link href={logoHref} className="flex items-center gap-2">
+          <Link href="/" className="flex items-center gap-2">
             <Image src="/logo.png" alt="Otter Bank Logo" width={32} height={32} className="rounded-full" />
             <span className="font-bold text-lg">Otter Bank</span>
           </Link>
@@ -110,7 +96,7 @@ export default function Header() {
               </Link>
             </Button>
           ))}
-          {isLoggedIn && (
+          {isAuthenticated && (
             <Button
               variant="ghost"
               size="sm"
@@ -143,7 +129,7 @@ export default function Header() {
                   </Link>
                 </DropdownMenuItem>
               ))}
-              {isLoggedIn && (
+              {isAuthenticated && (
                 <>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
