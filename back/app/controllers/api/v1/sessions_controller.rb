@@ -11,12 +11,9 @@ module Api
         email = params[:email] || params[:session]&.[](:email)
         password = params[:password] || params[:session]&.[](:password)
 
-        Rails.logger.info "Login attempt with email: #{email}" if Rails.env.development?
-
         user = User.find_by(email: email)
 
         if user.nil?
-          Rails.logger.info "User not found for email: #{email}" if Rails.env.development?
           render json: {
             error: 'アカウントが見つかりません',
             code: 'account_not_found'
@@ -25,12 +22,12 @@ module Api
         end
 
         # パスワード認証のデバッグログ
-        Rails.logger.info "User found: #{user.email}" if Rails.env.development?
+        Rails.logger.info "User found: #{user.id}" if Rails.env.development?
         Rails.logger.info "OAuth providers count: #{user.oauth_providers.count}" if Rails.env.development?
         Rails.logger.info "Password provided: #{password.present?}" if Rails.env.development?
 
         if user&.authenticate(password)
-          Rails.logger.info "Authentication successful for user: #{user.email}" if Rails.env.development?
+          Rails.logger.info "Authentication successful for user: #{user.id}" if Rails.env.development?
           token = JsonWebToken.encode(user_id: user.id)
           refresh_token = RefreshToken.generate_for(user)
           render json: {
@@ -41,7 +38,7 @@ module Api
             user: user.as_json(only: %i[id email username]) # 必要に応じてユーザー情報を返す
           }, status: :ok
         else
-          Rails.logger.info "Authentication failed for user: #{user.email}" if Rails.env.development?
+          Rails.logger.info "Authentication failed for user: #{user.id}" if Rails.env.development?
           render json: {
             error: 'メールアドレスまたはパスワードが無効です',
             code: 'invalid_credentials'
