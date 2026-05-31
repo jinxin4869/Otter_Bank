@@ -8,7 +8,7 @@ import { Progress } from "@/components/ui/progress"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import Image from "next/image"
 import { cn } from "@/lib/utils"
-import { LockIcon, UnlockIcon, AlertTriangle, Trophy, Gift } from "lucide-react"
+import { LockIcon, UnlockIcon, AlertTriangle, Trophy, Share2, Gift } from 'lucide-react';
 import { useAuth } from "@/hooks/useAuth"
 import { useAchievements } from "@/hooks/useAchievements"
 
@@ -223,6 +223,26 @@ export default function CollectionPage() {
                     </div>
                   )}
                 </CardContent>
+                <CardFooter className="p-4 pt-0 flex flex-col gap-2 items-start">
+                  {ach.reward && (
+                    <p className="text-xs text-primary font-medium">報酬: {ach.reward}</p>
+                  )}
+                  {ach.unlocked && (
+                    <button
+                      onClick={() => {
+                        const params = new URLSearchParams({
+                          shareTitle: ach.title,
+                          shareTier: ach.tier ?? "",
+                        })
+                        router.push(`/board?${params.toString()}`)
+                      }}
+                      className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors"
+                    >
+                      <Share2 className="h-3 w-3" />
+                      掲示板でシェア
+                    </button>
+                  )}
+                </CardFooter>
               </Card>
             ))}
           </div>
