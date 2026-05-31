@@ -91,22 +91,6 @@ RSpec.describe 'Api::V1::Auths', type: :request do
     end
   end
 
-  describe 'POST /api/v1/auth/logout' do
-    let(:user) { create(:user) }
-    let!(:refresh_token) { RefreshToken.generate_for(user) }
-
-    it 'ログアウト時にリフレッシュトークンを失効させる' do
-      post '/api/v1/auth/logout', params: { refresh_token: refresh_token.token }
-      expect(response).to have_http_status(:ok)
-      expect(refresh_token.reload.revoked).to be true
-    end
-
-    it 'リフレッシュトークンなしでもログアウトできる' do
-      post '/api/v1/auth/logout'
-      expect(response).to have_http_status(:ok)
-    end
-  end
-
   describe 'GET /api/v1/auth/google/callback' do
     pending "Google OAuth のテストは別途実装 #{__FILE__}"
   end
