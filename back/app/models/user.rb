@@ -96,6 +96,27 @@ class User < ApplicationRecord
     nil
   end
 
+  TOKEN_EXPIRY_HOURS = 2
+
+  def generate_password_reset_token!
+    loop do
+      token = SecureRandom.urlsafe_base64(32)
+      unless User.exists?(reset_password_token: token)
+        update_columns(reset_password_token: token, reset_password_sent_at: Time.current)
+        return token
+      end
+    end
+  end
+
+  def password_reset_token_valid?
+    reset_password_sent_at.present? &&
+      reset_password_sent_at > TOKEN_EXPIRY_HOURS.hours.ago
+  end
+
+  def clear_password_reset_token!
+    update_columns(reset_password_token: nil, reset_password_sent_at: nil)
+  end
+
   private
 
   def password_required?
