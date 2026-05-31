@@ -1,6 +1,6 @@
 import { apiRequest, publicApiRequest } from '@/lib/api-client'
 import type { ApiTransaction } from '@/types/transaction'
-import type { ApiPost, ApiComment } from '@/types/post'
+import type { ApiPost, ApiComment, ApiPostsResponse } from '@/types/post'
 import type { AchievementResponse } from '@/types/achievement'
 
 // ========== 型定義 ==========
@@ -64,9 +64,17 @@ export const api = {
         body: { code },
       }),
 
+    /** パスワードリセットメール送信 */
+    requestPasswordReset: (email: string) =>
+      publicApiRequest<{ message: string }>('/auth/reset-password', {
+        method: 'POST',
+        body: { email },
+      }),
+
+    /** パスワードリセット確定（トークン + 新パスワード） */
     /** パスワードリセット */
     resetPassword: (token: string, password: string) =>
-      publicApiRequest<void>('/auth/reset-password', {
+      publicApiRequest<{ message: string }>('/auth/reset-password/confirm', {
         method: 'POST',
         body: { token, password },
       }),
@@ -118,9 +126,9 @@ export const api = {
 
   /** 投稿 */
   posts: {
-    /** 投稿一覧を取得する */
-    list: (token: string) =>
-      apiRequest<ApiPost[]>('/posts', { token }),
+    /** 投稿一覧を取得する（page: ページ番号, per: 1ページあたりの件数） */
+    list: (token: string, page = 1, per = 20) =>
+      apiRequest<ApiPostsResponse>(`/posts?page=${page}&per=${per}`, { token }),
 
     /** 投稿を作成する */
     create: (token: string, params: CreatePostParams) =>

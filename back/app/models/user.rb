@@ -77,12 +77,14 @@ class User < ApplicationRecord
       user.save!(validate: false)
     end
 
-    # OAuthプロバイダーの関連付けを作成（重複チェック）
-    unless user.oauth_providers.exists?(provider: auth.provider, uid: auth.uid)
-      user.oauth_providers.create!(
+    # OAuthプロバイダーの関連付けを作成
+    begin
+      user.oauth_providers.find_or_create_by!(
         provider: auth.provider,
         uid: auth.uid
       )
+    rescue ActiveRecord::RecordNotUnique
+      retry
     end
 
     user
@@ -92,6 +94,27 @@ class User < ApplicationRecord
   rescue StandardError => e
     Rails.logger.error "OAuth 予期しないエラー: #{e.message}"
     nil
+  end
+
+  TOKEN_EXPIRY_HOURS = 2
+
+  def generate_password_reset_token!
+    loop do
+      token = SecureRandom.urlsafe_base64(32)
+      unless User.exists?(reset_password_token: token)
+        update_columns(reset_password_token: token, reset_password_sent_at: Time.current)
+        return token
+      end
+    end
+  end
+
+  def password_reset_token_valid?
+    reset_password_sent_at.present? &&
+      reset_password_sent_at > TOKEN_EXPIRY_HOURS.hours.ago
+  end
+
+  def clear_password_reset_token!
+    update_columns(reset_password_token: nil, reset_password_sent_at: nil)
   end
 
   private
