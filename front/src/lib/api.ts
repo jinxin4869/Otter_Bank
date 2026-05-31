@@ -64,9 +64,16 @@ export const api = {
         body: { code },
       }),
 
-    /** パスワードリセット */
+    /** パスワードリセットメール送信 */
+    requestPasswordReset: (email: string) =>
+      publicApiRequest<{ message: string }>('/auth/reset-password', {
+        method: 'POST',
+        body: { email },
+      }),
+
+    /** パスワードリセット確定（トークン + 新パスワード） */
     resetPassword: (token: string, password: string) =>
-      publicApiRequest<void>('/auth/reset-password', {
+      publicApiRequest<{ message: string }>('/auth/reset-password/confirm', {
         method: 'POST',
         body: { token, password },
       }),
