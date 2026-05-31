@@ -1,3 +1,14 @@
+/** 投稿一覧 API レスポンス型（ページネーション付き） */
+export type ApiPostsResponse = {
+  posts: ApiPost[]
+  meta: {
+    current_page: number
+    total_pages: number
+    total_count: number
+    per_page: number
+  }
+}
+
 /** Rails API レスポンス型 — 投稿 */
 export type ApiPost = {
   id: number
