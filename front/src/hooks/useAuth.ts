@@ -162,6 +162,22 @@ export const useAuth = () => {
     localStorage.removeItem("currentUserEmail");
   };
 
+  const saveAuth = (
+    newToken: string,
+    newRefreshToken?: string,
+    email?: string,
+  ) => {
+    localStorage.setItem("authToken", newToken);
+    if (newRefreshToken) {
+      localStorage.setItem("refreshToken", newRefreshToken);
+    }
+    localStorage.setItem("isLoggedIn", "true");
+    if (email) {
+      localStorage.setItem("currentUserEmail", email);
+    }
+    setToken(newToken);
+  };
+
   // 新しい関数: 認証エラーの共通処理
   const handleAuthError = (error: unknown) => {
     clearAuthStorage();
@@ -222,5 +238,6 @@ export const useAuth = () => {
     checkAuth,
     refreshAccessToken,
     handleAuthError,
+    saveAuth,
   };
 };
