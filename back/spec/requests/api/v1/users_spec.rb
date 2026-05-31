@@ -61,4 +61,17 @@ RSpec.describe 'Api::V1::Users', type: :request do
       expect(response).to have_http_status(:unauthorized)
     end
   end
+
+  describe 'DELETE /api/v1/user' do
+    it '自身のアカウントを削除できる' do
+      delete '/api/v1/user', headers: headers
+      expect(response).to have_http_status(:no_content)
+      expect(User.exists?(user.id)).to be false
+    end
+
+    it '未認証ではアクセスできない' do
+      delete '/api/v1/user'
+      expect(response).to have_http_status(:unauthorized)
+    end
+  end
 end

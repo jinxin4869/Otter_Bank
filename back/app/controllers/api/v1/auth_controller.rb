@@ -34,8 +34,7 @@ module Api
         error_type = params[:error] || params[:strategy] || 'unknown'
         error_message = params[:message] || params[:error_description] || 'Authentication failed'
 
-        Rails.logger.error "OAuth認証失敗: #{error_type} - #{error_message}"
-        Rails.logger.error "失敗パラメータ: #{params.inspect}"
+        Rails.logger.error "OAuth認証失敗: type=#{error_type}, message=#{error_message}, keys=#{params.keys}"
 
         # invalid_grant エラーの場合は再試行を促す
         if error_message.include?('invalid_grant') || error_message.include?('invalid_credentials')
