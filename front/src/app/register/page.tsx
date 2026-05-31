@@ -14,10 +14,12 @@ import { Loader2, Mail, Lock, User, AlertCircle } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { registerSchema, type RegisterFormValues } from "@/lib/schemas/auth"
 import { api } from "@/lib/api"
+import { useAuth } from "@/hooks/useAuth"
 
 export default function RegisterPage() {
   const router = useRouter()
   const [apiError, setApiError] = useState<string | null>(null)
+  const { login } = useAuth()
 
   const {
     register,
@@ -38,14 +40,11 @@ export default function RegisterPage() {
         password_confirmation: data.confirmPassword,
       })
 
-      localStorage.setItem("isLoggedIn", "true")
-      localStorage.setItem("currentUserEmail", data.email)
-      if (responseData?.token) {
-        localStorage.setItem("authToken", responseData.token)
+      if (!responseData?.token) {
+        throw new Error("認証トークンを取得できませんでした。もう一度お試しください。")
       }
-      if (responseData?.refresh_token) {
-        localStorage.setItem("refreshToken", responseData.refresh_token)
-      }
+
+      await login(responseData.token, data.email, responseData.refresh_token)
       localStorage.setItem("tutorialSeen", "false")
 
       toast.success("登録完了", { description: "アカウントが正常に作成されました。" })

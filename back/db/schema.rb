@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_03_16_000000) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_31_000002) do
   create_table "achievements", force: :cascade do |t|
     t.integer "category", default: 0, null: false
     t.datetime "created_at", null: false
@@ -48,6 +48,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_16_000000) do
     t.datetime "created_at", null: false
     t.string "name"
     t.datetime "updated_at", null: false
+    t.index ["name"], name: "index_categories_on_name"
   end
 
   create_table "comments", force: :cascade do |t|
@@ -92,6 +93,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_16_000000) do
     t.string "uid"
     t.datetime "updated_at", null: false
     t.integer "user_id", null: false
+    t.index ["provider", "uid"], name: "index_oauth_providers_on_provider_and_uid", unique: true
     t.index ["user_id"], name: "index_oauth_providers_on_user_id"
   end
 
@@ -148,6 +150,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_16_000000) do
     t.string "transaction_type"
     t.datetime "updated_at", null: false
     t.integer "user_id", null: false
+    t.index ["transaction_type"], name: "index_transactions_on_transaction_type"
+    t.index ["user_id", "date"], name: "index_transactions_on_user_id_and_date"
     t.index ["user_id"], name: "index_transactions_on_user_id"
   end
 
@@ -169,8 +173,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_16_000000) do
     t.string "email"
     t.string "name"
     t.string "password_digest"
+    t.datetime "reset_password_sent_at"
+    t.string "reset_password_token"
     t.datetime "updated_at", null: false
     t.string "username"
+    t.index ["email"], name: "index_users_on_email", unique: true
+    t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
+    t.index ["username"], name: "index_users_on_username", unique: true
   end
 
   add_foreign_key "achievements", "users"

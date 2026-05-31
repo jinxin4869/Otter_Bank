@@ -13,6 +13,8 @@ Rails.application.routes.draw do
       post 'auth/logout', to: 'auth#logout'
       get 'auth/google', to: 'auth#google'
       get 'auth/google/callback', to: 'auth#google_callback'
+      post 'auth/reset-password', to: 'password_resets#request_reset'
+      post 'auth/reset-password/confirm', to: 'password_resets#confirm_reset'
 
       # 家計簿管理
       resources :transactions, only: %i[index create update destroy] # 取引関連

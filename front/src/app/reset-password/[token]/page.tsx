@@ -37,7 +37,17 @@ export default function ResetPasswordPage() {
       setTimeout(() => router.push("/login"), 3000)
     } catch (err) {
       console.error("Password reset error:", err)
-      setApiError(err instanceof Error ? err.message : "パスワードのリセットに失敗しました")
+      const isNetworkError =
+        err instanceof Error &&
+        (err.message.toLowerCase().includes("failed to fetch") ||
+          err.message.toLowerCase().includes("network"))
+      setApiError(
+        isNetworkError
+          ? "ネットワークエラーが発生しました。時間をおいて再度お試しください。"
+          : err instanceof Error
+            ? err.message
+            : "パスワードのリセットに失敗しました"
+      )
     }
   }
 
