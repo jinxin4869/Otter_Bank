@@ -76,7 +76,6 @@ module Api
           post_id: comment.post_id,
           content: comment.content,
           author: comment.user&.username,
-          author_email: comment.user&.email,
           user_id: comment.user_id,
           likes_count: comment.likes_count || 0,
           created_at: comment.created_at,
