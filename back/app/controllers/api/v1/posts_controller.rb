@@ -11,8 +11,17 @@ module Api
         action_name.in?(%w[index show increment_views])
       end
 
+      PER_PAGE = 20
+
       def index
-        @posts = Post.includes(:user, :categories).order(created_at: :desc)
+        page = params[:page].to_i.clamp(1, Float::INFINITY).to_i
+        per  = params[:per].to_i.zero? ? PER_PAGE : params[:per].to_i.clamp(1, 100)
+
+        scope       = Post.includes(:user, :categories).order(created_at: :desc)
+        total_count = scope.count
+        @posts      = scope.limit(per).offset((page - 1) * per)
+        total_pages = (total_count.to_f / per).ceil
+
         viewer = optional_current_user
         post_ids = @posts.map(&:id)
         liked_ids = if viewer
@@ -22,7 +31,16 @@ module Api
                       [].to_set
                     end
         bookmarked_ids = viewer ? Bookmark.where(post_id: post_ids, user: viewer).pluck(:post_id).to_set : [].to_set
-        render json: @posts.map { |post| post_json(post, liked_ids: liked_ids, bookmarked_ids: bookmarked_ids) }
+
+        render json: {
+          posts: @posts.map { |post| post_json(post, liked_ids: liked_ids, bookmarked_ids: bookmarked_ids) },
+          meta: {
+            current_page: page,
+            total_pages: total_pages,
+            total_count: total_count,
+            per_page: per
+          }
+        }
       end
 
       def show
@@ -39,7 +57,7 @@ module Api
         if @post.save
           render json: post_json(@post), status: :created
         else
-          render json: { errors: @post.errors.full_messages }, status: :unprocessable_entity
+          render json: { errors: @post.errors.full_messages }, status: :unprocessable_content
         end
       end
 
@@ -53,7 +71,7 @@ module Api
           assign_categories(@post)
           render json: post_json(@post)
         else
-          render json: { errors: @post.errors.full_messages }, status: :unprocessable_entity
+          render json: { errors: @post.errors.full_messages }, status: :unprocessable_content
         end
       end
 
@@ -75,13 +93,13 @@ module Api
       private
 
       def set_post_with_associations
-        @post = Post.includes(:user, :categories).find(params[:id])
+        @post = Post.includes(:user, :categories).find(params.expect(:id))
       rescue ActiveRecord::RecordNotFound
         render json: { error: '投稿が見つかりません' }, status: :not_found
       end
 
       def set_post
-        @post = Post.find(params[:id])
+        @post = Post.find(params.expect(:id))
       rescue ActiveRecord::RecordNotFound
         render json: { error: '投稿が見つかりません' }, status: :not_found
       end

@@ -77,12 +77,14 @@ class User < ApplicationRecord
       user.save!(validate: false)
     end
 
-    # OAuthプロバイダーの関連付けを作成（重複チェック）
-    unless user.oauth_providers.exists?(provider: auth.provider, uid: auth.uid)
-      user.oauth_providers.create!(
+    # OAuthプロバイダーの関連付けを作成
+    begin
+      user.oauth_providers.find_or_create_by!(
         provider: auth.provider,
         uid: auth.uid
       )
+    rescue ActiveRecord::RecordNotUnique
+      retry
     end
 
     user
