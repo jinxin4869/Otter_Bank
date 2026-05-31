@@ -136,6 +136,25 @@ export const useAuth = () => {
     }
   };
 
+  const loginAuth = async (
+    accessToken: string,
+    email?: string,
+    refreshToken?: string,
+  ) => {
+    localStorage.setItem("authToken", accessToken);
+    if (refreshToken) {
+      localStorage.setItem("refreshToken", refreshToken);
+    }
+    localStorage.setItem("isLoggedIn", "true");
+    if (email) {
+      localStorage.setItem("currentUserEmail", email);
+    }
+
+    setToken(accessToken);
+    // トークン情報をもとに検証・セッション状態構築
+    await checkAuthWithToken(accessToken);
+  };
+
   const clearAuthStorage = () => {
     localStorage.removeItem("authToken");
     localStorage.removeItem("refreshToken");
@@ -214,6 +233,7 @@ export const useAuth = () => {
     token,
     isLoading,
     isAuthenticated: !!user && !!token,
+    login: loginAuth,
     logout,
     checkAuth,
     refreshAccessToken,
