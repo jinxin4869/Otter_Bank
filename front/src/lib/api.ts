@@ -57,13 +57,6 @@ export const api = {
         body: { user: params },
       }),
 
-    /** Google OAuth コールバック */
-    googleCallback: (code: string) =>
-      publicApiRequest<{ token: string }>('/auth/google/callback', {
-        method: 'POST',
-        body: { code },
-      }),
-
     /** パスワードリセット */
     resetPassword: (token: string, password: string) =>
       publicApiRequest<void>('/auth/reset-password', {
