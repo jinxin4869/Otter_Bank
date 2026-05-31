@@ -12,7 +12,7 @@ export interface Achievement {
   progress: number;
   progress_percentage: number;
   progress_target: number;
-  image_url: string;
+  image_url: string | null;
   reward: string;
   tier: AchievementTier;
   created_at: string;
