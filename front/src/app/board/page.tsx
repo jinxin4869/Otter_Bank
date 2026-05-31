@@ -52,6 +52,9 @@ export default function BoardPage() {
   const [filteredPosts, setFilteredPosts] = useState<Post[]>([])
   const [bookmarkedPosts, setBookmarkedPosts] = useState<string[]>([])
   const [isPostsLoading, setIsPostsLoading] = useState(false)
+  const [isLoadingMore, setIsLoadingMore] = useState(false)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
 
   // ダイアログの状態
   const [isNewPostDialogOpen, setIsNewPostDialogOpen] = useState(false)
@@ -87,16 +90,18 @@ export default function BoardPage() {
     }
   }, [authIsLoading, isAuthenticated, router])
 
-  // 投稿一覧を取得
+  // 投稿一覧を取得（page=1 でリセット）
   const fetchPosts = useCallback(async () => {
     if (!token) return
     setIsPostsLoading(true)
     try {
-      const data = await api.posts.list(token)
+      const data = await api.posts.list(token, 1)
       if (data) {
-        setPosts(data.map(mapApiPost))
-        setLikedPostIds(data.filter((p) => p.liked_by_me).map((p) => String(p.id)))
-        setBookmarkedPosts(data.filter((p) => p.bookmarked_by_me).map((p) => String(p.id)))
+        setPosts(data.posts.map(mapApiPost))
+        setLikedPostIds(data.posts.filter((p) => p.liked_by_me).map((p) => String(p.id)))
+        setBookmarkedPosts(data.posts.filter((p) => p.bookmarked_by_me).map((p) => String(p.id)))
+        setCurrentPage(1)
+        setTotalPages(data.meta.total_pages)
       }
     } catch (err) {
       console.error("投稿取得エラー:", err)
@@ -105,6 +110,34 @@ export default function BoardPage() {
       setIsPostsLoading(false)
     }
   }, [token])
+
+  // 追加読み込み
+  const handleLoadMore = async () => {
+    if (!token || isLoadingMore || currentPage >= totalPages) return
+    setIsLoadingMore(true)
+    const nextPage = currentPage + 1
+    try {
+      const data = await api.posts.list(token, nextPage)
+      if (data) {
+        setPosts((prev) => [...prev, ...data.posts.map(mapApiPost)])
+        setLikedPostIds((prev) => [
+          ...prev,
+          ...data.posts.filter((p) => p.liked_by_me).map((p) => String(p.id)),
+        ])
+        setBookmarkedPosts((prev) => [
+          ...prev,
+          ...data.posts.filter((p) => p.bookmarked_by_me).map((p) => String(p.id)),
+        ])
+        setCurrentPage(nextPage)
+        setTotalPages(data.meta.total_pages)
+      }
+    } catch (err) {
+      console.error("追加読み込みエラー:", err)
+      toast.error("投稿の読み込みに失敗しました")
+    } finally {
+      setIsLoadingMore(false)
+    }
+  }
 
   useEffect(() => {
     if (isAuthenticated && token) {
@@ -637,6 +670,24 @@ export default function BoardPage() {
             {renderPostList(filteredPosts)}
           </TabsContent>
         ))}
+
+        {/* もっと読み込む */}
+        {currentPage < totalPages && (
+          <div className="flex justify-center mt-6">
+            <Button
+              variant="outline"
+              onClick={handleLoadMore}
+              disabled={isLoadingMore}
+              className="min-w-32"
+            >
+              {isLoadingMore ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                `もっと見る（${currentPage}/${totalPages}ページ）`
+              )}
+            </Button>
+          </div>
+        )}
       </Tabs>
 
       {/* 新規投稿ダイアログ */}
