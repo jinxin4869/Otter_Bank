@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -44,6 +44,7 @@ const SORT_OPTIONS = [
 export default function BoardPage() {
   const router = useRouter()
   const { user, token, isLoading: authIsLoading, isAuthenticated } = useAuth()
+  const searchParams = useSearchParams()
 
   const [posts, setPosts] = useState<Post[]>([])
   const [likedPostIds, setLikedPostIds] = useState<string[]>([])
@@ -90,6 +91,28 @@ export default function BoardPage() {
     }
   }, [authIsLoading, isAuthenticated, router])
 
+  // 実績シェアのクエリパラメータ処理
+  useEffect(() => {
+    const shareTitle = searchParams.get("shareTitle")
+    const shareTier = searchParams.get("shareTier")
+    if (!shareTitle) return
+
+    const tierLabel: Record<string, string> = {
+      bronze: "ブロンズ",
+      silver: "シルバー",
+      gold: "ゴールド",
+      platinum: "プラチナ",
+    }
+    const tier = shareTier ? (tierLabel[shareTier] ?? shareTier) : null
+    const tierTag = tier ? ` #${tier}` : ""
+
+    setNewPostTitle(`「${shareTitle}」を達成しました！`)
+    setNewPostContent(`「${shareTitle}」を達成しました！🦦${tierTag}\n\n`)
+    setNewPostCategories(["experience"])
+    setIsNewPostDialogOpen(true)
+  }, [searchParams])
+
+  // 投稿一覧を取得
   // 投稿一覧を取得（page=1 でリセット）
   const fetchPosts = useCallback(async () => {
     if (!token) return
