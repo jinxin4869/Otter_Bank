@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_03_15_012647) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_31_000001) do
   create_table "achievements", force: :cascade do |t|
     t.integer "category", default: 0, null: false
     t.datetime "created_at", null: false
@@ -38,7 +38,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_15_012647) do
     t.datetime "created_at", null: false
     t.integer "post_id", null: false
     t.datetime "updated_at", null: false
-    t.string "user_email"
     t.integer "user_id"
     t.index ["post_id"], name: "index_bookmarks_on_post_id"
     t.index ["user_id", "post_id"], name: "index_bookmarks_on_user_and_post", unique: true
@@ -49,11 +48,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_15_012647) do
     t.datetime "created_at", null: false
     t.string "name"
     t.datetime "updated_at", null: false
+    t.index ["name"], name: "index_categories_on_name"
   end
 
   create_table "comments", force: :cascade do |t|
     t.string "author"
-    t.string "author_email"
     t.text "content"
     t.datetime "created_at", null: false
     t.integer "likes_count"
@@ -79,7 +78,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_15_012647) do
     t.integer "likeable_id", null: false
     t.string "likeable_type", null: false
     t.datetime "updated_at", null: false
-    t.string "user_email"
     t.integer "user_id"
     t.index ["likeable_type", "likeable_id"], name: "index_likes_on_likeable"
     t.index ["user_id", "likeable_type", "likeable_id"], name: "index_likes_on_user_and_likeable", unique: true
@@ -109,7 +107,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_15_012647) do
 
   create_table "posts", force: :cascade do |t|
     t.string "author"
-    t.string "author_email"
     t.integer "comments_count"
     t.text "content"
     t.datetime "created_at", null: false
@@ -152,6 +149,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_15_012647) do
     t.string "transaction_type"
     t.datetime "updated_at", null: false
     t.integer "user_id", null: false
+    t.index ["transaction_type"], name: "index_transactions_on_transaction_type"
+    t.index ["user_id", "date"], name: "index_transactions_on_user_id_and_date"
     t.index ["user_id"], name: "index_transactions_on_user_id"
   end
 
@@ -175,6 +174,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_15_012647) do
     t.string "password_digest"
     t.datetime "updated_at", null: false
     t.string "username"
+    t.index ["email"], name: "index_users_on_email", unique: true
+    t.index ["username"], name: "index_users_on_username", unique: true
   end
 
   add_foreign_key "achievements", "users"
