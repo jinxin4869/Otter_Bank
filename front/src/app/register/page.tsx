@@ -19,7 +19,7 @@ import { useAuth } from "@/hooks/useAuth"
 export default function RegisterPage() {
   const router = useRouter()
   const [apiError, setApiError] = useState<string | null>(null)
-  const { saveAuthTokens } = useAuth()
+  const { login } = useAuth()
 
   const {
     register,
@@ -40,9 +40,11 @@ export default function RegisterPage() {
         password_confirmation: data.confirmPassword,
       })
 
-      if (responseData?.token) {
-        saveAuthTokens(responseData.token, responseData.refresh_token, data.email)
+      if (!responseData?.token) {
+        throw new Error("認証トークンを取得できませんでした。もう一度お試しください。")
       }
+
+      await login(responseData.token, data.email, responseData.refresh_token)
       localStorage.setItem("tutorialSeen", "false")
 
       toast.success("登録完了", { description: "アカウントが正常に作成されました。" })

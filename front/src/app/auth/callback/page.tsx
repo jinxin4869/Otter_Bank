@@ -2,20 +2,20 @@
 
 import { useEffect, useState, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
-import { api } from '@/lib/api'
 import { useAuth } from '@/hooks/useAuth'
 
 function CallbackContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
-  const { saveAuthTokens } = useAuth()
+  const { saveAuth } = useAuth()
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading')
   const [message, setMessage] = useState('')
 
   useEffect(() => {
     const handleCallback = async () => {
       try {
-        const code = searchParams.get('code')
+        const token = searchParams.get('token')
+        const refreshToken = searchParams.get('refresh_token')
         const error = searchParams.get('error')
 
         if (error) {
@@ -24,26 +24,18 @@ function CallbackContent() {
           return
         }
 
-        if (!code) {
+        if (!token) {
           setStatus('error')
-          setMessage('認証コードが見つかりません')
+          setMessage('認証トークンが見つかりません')
           return
         }
 
-        // バックエンドにコードを送信してトークンを取得
-        const data = await api.auth.googleCallback(code)
-
-        if (data?.token) {
-          saveAuthTokens(data.token)
-          setStatus('success')
-          setMessage('ログインしました。リダイレクトしています...')
-          setTimeout(() => {
-            router.push('/')
-          }, 2000)
-        } else {
-          setStatus('error')
-          setMessage('認証に失敗しました')
-        }
+        saveAuth(token, refreshToken || undefined)
+        setStatus('success')
+        setMessage('ログインしました。リダイレクトしています...')
+        setTimeout(() => {
+          router.push('/dashboard')
+        }, 2000)
       } catch (err) {
         console.error('Callback error:', err)
         setStatus('error')
