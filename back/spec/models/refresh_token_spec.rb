@@ -9,9 +9,9 @@ RSpec.describe RefreshToken, type: :model do
   it { should belong_to(:user) }
 
   # バリデーション
-  it { should validate_presence_of(:token) }
+  it { should validate_presence_of(:token_digest) }
   it { should validate_presence_of(:expires_at) }
-  it { should validate_uniqueness_of(:token) }
+  it { should validate_uniqueness_of(:token_digest) }
 
   describe '.generate_for' do
     let(:user) { create(:user) }
