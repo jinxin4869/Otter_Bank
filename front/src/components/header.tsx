@@ -13,14 +13,27 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Sun, Moon, Menu, LogIn, LogOut, UserPlus, Home, BookOpen, MessageSquare, UserCircle, Award, Palette, Check } from "lucide-react"
 import Image from "next/image"
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
+import { useEffect, useState } from "react"
 import { useAuth } from "@/hooks/useAuth"
 
 export default function Header() {
   const { theme, setTheme } = useTheme()
   const pathname = usePathname()
-  const { isAuthenticated, isLoading, logout } = useAuth()
+  const router = useRouter()
+  const { isAuthenticated, logout, isLoading } = useAuth()
+  const [mounted, setMounted] = useState(false)
   const logoHref = isAuthenticated ? "/dashboard" : "/";
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  const handleLogout = async () => {
+    await logout()
+    // router.push("/") は logout 内で行われるか、ここで行うかは実装による
+    // useAuth の logout 内で router.push('/login') が呼ばれるはずなので十分
+  };
 
   const commonLinks = [
     { href: "/tutorial", label: "使い方", icon: <BookOpen className="mr-2 h-4 w-4" /> },
@@ -42,11 +55,11 @@ export default function Header() {
 
   const navLinks = isAuthenticated ? loggedInLinks : loggedOutLinks;
 
-  if (isLoading) {
+  if (!mounted || isLoading) {
     return (
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 dark:border-slate-800">
         <div className="header-container flex h-16 items-center justify-between">
-          <Link href={logoHref} className="flex items-center gap-2">
+          <Link href="/" className="flex items-center gap-2">
             <Image src="/logo.png" alt="Otter Bank Logo" width={32} height={32} className="rounded-full" />
             <span className="font-bold text-lg">Otter Bank</span>
           </Link>
@@ -88,7 +101,7 @@ export default function Header() {
               variant="ghost"
               size="sm"
               className="rounded-full px-3 text-red-500 hover:bg-red-500/10 hover:text-red-600 dark:text-red-400 dark:hover:bg-red-400/10 dark:hover:text-red-500"
-              onClick={logout}
+              onClick={handleLogout}
             >
               <LogOut className="mr-2 h-4 w-4" />
               ログアウト
@@ -120,7 +133,7 @@ export default function Header() {
                 <>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
-                    onClick={logout}
+                    onClick={handleLogout}
                     className="flex items-center text-red-500 hover:!bg-red-500/10 hover:!text-red-600 dark:text-red-400 dark:hover:!bg-red-400/10 dark:hover:!text-red-500"
                   >
                     <LogOut className="mr-2 h-4 w-4" />

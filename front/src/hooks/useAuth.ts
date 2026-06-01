@@ -1,11 +1,15 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { toast } from 'sonner';
-import { useRouter } from 'next/navigation';
-import { api } from '@/lib/api';
-import { ApiError } from '@/lib/api-error';
-import type { User } from '@/types/user';
+import { useState, useEffect } from "react";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
+
+interface User {
+  id: number;
+  email: string;
+  username: string;
+  name?: string;
+}
 
 export const useAuth = () => {
   const router = useRouter();
@@ -17,24 +21,38 @@ export const useAuth = () => {
     checkAuth();
   }, []);
 
+  const getApiUrl = () => {
+    if (process.env.NODE_ENV === "development") {
+      return process.env.NEXT_PUBLIC_DEV_URL;
+    }
+    return process.env.NEXT_PUBLIC_API_URL;
+  };
+
   // リフレッシュトークンを使ってアクセストークンを更新する
   const refreshAccessToken = async (): Promise<string | null> => {
-    const storedRefreshToken = localStorage.getItem('refreshToken');
+    const storedRefreshToken = localStorage.getItem("refreshToken");
     if (!storedRefreshToken) return null;
 
     try {
-      const data = await api.auth.refresh(storedRefreshToken);
-      if (!data) return null;
-      localStorage.setItem('authToken', data.token);
-      localStorage.setItem('refreshToken', data.refresh_token);
-      return data.token;
+      const response = await fetch(`${getApiUrl()}/api/v1/auth/refresh`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ refresh_token: storedRefreshToken }),
+      });
+
+      if (!response.ok) return null;
+
+      const data = await response.json();
+      localStorage.setItem("authToken", data.token);
+      localStorage.setItem("refreshToken", data.refresh_token);
+      return data.token as string;
     } catch {
       return null;
     }
   };
 
   const checkAuth = async () => {
-    const storedToken = localStorage.getItem('authToken');
+    const storedToken = localStorage.getItem("authToken");
 
     if (!storedToken) {
       setUser(null);
@@ -44,31 +62,50 @@ export const useAuth = () => {
     }
 
     try {
-      const data = await api.auth.verify(storedToken);
-      setUser(data?.user ?? null);
-      setToken(storedToken);
-      localStorage.setItem('isLoggedIn', 'true');
-    } catch (error) {
-      // JWT期限切れの場合はリフレッシュを試みる
-      if (error instanceof ApiError && error.code === 'token_expired') {
-        const newToken = await refreshAccessToken();
-        if (newToken) {
-          // リフレッシュ成功: 新しいトークンで再検証
-          await checkAuthWithToken(newToken);
-          return;
+      const response = await fetch(`${getApiUrl()}/api/v1/auth/verify`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${storedToken}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+
+        // JWT期限切れの場合はリフレッシュを試みる
+        if (errorData.code === "token_expired") {
+          const newToken = await refreshAccessToken();
+          if (newToken) {
+            // リフレッシュ成功: 新しいトークンで再検証
+            await checkAuthWithToken(newToken);
+            return;
+          }
+          // リフレッシュ失敗: ログアウト状態に
+          throw new Error("認証期限が切れました。再度ログインしてください。");
         }
-        // リフレッシュ失敗: ログアウト状態に
-        clearAuthStorage();
-        setUser(null);
-        setToken(null);
-        toast.error('認証期限切れ', {
-          description: '認証期限が切れました。再度ログインしてください。',
+
+        throw new Error(errorData.error || "Token verification failed");
+      }
+
+      const data = await response.json();
+      setUser(data.user || data);
+      setToken(storedToken);
+      localStorage.setItem("isLoggedIn", "true");
+    } catch (error) {
+      console.error("[Auth] JWT Token verification failed:", error);
+      clearAuthStorage();
+      setUser(null);
+      setToken(null);
+
+      // JWT期限切れ（リフレッシュ失敗含む）の場合のみトーストを表示
+      if (
+        error instanceof Error &&
+        error.message.includes("認証期限が切れました")
+      ) {
+        toast.error("認証期限切れ", {
+          description: error.message,
         });
-      } else {
-        console.error('[Auth] JWT Token verification failed:', error);
-        clearAuthStorage();
-        setUser(null);
-        setToken(null);
       }
     } finally {
       setIsLoading(false);
@@ -78,10 +115,20 @@ export const useAuth = () => {
   // 指定したトークンで検証する（リフレッシュ後の再検証用）
   const checkAuthWithToken = async (accessToken: string) => {
     try {
-      const data = await api.auth.verify(accessToken);
-      setUser(data?.user ?? null);
+      const response = await fetch(`${getApiUrl()}/api/v1/auth/verify`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) throw new Error("Token verification failed");
+
+      const data = await response.json();
+      setUser(data.user || data);
       setToken(accessToken);
-      localStorage.setItem('isLoggedIn', 'true');
+      localStorage.setItem("isLoggedIn", "true");
     } catch {
       clearAuthStorage();
       setUser(null);
@@ -89,60 +136,95 @@ export const useAuth = () => {
     }
   };
 
-  const clearAuthStorage = () => {
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('refreshToken');
-    localStorage.removeItem('isLoggedIn');
-    localStorage.removeItem('currentUserEmail');
-  };
-
-  /** ログイン・登録後に認証トークンを localStorage に保存する */
-  const saveAuthTokens = (
-    authToken: string,
-    refreshToken?: string | null,
-    email?: string
+  const loginAuth = async (
+    accessToken: string,
+    email?: string,
+    refreshToken?: string,
   ) => {
-    localStorage.setItem('authToken', authToken);
-    if (refreshToken) localStorage.setItem('refreshToken', refreshToken);
-    localStorage.setItem('isLoggedIn', 'true');
-    if (email) localStorage.setItem('currentUserEmail', email);
+    localStorage.setItem("authToken", accessToken);
+    if (refreshToken) {
+      localStorage.setItem("refreshToken", refreshToken);
+    }
+    localStorage.setItem("isLoggedIn", "true");
+    if (email) {
+      localStorage.setItem("currentUserEmail", email);
+    }
+
+    setToken(accessToken);
+    // トークン情報をもとに検証・セッション状態構築
+    await checkAuthWithToken(accessToken);
   };
 
-  // 認証エラーの共通処理
+  const clearAuthStorage = () => {
+    localStorage.removeItem("authToken");
+    localStorage.removeItem("refreshToken");
+    localStorage.removeItem("isLoggedIn");
+    localStorage.removeItem("currentUserEmail");
+  };
+
+  const saveAuth = (
+    newToken: string,
+    newRefreshToken?: string,
+    email?: string,
+  ) => {
+    localStorage.setItem("authToken", newToken);
+    if (newRefreshToken) {
+      localStorage.setItem("refreshToken", newRefreshToken);
+    }
+    localStorage.setItem("isLoggedIn", "true");
+    if (email) {
+      localStorage.setItem("currentUserEmail", email);
+    }
+    setToken(newToken);
+  };
+
+  // 新しい関数: 認証エラーの共通処理
   const handleAuthError = (error: unknown) => {
     clearAuthStorage();
     setToken(null);
     setUser(null);
 
     if (error instanceof Error) {
-      toast.error('認証エラー', {
+      toast.error("認証エラー", {
         description: error.message,
       });
     } else {
-      toast.error('認証エラー', {
-        description: '予期せぬエラーが発生しました',
+      toast.error("認証エラー", {
+        description: "予期せぬエラーが発生しました",
       });
     }
 
-    router.push('/login');
+    router.push("/login");
   };
 
   const logout = async () => {
     try {
-      const currentToken = localStorage.getItem('authToken');
-      const currentRefreshToken = localStorage.getItem('refreshToken');
+      const currentToken = localStorage.getItem("authToken");
+      const currentRefreshToken = localStorage.getItem("refreshToken");
 
       if (currentRefreshToken) {
-        await api.auth.logout(currentToken, currentRefreshToken);
+        const headers: Record<string, string> = {
+          "Content-Type": "application/json",
+        };
+
+        if (currentToken) {
+          headers["Authorization"] = `Bearer ${currentToken}`;
+        }
+
+        await fetch(`${getApiUrl()}/api/v1/auth/logout`, {
+          method: "POST",
+          headers,
+          body: JSON.stringify({ refresh_token: currentRefreshToken }),
+        });
       }
     } catch (error) {
-      console.error('[Auth] ログアウトエラー:', error);
+      console.error("[Auth] ログアウトエラー:", error);
     } finally {
       clearAuthStorage();
       setUser(null);
       setToken(null);
-      window.dispatchEvent(new Event('auth-state-changed'));
-      router.push('/login');
+      window.dispatchEvent(new Event("auth-state-changed"));
+      router.push("/login");
     }
   };
 
@@ -151,10 +233,11 @@ export const useAuth = () => {
     token,
     isLoading,
     isAuthenticated: !!user && !!token,
+    login: loginAuth,
     logout,
     checkAuth,
     refreshAccessToken,
     handleAuthError,
-    saveAuthTokens,
+    saveAuth,
   };
 };

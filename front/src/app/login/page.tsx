@@ -22,7 +22,7 @@ export default function LoginPage() {
   const [apiError, setApiError] = useState<string | null>(null)
   const [isGoogleLoading, setIsGoogleLoading] = useState(false)
   const router = useRouter()
-  const { saveAuthTokens } = useAuth()
+  const { login } = useAuth()
 
   const {
     register,
@@ -42,7 +42,7 @@ export default function LoginPage() {
         throw new Error("認証トークンの取得に失敗しました")
       }
 
-      saveAuthTokens(responseData.token, responseData.refresh_token, data.email)
+      await login(responseData.token, data.email, responseData.refresh_token)
 
       toast.success("ログイン成功", { description: "ダッシュボードにリダイレクトします" })
       router.push("/dashboard")
