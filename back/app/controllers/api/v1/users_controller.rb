@@ -19,15 +19,15 @@ module Api
         if user.save
           token = JsonWebToken.encode(user_id: user.id)
           refresh_token = RefreshToken.generate_for(user)
+          write_refresh_token_cookie(refresh_token.token)
           render json: {
             status: 'success',
             message: 'ユーザー登録が正常に完了しました。',
             user: user.as_json(only: %i[id email username]),
-            token: token,
-            refresh_token: refresh_token.token
+            token: token
           }, status: :created
         else
-          render json: { errors: user.errors.full_messages }, status: :unprocessable_entity
+          render json: { errors: user.errors.full_messages }, status: :unprocessable_content
         end
       end
 
@@ -40,7 +40,7 @@ module Api
             name: @current_user.name
           }
         else
-          render json: { errors: @current_user.errors.full_messages }, status: :unprocessable_entity
+          render json: { errors: @current_user.errors.full_messages }, status: :unprocessable_content
         end
       end
 

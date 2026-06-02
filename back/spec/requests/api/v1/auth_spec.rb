@@ -44,27 +44,31 @@ RSpec.describe 'Api::V1::Auths', type: :request do
     let!(:refresh_token) { RefreshToken.generate_for(user) }
 
     it '有効なリフレッシュトークンで新しいアクセストークンを返す' do
-      post '/api/v1/auth/refresh', params: { refresh_token: refresh_token.token }
+      cookies[:refresh_token] = refresh_token.token
+      post '/api/v1/auth/refresh'
       expect(response).to have_http_status(:ok)
       json = response.parsed_body
       expect(json['token']).to be_present
-      expect(json['refresh_token']).to be_present
+      expect(response.cookies['refresh_token']).to be_present
     end
 
     it '使用済みリフレッシュトークンは無効化される' do
-      post '/api/v1/auth/refresh', params: { refresh_token: refresh_token.token }
+      cookies[:refresh_token] = refresh_token.token
+      post '/api/v1/auth/refresh'
       expect(refresh_token.reload.revoked).to be true
     end
 
     it 'リフレッシュ後に新しいリフレッシュトークンが発行される' do
-      post '/api/v1/auth/refresh', params: { refresh_token: refresh_token.token }
-      json = response.parsed_body
-      expect(json['refresh_token']).not_to eq(refresh_token.token)
+      cookies[:refresh_token] = refresh_token.token
+      post '/api/v1/auth/refresh'
+      response.parsed_body
+      expect(response.cookies['refresh_token']).not_to eq(refresh_token.token)
     end
 
     it '期限切れのリフレッシュトークンで 401 を返す' do
       expired = create(:refresh_token, :expired, user: user)
-      post '/api/v1/auth/refresh', params: { refresh_token: expired.token }
+      cookies[:refresh_token] = expired.token
+      post '/api/v1/auth/refresh'
       expect(response).to have_http_status(:unauthorized)
       json = response.parsed_body
       expect(json['code']).to eq('invalid_refresh_token')
@@ -72,14 +76,16 @@ RSpec.describe 'Api::V1::Auths', type: :request do
 
     it '失効済みリフレッシュトークンで 401 を返す' do
       revoked = create(:refresh_token, :revoked, user: user)
-      post '/api/v1/auth/refresh', params: { refresh_token: revoked.token }
+      cookies[:refresh_token] = revoked.token
+      post '/api/v1/auth/refresh'
       expect(response).to have_http_status(:unauthorized)
       json = response.parsed_body
       expect(json['code']).to eq('invalid_refresh_token')
     end
 
     it '不正なリフレッシュトークンで 401 を返す' do
-      post '/api/v1/auth/refresh', params: { refresh_token: 'invalid-token' }
+      cookies[:refresh_token] = 'invalid-token'
+      post '/api/v1/auth/refresh'
       expect(response).to have_http_status(:unauthorized)
     end
 

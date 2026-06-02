@@ -14,6 +14,7 @@ RSpec.describe 'Api::V1::Sessions', type: :request do
         json = response.parsed_body
         expect(json['status']).to eq('success')
         expect(json['token']).to be_present
+        expect(response.cookies['refresh_token']).to be_present
         expect(json['user']).to include('id', 'email', 'username')
       end
 
@@ -46,7 +47,8 @@ RSpec.describe 'Api::V1::Sessions', type: :request do
     let!(:refresh_token) { RefreshToken.generate_for(user) }
 
     it 'ログアウト時にリフレッシュトークンを失効させる' do
-      delete '/api/v1/sessions', params: { refresh_token: refresh_token.token }
+      cookies[:refresh_token] = refresh_token.token
+      delete '/api/v1/sessions'
       expect(response).to have_http_status(:ok)
       json = response.parsed_body
       expect(json['status']).to eq('success')
@@ -59,7 +61,8 @@ RSpec.describe 'Api::V1::Sessions', type: :request do
     end
 
     it '未認証（Authorizationヘッダーなし）でもログアウトできる' do
-      delete '/api/v1/sessions', params: { refresh_token: refresh_token.token }
+      cookies[:refresh_token] = refresh_token.token
+      delete '/api/v1/sessions'
       expect(response).to have_http_status(:ok)
     end
   end
