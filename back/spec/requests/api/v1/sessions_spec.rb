@@ -65,5 +65,11 @@ RSpec.describe 'Api::V1::Sessions', type: :request do
       delete '/api/v1/sessions'
       expect(response).to have_http_status(:ok)
     end
+
+    it 'ログアウト時にリフレッシュトークンCookieが削除される' do
+      cookies[:refresh_token] = refresh_token.token
+      delete '/api/v1/sessions'
+      expect(response.cookies['refresh_token']).to be_blank
+    end
   end
 end
