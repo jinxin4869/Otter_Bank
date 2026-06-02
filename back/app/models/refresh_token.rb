@@ -24,7 +24,8 @@ class RefreshToken < ApplicationRecord
   end
 
   def self.find_active_by_token(plain_token)
-    record = find_by_plain_token(plain_token)
+    # SELECT ... FOR UPDATE でロックして並行リプレイ攻撃を防ぐ
+    record = lock.find_by(token_digest: digest(plain_token))
     record&.active? ? record : nil
   end
 
@@ -33,12 +34,13 @@ class RefreshToken < ApplicationRecord
     record = find_by(token_digest: digest(plain_token))
     return nil unless record
     return record if ActiveSupport::SecurityUtils.secure_compare(record.token_digest, digest(plain_token))
-    
+
     nil
   end
 
   def self.digest(plain_token)
-    OpenSSL::HMAC.hexdigest('SHA256', Rails.application.credentials.secret_key_base || ENV.fetch('JWT_SECRET', 'fallback'), plain_token.to_s)
+    secret = Rails.application.credentials.secret_key_base || ENV.fetch('JWT_SECRET', 'fallback')
+    OpenSSL::HMAC.hexdigest('SHA256', secret, plain_token.to_s)
   end
 
   def active?
