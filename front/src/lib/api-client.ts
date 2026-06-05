@@ -12,6 +12,7 @@ type ApiRequestOptions = {
   method?: 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE'
   token?: string | null
   body?: unknown
+  credentials?: RequestCredentials
 }
 
 /**
@@ -24,7 +25,7 @@ export async function apiRequest<T>(
   path: string,
   options: ApiRequestOptions = {}
 ): Promise<T | undefined> {
-  const { method = 'GET', token, body } = options
+  const { method = 'GET', token, body, credentials } = options
   const url = `${getBaseUrl()}/api/v1${path}`
 
   const headers: Record<string, string> = {}
@@ -35,6 +36,7 @@ export async function apiRequest<T>(
     method,
     headers,
     body: body !== undefined ? JSON.stringify(body) : undefined,
+    credentials,
   })
 
   if (res.status === 204) return undefined
