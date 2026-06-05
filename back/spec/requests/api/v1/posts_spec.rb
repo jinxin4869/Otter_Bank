@@ -57,6 +57,27 @@ RSpec.describe 'Api::V1::Posts', type: :request do
       get '/api/v1/posts/0'
       expect(response).to have_http_status(:not_found)
     end
+
+    it '認証済みユーザーはliked_by_meが正しく返る' do
+      create(:like, user: user, likeable: post_record)
+      get "/api/v1/posts/#{post_record.id}", headers: headers
+      json = response.parsed_body
+      expect(json['liked_by_me']).to be true
+    end
+
+    it '認証済みユーザーはbookmarked_by_meが正しく返る' do
+      create(:bookmark, user: user, post: post_record)
+      get "/api/v1/posts/#{post_record.id}", headers: headers
+      json = response.parsed_body
+      expect(json['bookmarked_by_me']).to be true
+    end
+
+    it '未認証ユーザーはliked_by_meとbookmarked_by_meがfalseになる' do
+      get "/api/v1/posts/#{post_record.id}"
+      json = response.parsed_body
+      expect(json['liked_by_me']).to be false
+      expect(json['bookmarked_by_me']).to be false
+    end
   end
 
   describe 'POST /api/v1/posts' do
