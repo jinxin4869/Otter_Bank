@@ -42,7 +42,7 @@ export default function LoginPage() {
         throw new Error("認証トークンの取得に失敗しました")
       }
 
-      await login(responseData.token, data.email, responseData.refresh_token)
+      await login(responseData.token, data.email)
 
       toast.success("ログイン成功", { description: "ダッシュボードにリダイレクトします" })
       router.push("/dashboard")

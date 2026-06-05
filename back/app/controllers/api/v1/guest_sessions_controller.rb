@@ -13,12 +13,12 @@ module Api
 
         token = JsonWebToken.encode(user_id: user.id)
         refresh_token = RefreshToken.generate_for(user)
+        write_refresh_token_cookie(refresh_token.token)
 
         render json: {
           logged_in: true,
           user: user.as_json(except: [:password_digest]),
-          token: token,
-          refresh_token: refresh_token.token
+          token: token
         }
       end
     end

@@ -44,7 +44,7 @@ export default function RegisterPage() {
         throw new Error("認証トークンを取得できませんでした。もう一度お試しください。")
       }
 
-      await login(responseData.token, data.email, responseData.refresh_token)
+      await login(responseData.token, data.email)
       localStorage.setItem("tutorialSeen", "false")
 
       toast.success("登録完了", { description: "アカウントが正常に作成されました。" })
