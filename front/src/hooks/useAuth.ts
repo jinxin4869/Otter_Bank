@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { getApiUrl } from "@/lib/api-client";
 
 interface User {
   id: number;
@@ -20,13 +21,6 @@ export const useAuth = () => {
   useEffect(() => {
     checkAuth();
   }, []);
-
-  const getApiUrl = () => {
-    if (process.env.NODE_ENV === "development") {
-      return process.env.NEXT_PUBLIC_DEV_URL;
-    }
-    return process.env.NEXT_PUBLIC_API_URL;
-  };
 
   // リフレッシュトークンを使ってアクセストークンを更新する
   const refreshAccessToken = async (): Promise<string | null> => {
