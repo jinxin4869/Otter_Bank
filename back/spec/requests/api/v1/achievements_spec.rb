@@ -19,7 +19,7 @@ RSpec.describe 'Api::V1::Achievements', type: :request do
       expect(response).to have_http_status(:ok)
       json = response.parsed_body
       expect(json['achievements']).to be_an(Array)
-      expect(json['achievements'].map { |a| a['id'] }).to match_array([unlocked_achievement.id, locked_achievement.id])
+      expect(json['achievements'].pluck('id')).to match_array([unlocked_achievement.id, locked_achievement.id])
       expect(json['summary']).to include('total_achievements', 'unlocked_achievements')
       expect(json['summary']['total_achievements']).to eq(json['achievements'].length)
     end

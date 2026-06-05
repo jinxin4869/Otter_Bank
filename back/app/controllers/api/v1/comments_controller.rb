@@ -24,7 +24,7 @@ module Api
           @post.increment!(:comments_count)
           render json: comment_json(@comment), status: :created
         else
-          render json: { errors: @comment.errors.full_messages }, status: :unprocessable_entity
+          render json: { errors: @comment.errors.full_messages }, status: :unprocessable_content
         end
       end
 
@@ -37,7 +37,7 @@ module Api
         if @comment.update(comment_params)
           render json: comment_json(@comment)
         else
-          render json: { errors: @comment.errors.full_messages }, status: :unprocessable_entity
+          render json: { errors: @comment.errors.full_messages }, status: :unprocessable_content
         end
       end
 
@@ -55,13 +55,13 @@ module Api
       private
 
       def set_post
-        @post = Post.find(params[:post_id])
+        @post = Post.find(params.expect(:post_id))
       rescue ActiveRecord::RecordNotFound
         render json: { error: '投稿が見つかりません' }, status: :not_found
       end
 
       def set_comment
-        @comment = @post.comments.find(params[:id])
+        @comment = @post.comments.find(params.expect(:id))
       rescue ActiveRecord::RecordNotFound
         render json: { error: 'コメントが見つかりません' }, status: :not_found
       end

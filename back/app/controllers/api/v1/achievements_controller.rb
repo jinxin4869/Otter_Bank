@@ -43,7 +43,7 @@ module Api
       end
 
       def show
-        achievement = @current_user.achievements.find(params[:id])
+        achievement = @current_user.achievements.find(params.expect(:id))
         render json: {
           achievement: {
             id: achievement.id,
@@ -87,7 +87,7 @@ module Api
               tier: achievement.tier
             }, status: :ok
           else
-            render json: { errors: achievement.errors.full_messages }, status: :unprocessable_entity
+            render json: { errors: achievement.errors.full_messages }, status: :unprocessable_content
           end
         else
           render json: { error: 'Achievement not found' }, status: :not_found

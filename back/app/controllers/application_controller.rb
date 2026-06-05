@@ -50,21 +50,21 @@ class ApplicationController < ActionController::API
           Rails.logger.info "Current user set: #{Rails.env.development? ? @current_user.id : '[MASKED]'}"
         else
           Rails.logger.error 'Invalid token payload' if Rails.env.development?
-          render json: { error: 'Invalid token payload' }, status: :unauthorized
+          render json: { error: 'トークンのペイロードが無効です' }, status: :unauthorized
         end
       else
         Rails.logger.error 'Authorization token not provided' if Rails.env.development?
-        render json: { error: 'Authorization token not provided' }, status: :unauthorized
+        render json: { error: '認証トークンが指定されていません' }, status: :unauthorized
       end
     rescue ActiveRecord::RecordNotFound => e
       Rails.logger.error "User not found: #{Rails.env.development? ? e.message : '[MASKED]'}"
-      render json: { error: "User not found: #{e.message}" }, status: :unauthorized
+      render json: { error: 'ユーザーが見つかりません' }, status: :unauthorized
     rescue JWT::ExpiredSignature => e
       Rails.logger.error "Token has expired: #{Rails.env.development? ? e.message : '[MASKED]'}"
-      render json: { error: "Token has expired: #{e.message}" }, status: :unauthorized
+      render json: { error: 'トークンの有効期限が切れています' }, status: :unauthorized
     rescue JWT::DecodeError => e
       Rails.logger.error "Invalid token: #{Rails.env.development? ? e.message : '[MASKED]'}"
-      render json: { error: "Invalid token: #{e.message}" }, status: :unauthorized
+      render json: { error: '無効なトークンです' }, status: :unauthorized
     end
   end
 

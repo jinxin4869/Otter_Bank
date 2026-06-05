@@ -3,7 +3,6 @@
 module Api
   module V1
     class PostsController < ApplicationController
-      before_action :authenticate_user!, except: %i[index show increment_views]
       before_action :set_post_with_associations, only: %i[show update]
       before_action :set_post, only: %i[destroy increment_views]
 
@@ -44,7 +43,15 @@ module Api
       end
 
       def show
-        render json: post_json(@post)
+        viewer = optional_current_user
+        liked_ids = if viewer
+                      Like.where(likeable_type: 'Post', likeable_id: @post.id,
+                                 user: viewer).pluck(:likeable_id).to_set
+                    else
+                      [].to_set
+                    end
+        bookmarked_ids = viewer ? Bookmark.where(post_id: @post.id, user: viewer).pluck(:post_id).to_set : [].to_set
+        render json: post_json(@post, liked_ids: liked_ids, bookmarked_ids: bookmarked_ids)
       end
 
       def create
