@@ -8,12 +8,10 @@ import type { User } from '@/types/user'
 
 type LoginResponse = {
   token: string
-  refresh_token?: string
 }
 
 type RefreshResponse = {
   token: string
-  refresh_token: string
 }
 
 type VerifyResponse = {
@@ -93,19 +91,19 @@ export const api = {
     verify: (token: string) =>
       apiRequest<VerifyResponse>('/auth/verify', { token }),
 
-    /** リフレッシュトークンを使ってアクセストークンを更新する */
-    refresh: (refreshToken: string) =>
+    /** リフレッシュトークンを使ってアクセストークンを更新する（Cookie 経由） */
+    refresh: () =>
       publicApiRequest<RefreshResponse>('/auth/refresh', {
         method: 'POST',
-        body: { refresh_token: refreshToken },
+        credentials: 'include',
       }),
 
-    /** ログアウトしてリフレッシュトークンを無効化する */
-    logout: (token: string | null, refreshToken: string) =>
-      apiRequest<void>('/auth/logout', {
-        method: 'POST',
+    /** ログアウトしてリフレッシュトークンを無効化する（Cookie 経由） */
+    logout: (token: string | null) =>
+      apiRequest<void>('/sessions', {
+        method: 'DELETE',
         token: token ?? undefined,
-        body: { refresh_token: refreshToken },
+        credentials: 'include',
       }),
   },
 

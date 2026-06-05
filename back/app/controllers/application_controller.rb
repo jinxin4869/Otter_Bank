@@ -2,6 +2,7 @@
 
 class ApplicationController < ActionController::API
   include ExceptionHandler
+  include ActionController::Cookies
 
   before_action :authorize_request
 
@@ -19,6 +20,16 @@ class ApplicationController < ActionController::API
   end
 
   private
+
+  def write_refresh_token_cookie(token)
+    cookies[:refresh_token] = {
+      value: token,
+      httponly: true,
+      secure: Rails.env.production?,
+      same_site: Rails.env.production? ? :none : :lax,
+      expires: 14.days.from_now
+    }
+  end
 
   def authorize_request
     # 特定のエンドポイントではスキップ

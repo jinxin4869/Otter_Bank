@@ -15,7 +15,7 @@ function CallbackContent() {
     const handleCallback = async () => {
       try {
         const token = searchParams.get('token')
-        const refreshToken = searchParams.get('refresh_token')
+        
         const error = searchParams.get('error')
 
         if (error) {
@@ -30,7 +30,7 @@ function CallbackContent() {
           return
         }
 
-        saveAuth(token, refreshToken || undefined)
+        saveAuth(token)
         setStatus('success')
         setMessage('ログインしました。リダイレクトしています...')
         setTimeout(() => {
