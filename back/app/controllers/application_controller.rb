@@ -6,25 +6,6 @@ class ApplicationController < ActionController::API
 
   before_action :authorize_request
 
-  def encode_token(payload)
-    JWT.encode(payload, ENV['JWT_SECRET'] || 'my_secret')
-  end
-
-  def auth_header
-    request.headers['Authorization']
-  end
-
-  def decoded_token
-    return unless auth_header
-
-    token = auth_header.split[1]
-    begin
-      JWT.decode(token, ENV['JWT_SECRET'] || 'my_secret', true, algorithm: 'HS256')
-    rescue JWT::DecodeError
-      nil
-    end
-  end
-
   attr_reader :current_user
 
   def logged_in?

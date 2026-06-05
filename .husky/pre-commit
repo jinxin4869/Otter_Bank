@@ -1,1 +1,6 @@
 npx lint-staged
+
+# フロントエンドの変更がある場合のみ型チェックを実行
+if git diff --cached --name-only | grep -q '^front/'; then
+  cd front && npm run type-check
+fi
