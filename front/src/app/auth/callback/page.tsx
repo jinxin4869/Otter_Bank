@@ -7,7 +7,7 @@ import { useAuth } from '@/hooks/useAuth'
 function CallbackContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
-  const { saveAuth } = useAuth()
+  const { login } = useAuth()
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading')
   const [message, setMessage] = useState('')
 
@@ -15,7 +15,7 @@ function CallbackContent() {
     const handleCallback = async () => {
       try {
         const token = searchParams.get('token')
-        
+
         const error = searchParams.get('error')
 
         if (error) {
@@ -30,7 +30,7 @@ function CallbackContent() {
           return
         }
 
-        saveAuth(token)
+        await login(token)
         setStatus('success')
         setMessage('ログインしました。リダイレクトしています...')
         setTimeout(() => {
