@@ -62,6 +62,11 @@ module Api
         assign_categories(@post)
 
         if @post.save
+          begin
+            AchievementService.new(current_api_v1_user).update_community_post_achievements
+          rescue StandardError => e
+            Rails.logger.error "実績更新失敗 user_id=#{current_api_v1_user.id} error=#{e.message}"
+          end
           render json: post_json(@post), status: :created
         else
           render json: { errors: @post.errors.full_messages }, status: :unprocessable_content
