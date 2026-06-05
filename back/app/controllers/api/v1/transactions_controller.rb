@@ -38,7 +38,7 @@ module Api
           update_achievements_for_transaction(@transaction)
           render json: @transaction, status: :created
         else
-          render json: { errors: @transaction.errors.full_messages }, status: :unprocessable_entity
+          render json: { errors: @transaction.errors.full_messages }, status: :unprocessable_content
         end
       end
 
@@ -47,7 +47,7 @@ module Api
           update_achievements_for_transaction(@transaction)
           render json: @transaction
         else
-          render json: { errors: @transaction.errors.full_messages }, status: :unprocessable_entity
+          render json: { errors: @transaction.errors.full_messages }, status: :unprocessable_content
         end
       end
 
@@ -61,7 +61,7 @@ module Api
       private
 
       def set_transaction
-        @transaction = current_api_v1_user.transactions.find(params[:id])
+        @transaction = current_api_v1_user.transactions.find(params.expect(:id))
       rescue ActiveRecord::RecordNotFound
         render json: { error: '取引が見つかりません' }, status: :not_found
       end

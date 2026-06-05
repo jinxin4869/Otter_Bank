@@ -4,21 +4,21 @@ module Api
   module V1
     class LikesController < ApplicationController
       def create_post_like
-        post = Post.find(params[:id])
+        post = Post.find(params.expect(:id))
         like = post.likes.new(user: current_api_v1_user)
 
         if like.save
           post.increment!(:likes_count)
           render json: { message: 'Post liked', likes_count: post.likes_count }, status: :created
         else
-          render json: { errors: like.errors.full_messages }, status: :unprocessable_entity
+          render json: { errors: like.errors.full_messages }, status: :unprocessable_content
         end
       rescue ActiveRecord::RecordNotFound
         render json: { error: '投稿が見つかりません' }, status: :not_found
       end
 
       def destroy_post_like
-        post = Post.find(params[:id])
+        post = Post.find(params.expect(:id))
         like = post.likes.find_by(user: current_api_v1_user)
 
         if like
@@ -33,7 +33,7 @@ module Api
       end
 
       def create_comment_like
-        comment = Comment.find(params[:id])
+        comment = Comment.find(params.expect(:id))
         like = comment.likes.new(user: current_api_v1_user)
 
         if like.save
@@ -41,14 +41,14 @@ module Api
           render json: { message: 'Comment liked', likes_count: comment.likes_count },
                  status: :created
         else
-          render json: { errors: like.errors.full_messages }, status: :unprocessable_entity
+          render json: { errors: like.errors.full_messages }, status: :unprocessable_content
         end
       rescue ActiveRecord::RecordNotFound
         render json: { error: 'コメントが見つかりません' }, status: :not_found
       end
 
       def destroy_comment_like
-        comment = Comment.find(params[:id])
+        comment = Comment.find(params.expect(:id))
         like = comment.likes.find_by(user: current_api_v1_user)
 
         if like
