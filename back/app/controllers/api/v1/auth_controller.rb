@@ -3,8 +3,6 @@
 module Api
   module V1
     class AuthController < ApplicationController
-      include ActionController::Cookies
-
       skip_before_action :authorize_request, only: %i[google google_callback auth_failure verify refresh]
 
       # Googleログインへのリダイレクト
@@ -21,11 +19,11 @@ module Api
           token = JsonWebToken.encode(user_id: user.id)
           refresh_token = RefreshToken.generate_for(user)
           # フロントエンドへリダイレクト（トークンを含む）
-          callback_url = "#{ENV.fetch('FRONTEND_URL', nil)}/auth/callback" \
-                         "?token=#{token}&refresh_token=#{refresh_token.token}"
+          write_refresh_token_cookie(refresh_token.token)
+          callback_url = "#{ENV.fetch('FRONTEND_URL', nil)}/auth/callback?token=#{token}"
           redirect_to callback_url
         else
-          render json: { error: 'OAuth認証に失敗しました' }, status: :unprocessable_entity
+          render json: { error: 'OAuth認証に失敗しました' }, status: :unprocessable_content
         end
       end
 
@@ -73,7 +71,7 @@ module Api
 
       # リフレッシュトークンを使ってアクセストークンを再発行する
       def refresh
-        token_value = params[:refresh_token]
+        token_value = cookies[:refresh_token]
 
         unless token_value
           render json: { error: 'リフレッシュトークンが必要です', code: 'missing_refresh_token' }, status: :bad_request
@@ -84,7 +82,7 @@ module Api
         new_refresh_token = nil
 
         ActiveRecord::Base.transaction do
-          refresh_token = RefreshToken.lock.find_active_by_token(token_value)
+          refresh_token = RefreshToken.find_active_by_token(token_value)
 
           unless refresh_token
             render json: { error: 'リフレッシュトークンが無効または期限切れです', code: 'invalid_refresh_token' },
@@ -100,9 +98,10 @@ module Api
 
         return unless new_token
 
+        write_refresh_token_cookie(new_refresh_token.token)
+
         render json: {
-          token: new_token,
-          refresh_token: new_refresh_token.token
+          token: new_token
         }, status: :ok
       end
     end

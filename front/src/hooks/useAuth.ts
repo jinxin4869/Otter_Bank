@@ -30,21 +30,17 @@ export const useAuth = () => {
 
   // リフレッシュトークンを使ってアクセストークンを更新する
   const refreshAccessToken = async (): Promise<string | null> => {
-    const storedRefreshToken = localStorage.getItem("refreshToken");
-    if (!storedRefreshToken) return null;
-
     try {
       const response = await fetch(`${getApiUrl()}/api/v1/auth/refresh`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ refresh_token: storedRefreshToken }),
+        credentials: "include",
       });
 
       if (!response.ok) return null;
 
       const data = await response.json();
       localStorage.setItem("authToken", data.token);
-      localStorage.setItem("refreshToken", data.refresh_token);
       return data.token as string;
     } catch {
       return null;
@@ -139,12 +135,8 @@ export const useAuth = () => {
   const loginAuth = async (
     accessToken: string,
     email?: string,
-    refreshToken?: string,
   ) => {
     localStorage.setItem("authToken", accessToken);
-    if (refreshToken) {
-      localStorage.setItem("refreshToken", refreshToken);
-    }
     localStorage.setItem("isLoggedIn", "true");
     if (email) {
       localStorage.setItem("currentUserEmail", email);
@@ -157,20 +149,15 @@ export const useAuth = () => {
 
   const clearAuthStorage = () => {
     localStorage.removeItem("authToken");
-    localStorage.removeItem("refreshToken");
     localStorage.removeItem("isLoggedIn");
     localStorage.removeItem("currentUserEmail");
   };
 
   const saveAuth = (
     newToken: string,
-    newRefreshToken?: string,
     email?: string,
   ) => {
     localStorage.setItem("authToken", newToken);
-    if (newRefreshToken) {
-      localStorage.setItem("refreshToken", newRefreshToken);
-    }
     localStorage.setItem("isLoggedIn", "true");
     if (email) {
       localStorage.setItem("currentUserEmail", email);
@@ -200,23 +187,20 @@ export const useAuth = () => {
   const logout = async () => {
     try {
       const currentToken = localStorage.getItem("authToken");
-      const currentRefreshToken = localStorage.getItem("refreshToken");
 
-      if (currentRefreshToken) {
-        const headers: Record<string, string> = {
-          "Content-Type": "application/json",
-        };
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+      };
 
-        if (currentToken) {
-          headers["Authorization"] = `Bearer ${currentToken}`;
-        }
-
-        await fetch(`${getApiUrl()}/api/v1/sessions`, {
-          method: "DELETE",
-          headers,
-          body: JSON.stringify({ refresh_token: currentRefreshToken }),
-        });
+      if (currentToken) {
+        headers["Authorization"] = `Bearer ${currentToken}`;
       }
+
+      await fetch(`${getApiUrl()}/api/v1/sessions`, {
+        method: "DELETE",
+        headers,
+        credentials: "include",
+      });
     } catch (error) {
       console.error("[Auth] ログアウトエラー:", error);
     } finally {
