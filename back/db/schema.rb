@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_31_000002) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_01_234704) do
   create_table "achievements", force: :cascade do |t|
     t.integer "category", default: 0, null: false
     t.datetime "created_at", null: false
@@ -123,10 +123,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_31_000002) do
     t.datetime "created_at", null: false
     t.datetime "expires_at", null: false
     t.boolean "revoked", default: false, null: false
-    t.string "token", null: false
+    t.string "token_digest", null: false
     t.datetime "updated_at", null: false
     t.integer "user_id", null: false
-    t.index ["token"], name: "index_refresh_tokens_on_token", unique: true
+    t.index ["token_digest"], name: "index_refresh_tokens_on_token_digest", unique: true
     t.index ["user_id"], name: "index_refresh_tokens_on_user_id"
   end
 

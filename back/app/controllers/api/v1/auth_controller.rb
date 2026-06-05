@@ -84,9 +84,9 @@ module Api
         new_refresh_token = nil
 
         ActiveRecord::Base.transaction do
-          refresh_token = RefreshToken.lock.find_by(token: token_value)
+          refresh_token = RefreshToken.lock.find_active_by_token(token_value)
 
-          unless refresh_token&.active?
+          unless refresh_token
             render json: { error: 'リフレッシュトークンが無効または期限切れです', code: 'invalid_refresh_token' },
                    status: :unauthorized
             raise ActiveRecord::Rollback
