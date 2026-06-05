@@ -50,7 +50,7 @@ module Api
       def destroy
         token_value = params[:refresh_token]
         if token_value
-          refresh_token = RefreshToken.find_by(token: token_value)
+          refresh_token = RefreshToken.find_by_plain_token(token_value)
           refresh_token&.revoke!
         end
 
