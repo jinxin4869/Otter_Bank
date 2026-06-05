@@ -9,6 +9,13 @@ module Api
 
         if like.save
           post.increment!(:likes_count)
+          if post.user
+            begin
+              AchievementService.new(post.user).update_community_likes_received_achievements
+            rescue StandardError => e
+              Rails.logger.error "実績更新失敗 user_id=#{post.user.id} error=#{e.message}"
+            end
+          end
           render json: { message: 'Post liked', likes_count: post.likes_count }, status: :created
         else
           render json: { errors: like.errors.full_messages }, status: :unprocessable_content

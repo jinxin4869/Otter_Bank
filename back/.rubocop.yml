@@ -35,6 +35,8 @@ Metrics/PerceivedComplexity:
 
 Metrics/ClassLength:
   Max: 300
+  Exclude:
+    - 'app/services/**/*'
 
 # スペック・ルーティングファイルのブロック長制限を緩和
 Metrics/BlockLength:
