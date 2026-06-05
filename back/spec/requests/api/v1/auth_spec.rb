@@ -98,6 +98,60 @@ RSpec.describe 'Api::V1::Auths', type: :request do
   end
 
   describe 'GET /api/v1/auth/google/callback' do
-    pending "Google OAuth のテストは別途実装 #{__FILE__}"
+    let(:user) { create(:user) }
+    let(:auth_hash) do
+      OmniAuth::AuthHash.new(
+        provider: 'google_oauth2',
+        uid: '123456789',
+        info: {
+          email: user.email,
+          name: user.username,
+          first_name: user.username
+        },
+        credentials: {
+          token: 'mock_google_token',
+          expires_at: 1.week.from_now.to_i
+        }
+      )
+    end
+
+    before do
+      allow(ENV).to receive(:fetch).and_call_original
+      allow(ENV).to receive(:fetch).with('FRONTEND_URL', nil).and_return('http://localhost:3001')
+    end
+
+    context 'OAuth認証成功時' do
+      before do
+        allow(User).to receive(:find_or_create_from_oauth).and_return(user)
+      end
+
+      it 'フロントエンドのコールバックURLにリダイレクトする' do
+        get '/api/v1/auth/google/callback', env: { 'omniauth.auth' => auth_hash }
+        expect(response).to have_http_status(:redirect)
+        expect(response.headers['Location']).to include('/auth/callback?token=')
+      end
+
+      it 'リフレッシュトークンをHttpOnly Cookieにセットする' do
+        get '/api/v1/auth/google/callback', env: { 'omniauth.auth' => auth_hash }
+        expect(response.cookies['refresh_token']).to be_present
+      end
+
+      it 'DBにリフレッシュトークンが作成される' do
+        expect do
+          get '/api/v1/auth/google/callback', env: { 'omniauth.auth' => auth_hash }
+        end.to change(RefreshToken, :count).by(1)
+      end
+    end
+
+    context 'OAuth認証失敗時（ユーザー取得・作成不可）' do
+      before do
+        allow(User).to receive(:find_or_create_from_oauth).and_return(nil)
+      end
+
+      it '422 を返す' do
+        get '/api/v1/auth/google/callback', env: { 'omniauth.auth' => auth_hash }
+        expect(response).to have_http_status(:unprocessable_entity)
+      end
+    end
   end
 end
