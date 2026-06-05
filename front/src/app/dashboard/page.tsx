@@ -34,9 +34,26 @@ import {
   DollarSign,
   Loader2,
 } from "lucide-react"
+import dynamic from "next/dynamic"
 import OtterAnimation from "@/components/otter-animation"
-import ExpensePieChart from "@/components/expense-pie-chart"
-import MonthlyTrend from "@/components/monthly-trend"
+
+const ExpensePieChart = dynamic(() => import("@/components/expense-pie-chart"), {
+  ssr: false,
+  loading: () => (
+    <div className="flex items-center justify-center h-full">
+      <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+    </div>
+  ),
+})
+
+const MonthlyTrend = dynamic(() => import("@/components/monthly-trend"), {
+  ssr: false,
+  loading: () => (
+    <div className="flex items-center justify-center h-full">
+      <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+    </div>
+  ),
+})
 import { Tutorial } from "@/components/tutorial"
 import {
   AlertDialog,
