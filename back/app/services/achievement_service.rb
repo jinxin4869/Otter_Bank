@@ -69,6 +69,42 @@ class AchievementService
         image_url: '/achievements/savings_30000.png',
         reward: 'ゴールドカワウソ'
       },
+      {
+        original_achievement_id: 'savings_milestone_50000',
+        title: '半歩先の安心',
+        description: '50,000円の貯金を達成しました',
+        category: :savings,
+        tier: :gold,
+        progress_target: 50_000,
+        progress: 0,
+        unlocked: false,
+        image_url: '/achievements/savings_50000.png',
+        reward: 'ゴールドバッジ'
+      },
+      {
+        original_achievement_id: 'savings_milestone_100000',
+        title: '10万円の壁を突破',
+        description: '100,000円の貯金を達成しました',
+        category: :savings,
+        tier: :gold,
+        progress_target: 100_000,
+        progress: 0,
+        unlocked: false,
+        image_url: '/achievements/savings_100000.png',
+        reward: 'プレミアムカワウソ'
+      },
+      {
+        original_achievement_id: 'savings_milestone_300000',
+        title: '貯金の達人',
+        description: '300,000円の貯金を達成しました',
+        category: :savings,
+        tier: :platinum,
+        progress_target: 300_000,
+        progress: 0,
+        unlocked: false,
+        image_url: '/achievements/savings_300000.png',
+        reward: 'プラチナカワウソ'
+      },
 
       # 連続記録関連実績
       {
@@ -182,6 +218,44 @@ class AchievementService
         unlocked: false,
         image_url: '/achievements/investment_debut.png',
         reward: '投資家バッジ'
+      },
+
+      # コミュニティ実績
+      {
+        original_achievement_id: 'community_first_post',
+        title: '初めての投稿',
+        description: '掲示板に初めて投稿しました',
+        category: :special,
+        tier: :bronze,
+        progress_target: 1,
+        progress: 0,
+        unlocked: false,
+        image_url: '/achievements/community_first_post.png',
+        reward: '投稿者バッジ'
+      },
+      {
+        original_achievement_id: 'community_likes_10',
+        title: 'みんなに愛される投稿',
+        description: '投稿への累計いいねが10件に達しました',
+        category: :special,
+        tier: :bronze,
+        progress_target: 10,
+        progress: 0,
+        unlocked: false,
+        image_url: '/achievements/community_likes_10.png',
+        reward: 'いいねバッジ'
+      },
+      {
+        original_achievement_id: 'community_likes_50',
+        title: '人気投稿者',
+        description: '投稿への累計いいねが50件に達しました',
+        category: :special,
+        tier: :silver,
+        progress_target: 50,
+        progress: 0,
+        unlocked: false,
+        image_url: '/achievements/community_likes_50.png',
+        reward: 'シルバーいいねバッジ'
       }
     ]
 
@@ -209,7 +283,7 @@ class AchievementService
       when 'savings_milestone_10000'
         total_savings = @user.total_savings || 0
         achievement.update_progress(total_savings) if total_savings >= achievement.progress_target
-      when 'savings_milestone_30000'
+      when 'savings_milestone_30000', 'savings_milestone_50000', 'savings_milestone_100000', 'savings_milestone_300000'
         total_savings = @user.total_savings || 0
         achievement.update_progress(total_savings) if total_savings >= achievement.progress_target
       end
@@ -244,6 +318,9 @@ class AchievementService
         savings_milestone_5000
         savings_milestone_10000
         savings_milestone_30000
+        savings_milestone_50000
+        savings_milestone_100000
+        savings_milestone_300000
       ]
     )
 
@@ -255,7 +332,7 @@ class AchievementService
           unlocked_at: Time.current
         )
         # 実績解除時の通知などを追加する場合はここに記述
-        Rails.logger.info "Achievement unlocked: #{achievement.title} for user #{@user.id}"
+        Rails.logger.info "実績解除: #{achievement.title} ユーザーID=#{@user.id}"
       elsif achievement.progress != total_savings
         # 進捗のみ更新（未達成の場合）
         achievement.update!(progress: total_savings)
@@ -293,6 +370,38 @@ class AchievementService
     when :investment_debut
       investment_achievement = special_achievements.find_by(original_achievement_id: 'investment_debut')
       investment_achievement&.update_progress(1)
+    end
+  end
+
+  # コミュニティ投稿実績を更新（初投稿）
+  def update_community_post_achievements
+    achievement = @user.achievements.find_by(
+      original_achievement_id: 'community_first_post',
+      unlocked: false
+    )
+    achievement&.update_progress(1)
+  end
+
+  # コミュニティいいね受信実績を更新
+  def update_community_likes_received_achievements
+    total_likes = @user.posts.sum(:likes_count)
+
+    achievements = @user.achievements.where(
+      original_achievement_id: %w[community_likes_10 community_likes_50],
+      unlocked: false
+    )
+
+    achievements.each do |achievement|
+      if total_likes >= achievement.progress_target
+        achievement.update!(
+          progress: achievement.progress_target,
+          unlocked: true,
+          unlocked_at: Time.current
+        )
+        Rails.logger.info "実績解除: #{achievement.title} ユーザーID=#{@user.id}"
+      elsif achievement.progress != total_likes
+        achievement.update!(progress: total_likes)
+      end
     end
   end
 end

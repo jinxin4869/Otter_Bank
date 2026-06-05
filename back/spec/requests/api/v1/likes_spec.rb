@@ -32,6 +32,27 @@ RSpec.describe 'Api::V1::Likes', type: :request do
         post "/api/v1/posts/#{post_record.id}/like", headers: headers
         expect(response).to have_http_status(:unprocessable_entity)
       end
+
+      it '合計いいねが10件に達すると投稿者のcommunity_likes_10実績が解除される' do
+        post_record.update!(likes_count: 9)
+        post_author = post_record.user
+
+        post "/api/v1/posts/#{post_record.id}/like", headers: headers
+
+        achievement = post_author.achievements.find_by(original_achievement_id: 'community_likes_10')
+        expect(achievement.reload.unlocked).to be true
+      end
+
+      it '合計いいねが10未満の場合は進捗のみ更新される' do
+        post_record.update!(likes_count: 5)
+        post_author = post_record.user
+
+        post "/api/v1/posts/#{post_record.id}/like", headers: headers
+
+        achievement = post_author.achievements.find_by(original_achievement_id: 'community_likes_10')
+        expect(achievement.reload.unlocked).to be false
+        expect(achievement.reload.progress).to eq(6)
+      end
     end
 
     describe 'POST /api/v1/posts/:post_id/unlike' do
