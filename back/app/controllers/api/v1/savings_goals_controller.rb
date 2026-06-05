@@ -15,7 +15,7 @@ module Api
         if @savings_goal.save
           render json: @savings_goal, status: :created
         else
-          render json: { errors: @savings_goal.errors.full_messages }, status: :unprocessable_entity
+          render json: { errors: @savings_goal.errors.full_messages }, status: :unprocessable_content
         end
       end
 
@@ -23,7 +23,7 @@ module Api
         if @savings_goal.update(savings_goal_params)
           render json: @savings_goal
         else
-          render json: { errors: @savings_goal.errors.full_messages }, status: :unprocessable_entity
+          render json: { errors: @savings_goal.errors.full_messages }, status: :unprocessable_content
         end
       end
 
@@ -35,7 +35,7 @@ module Api
       private
 
       def set_savings_goal
-        @savings_goal = @current_user.savings_goals.find(params[:id])
+        @savings_goal = @current_user.savings_goals.find(params.expect(:id))
       rescue ActiveRecord::RecordNotFound
         render json: { error: '貯金目標が見つかりません' }, status: :not_found
       end
