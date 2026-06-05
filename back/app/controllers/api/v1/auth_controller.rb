@@ -3,7 +3,9 @@
 module Api
   module V1
     class AuthController < ApplicationController
-      skip_before_action :authorize_request, only: %i[google google_callback auth_failure verify refresh]
+      def skip_authorization?
+        action_name.in?(%w[google google_callback auth_failure verify refresh])
+      end
 
       # Googleログインへのリダイレクト
       def google
@@ -21,7 +23,7 @@ module Api
           # フロントエンドへリダイレクト（トークンを含む）
           write_refresh_token_cookie(refresh_token.token)
           callback_url = "#{ENV.fetch('FRONTEND_URL', nil)}/auth/callback?token=#{token}"
-          redirect_to callback_url
+          redirect_to callback_url, allow_other_host: true
         else
           render json: { error: 'OAuth認証に失敗しました' }, status: :unprocessable_content
         end
@@ -58,14 +60,14 @@ module Api
               name: @current_user.name
             }, status: :ok
           rescue JWT::ExpiredSignature
-            render json: { error: 'Token has expired', code: 'token_expired' }, status: :unauthorized
+            render json: { error: 'トークンの有効期限が切れています', code: 'token_expired' }, status: :unauthorized
           rescue JWT::DecodeError => e
-            render json: { error: 'Invalid token', code: 'invalid_token', details: e.message }, status: :unauthorized
+            render json: { error: '無効なトークンです', code: 'invalid_token', details: e.message }, status: :unauthorized
           rescue ActiveRecord::RecordNotFound
-            render json: { error: 'User not found', code: 'user_not_found' }, status: :unauthorized
+            render json: { error: 'ユーザーが見つかりません', code: 'user_not_found' }, status: :unauthorized
           end
         else
-          render json: { error: 'Authorization header missing', code: 'missing_header' }, status: :unauthorized
+          render json: { error: 'Authorizationヘッダーがありません', code: 'missing_header' }, status: :unauthorized
         end
       end
 
