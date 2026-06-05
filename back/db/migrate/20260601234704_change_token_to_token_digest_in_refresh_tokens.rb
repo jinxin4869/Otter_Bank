@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class ChangeTokenToTokenDigestInRefreshTokens < ActiveRecord::Migration[7.1]
   def change
     # 既存のリフレッシュトークンは平文で保存されており、ダイジェスト化されたものと照合できなくなるため、

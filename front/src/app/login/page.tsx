@@ -15,7 +15,7 @@ import Image from "next/image"
 import { useState } from "react"
 import { loginSchema, type LoginFormValues } from "@/lib/schemas/auth"
 import { api } from "@/lib/api"
-import { getBaseUrl } from "@/lib/api-client"
+import { getApiUrl } from "@/lib/api-client"
 import { useAuth } from "@/hooks/useAuth"
 
 export default function LoginPage() {
@@ -58,7 +58,7 @@ export default function LoginPage() {
     setIsGoogleLoading(true)
 
     try {
-      window.location.href = `${getBaseUrl()}/api/v1/auth/google`
+      window.location.href = `${getApiUrl()}/api/v1/auth/google`
     } catch (error) {
       console.error("Google認証エラー:", error)
       setApiError("Google認証中にエラーが発生しました。後でもう一度お試しください。")
