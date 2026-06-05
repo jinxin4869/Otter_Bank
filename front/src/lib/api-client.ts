@@ -1,11 +1,17 @@
 import { parseApiError, ApiError } from '@/lib/api-error'
 
-/** 環境に応じたベース URL を返す */
-export function getBaseUrl(): string {
-  if (process.env.NODE_ENV === 'development') {
-    return process.env.NEXT_PUBLIC_DEV_URL ?? ''
+/** 環境に応じたベース URL を返す。未設定の場合は例外をスロー */
+export function getApiUrl(): string {
+  const url =
+    process.env.NODE_ENV === 'development'
+      ? process.env.NEXT_PUBLIC_DEV_URL
+      : process.env.NEXT_PUBLIC_API_URL
+  if (!url) {
+    throw new Error(
+      'API URL が設定されていません。環境変数 NEXT_PUBLIC_DEV_URL / NEXT_PUBLIC_API_URL を確認してください。'
+    )
   }
-  return process.env.NEXT_PUBLIC_API_URL ?? ''
+  return url
 }
 
 type ApiRequestOptions = {
@@ -25,7 +31,7 @@ export async function apiRequest<T>(
   options: ApiRequestOptions = {}
 ): Promise<T | undefined> {
   const { method = 'GET', token, body } = options
-  const url = `${getBaseUrl()}/api/v1${path}`
+  const url = `${getApiUrl()}/api/v1${path}`
 
   const headers: Record<string, string> = {}
   if (token) headers['Authorization'] = `Bearer ${token}`
