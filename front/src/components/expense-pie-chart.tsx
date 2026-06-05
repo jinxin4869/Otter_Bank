@@ -1,5 +1,6 @@
 "use client"
 
+import React from "react"
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 
 type Transaction = {
@@ -35,7 +36,7 @@ const getCategoryLabel = (categoryValue: string) => {
   return category ? category.label : categoryValue;
 };
 
-export default function ExpensePieChart({ transactions }: ExpensePieChartProps) {
+function ExpensePieChart({ transactions }: ExpensePieChartProps) {
   const expenseData = transactions
     .filter(t => t.type === 'expense')
     .reduce((acc, transaction) => {
@@ -76,3 +77,5 @@ export default function ExpensePieChart({ transactions }: ExpensePieChartProps) 
     </ResponsiveContainer>
   );
 }
+
+export default React.memo(ExpensePieChart)

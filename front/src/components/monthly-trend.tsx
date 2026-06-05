@@ -1,5 +1,6 @@
 "use client"
 
+import React from "react"
 import { useTheme } from "next-themes"
 import { format, subMonths, startOfMonth, endOfMonth, parseISO } from "date-fns"
 import { ja } from "date-fns/locale"
@@ -28,7 +29,7 @@ type MonthlyTrendProps = {
   transactions: Transaction[]
 }
 
-export default function MonthlyTrend({ transactions }: MonthlyTrendProps) {
+function MonthlyTrend({ transactions }: MonthlyTrendProps) {
   const { theme } = useTheme()
 
   const today = new Date()
@@ -80,7 +81,7 @@ export default function MonthlyTrend({ transactions }: MonthlyTrendProps) {
     return [`${typeof value === 'number' ? value.toLocaleString() : String(value ?? '')} 円`, String(name ?? '')];
   }
 
-  const legendFormatter = (value: string, _entry: any, _index: number) => {
+  const legendFormatter = (value: string) => {
     if (value === "income") return "収入"
     if (value === "expense") return "支出"
     if (value === "balance") return "収支"
@@ -142,3 +143,4 @@ export default function MonthlyTrend({ transactions }: MonthlyTrendProps) {
     </ResponsiveContainer>
   )
 }
+export default React.memo(MonthlyTrend)
