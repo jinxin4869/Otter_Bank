@@ -14,8 +14,8 @@ RSpec.describe 'Api::V1::Posts', type: :request do
       get '/api/v1/posts'
       expect(response).to have_http_status(:ok)
       json = response.parsed_body
-      expect(json).to be_an(Array)
-      expect(json.length).to eq(3)
+      expect(json['posts']).to be_an(Array)
+      expect(json['posts'].length).to eq(3)
     end
 
     it '認証なしでも一覧を取得できる' do
@@ -26,7 +26,7 @@ RSpec.describe 'Api::V1::Posts', type: :request do
     it 'レスポンスに必要なフィールドが含まれる' do
       get '/api/v1/posts', headers: headers
       json = response.parsed_body
-      post_data = json.first
+      post_data = json['posts'].first
       expect(post_data).to include('id', 'title', 'content', 'author', 'likes_count', 'comments_count', 'views_count',
                                    'liked_by_me', 'bookmarked_by_me')
     end
@@ -37,7 +37,7 @@ RSpec.describe 'Api::V1::Posts', type: :request do
 
       get '/api/v1/posts', headers: headers
       json = response.parsed_body
-      liked_post = json.find { |p| p['id'] == post_record.id }
+      liked_post = json['posts'].find { |p| p['id'] == post_record.id }
       expect(liked_post['liked_by_me']).to be true
     end
   end

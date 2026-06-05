@@ -123,9 +123,10 @@ module Api
       end
 
       def optional_current_user
-        return nil unless auth_header
+        header = request.headers['Authorization']
+        return nil unless header
 
-        token = auth_header.split.last
+        token = header.split.last
         decoded = JsonWebToken.decode(token)
         User.find_by(id: decoded[:user_id])
       rescue StandardError
