@@ -98,6 +98,13 @@ RSpec.describe 'Api::V1::Posts', type: :request do
       expect(json['categories']).to include('節約', '家計簿')
     end
 
+    it '投稿作成時にcommunity_first_post実績が解除される' do
+      post '/api/v1/posts', params: valid_params, headers: headers
+      expect(response).to have_http_status(:created)
+      achievement = user.achievements.find_by(original_achievement_id: 'community_first_post')
+      expect(achievement.reload.unlocked).to be true
+    end
+
     it '未認証では投稿できない' do
       post '/api/v1/posts', params: valid_params
       expect(response).to have_http_status(:unauthorized)
