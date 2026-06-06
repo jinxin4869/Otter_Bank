@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -71,6 +71,9 @@ import { useRouter } from "next/navigation"
 import { useAuth } from "@/hooks/useAuth"
 import { api } from "@/lib/api"
 import { type Transaction, mapApiTransaction } from "@/types/transaction"
+import { AchievementUnlockModal } from "@/components/achievement-unlock-modal"
+import type { ApiNewlyUnlockedAchievement } from "@/types/achievement"
+import { toast } from "sonner"
 
 const EXPENSE_CATEGORIES = [
   { value: "food", label: "食費", icon: <Coffee className="h-4 w-4" /> },
@@ -105,8 +108,15 @@ export default function DashboardPage() {
   const [currentDate, setCurrentDate] = useState<Date>(new Date())
   const [otterMood, setOtterMood] = useState<"happy" | "neutral" | "sad">("neutral")
   const [isDataLoading, setIsDataLoading] = useState(false)
+  const [achievementQueue, setAchievementQueue] = useState<ApiNewlyUnlockedAchievement[]>([])
   const router = useRouter()
   const { user, token, isLoading: authIsLoading, isAuthenticated } = useAuth()
+
+  const currentAchievement = achievementQueue[0] ?? null
+
+  const handleAchievementClose = useCallback(() => {
+    setAchievementQueue((prev) => prev.slice(1))
+  }, [])
 
   useEffect(() => {
     if (!authIsLoading && !isAuthenticated) {
@@ -189,15 +199,22 @@ export default function DashboardPage() {
     const numericAmount = Number.parseFloat(amount.replace(/,/g, ""))
 
     try {
-      const newTx = await api.transactions.create(token, {
+      const result = await api.transactions.create(token, {
         amount: numericAmount,
         transaction_type: type,
         category,
         description,
         date: format(date, "yyyy-MM-dd"),
       })
-      if (newTx) {
-        setTransactions((prev) => [...prev, mapApiTransaction(newTx)])
+      if (result) {
+        setTransactions((prev) => [...prev, mapApiTransaction(result.transaction)])
+
+        if (result.newly_unlocked_achievements.length > 0) {
+          result.newly_unlocked_achievements.forEach((ach) => {
+            toast.success(`実績解除: ${ach.title}`, { description: ach.description })
+          })
+          setAchievementQueue((prev) => [...prev, ...result.newly_unlocked_achievements])
+        }
       }
       setAmount("")
       setAmountError(null)
@@ -324,6 +341,7 @@ export default function DashboardPage() {
 
   return (
     <div className="p-4 md:p-6 lg:p-8 space-y-8">
+      <AchievementUnlockModal achievement={currentAchievement} onClose={handleAchievementClose} />
       <Tutorial />
 
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
