@@ -85,6 +85,76 @@ RSpec.describe User, type: :model do
     end
   end
 
+  describe '#current_streak' do
+    let(:user) { create(:user) }
+
+    it '取引が0件のとき0を返す' do
+      expect(user.current_streak).to eq(0)
+    end
+
+    it '今日だけ収入取引があるとき1を返す' do
+      create(:transaction, user: user, transaction_type: :income, date: Date.current)
+      expect(user.current_streak).to eq(1)
+    end
+
+    it '今日と昨日に収入取引があるとき2を返す' do
+      create(:transaction, user: user, transaction_type: :income, date: Date.current)
+      create(:transaction, user: user, transaction_type: :income, date: Date.current - 1.day)
+      expect(user.current_streak).to eq(2)
+    end
+
+    it '今日の記録がなく昨日まで連続している場合は昨日から遡った日数を返す' do
+      create(:transaction, user: user, transaction_type: :income, date: Date.current - 1.day)
+      create(:transaction, user: user, transaction_type: :income, date: Date.current - 2.days)
+      expect(user.current_streak).to eq(2)
+    end
+
+    it '今日も昨日も記録がなければ0を返す' do
+      create(:transaction, user: user, transaction_type: :income, date: Date.current - 3.days)
+      expect(user.current_streak).to eq(0)
+    end
+
+    it 'created_at ではなく date カラムを参照する' do
+      # date は2日前だが created_at は今日の取引を作成
+      create(:transaction, user: user, transaction_type: :income, date: Date.current - 2.days)
+      expect(user.current_streak).to eq(0)
+    end
+
+    it '二重カウントしない（今日の取引1件のとき1を返す）' do
+      create(:transaction, user: user, transaction_type: :income, date: Date.current)
+      expect(user.current_streak).to eq(1)
+    end
+
+    it '収入取引のみカウントし、支出取引は無視する' do
+      create(:transaction, user: user, transaction_type: :expense, date: Date.current)
+      expect(user.current_streak).to eq(0)
+    end
+  end
+
+  describe '#longest_streak' do
+    let(:user) { create(:user) }
+
+    it '取引が0件のとき0を返す' do
+      expect(user.longest_streak).to eq(0)
+    end
+
+    it '連続していない複数の期間があるとき最長を返す' do
+      # 3日連続 + 1日空白 + 2日連続
+      create(:transaction, user: user, transaction_type: :income, date: Date.current - 6.days)
+      create(:transaction, user: user, transaction_type: :income, date: Date.current - 5.days)
+      create(:transaction, user: user, transaction_type: :income, date: Date.current - 4.days)
+      create(:transaction, user: user, transaction_type: :income, date: Date.current - 2.days)
+      create(:transaction, user: user, transaction_type: :income, date: Date.current - 1.day)
+      expect(user.longest_streak).to eq(3)
+    end
+
+    it 'date カラムを参照する' do
+      create(:transaction, user: user, transaction_type: :income, date: Date.current - 1.day)
+      create(:transaction, user: user, transaction_type: :income, date: Date.current)
+      expect(user.longest_streak).to eq(2)
+    end
+  end
+
   describe '#oauth_only?' do
     it 'OAuthプロバイダーのみで登録したユーザーはtrueを返す' do
       user = create(:user)
