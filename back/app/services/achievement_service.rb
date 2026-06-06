@@ -351,7 +351,8 @@ class AchievementService
       when 'budget_keeper_month'
         achievement.update_progress(1) if budget_status[:within_budget]
       when 'budget_master_3months'
-        achievement.update_progress(budget_status[:consecutive_months]) if budget_status[:consecutive_months] >= 3
+        # 中間進捗（1・2ヶ月）も反映させるため条件なしで更新する
+        achievement.update_progress(budget_status[:consecutive_months])
       end
     end
   end
@@ -371,6 +372,39 @@ class AchievementService
       investment_achievement = special_achievements.find_by(original_achievement_id: 'investment_debut')
       investment_achievement&.update_progress(1)
     end
+  end
+
+  # 今月の支出が予算内かどうか確認する
+  def within_current_month_budget?(monthly_limit)
+    today = Date.current
+    expense = @user.transactions
+                   .where(transaction_type: 'expense')
+                   .where(date: today.all_month)
+                   .sum(:amount)
+    expense <= monthly_limit
+  end
+
+  # 月初から遡って連続で予算内に収まっている月数を計算する
+  def calculate_consecutive_budget_months(budgets_by_month)
+    months = 0
+    check_date = Date.current.beginning_of_month
+
+    3.times do
+      key = [check_date.year, check_date.month]
+      monthly_limit = budgets_by_month[key]
+      break unless monthly_limit
+
+      expense = @user.transactions
+                     .where(transaction_type: 'expense')
+                     .where(date: check_date.all_month)
+                     .sum(:amount)
+      break if expense > monthly_limit
+
+      months += 1
+      check_date = check_date.prev_month.beginning_of_month
+    end
+
+    months
   end
 
   # コミュニティ投稿実績を更新（初投稿）
