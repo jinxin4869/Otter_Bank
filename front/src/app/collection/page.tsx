@@ -22,6 +22,8 @@ const categoryLabels: Record<string, string> = {
   history: '解除履歴',
 };
 
+const ACHIEVEMENT_CATEGORIES = ["all", "savings", "streak", "expense", "special", "history"] as const;
+
 const formatUnlockedAt = (dateStr: string): string => {
   return new Intl.DateTimeFormat('ja-JP', {
     year: 'numeric',
@@ -69,12 +71,6 @@ export default function CollectionPage() {
     [achievements]
   );
 
-  // 表示するカテゴリを動的に生成（履歴タブを末尾に固定追加）
-  const achievementCategories = useMemo(
-    () => ["all", ...new Set(achievements.map((ach) => ach.category)), "history"],
-    [achievements]
-  );
-
   return (
     <div className="container mx-auto p-4 md:p-6 lg:p-8 bg-background text-foreground">
       <h1 className="text-3xl font-bold mb-8 text-foreground">コレクション</h1>
@@ -112,12 +108,10 @@ export default function CollectionPage() {
         </div>
         <Tabs value={activeTab} onValueChange={filterAchievements} className="mb-6">
           <TabsList className="bg-muted">
-            {achievementCategories.map((cat) => (
-              cat && (
-                <TabsTrigger key={cat} value={cat} className="capitalize px-4 py-2 data-[state=active]:bg-background data-[state=active]:text-foreground">
-                  {categoryLabels[cat] || cat}
-                </TabsTrigger>
-              )
+            {ACHIEVEMENT_CATEGORIES.map((cat) => (
+              <TabsTrigger key={cat} value={cat} className="capitalize px-4 py-2 data-[state=active]:bg-background data-[state=active]:text-foreground">
+                {categoryLabels[cat] || cat}
+              </TabsTrigger>
             ))}
           </TabsList>
         </Tabs>

@@ -90,7 +90,7 @@ module Api
             render json: { errors: achievement.errors.full_messages }, status: :unprocessable_content
           end
         else
-          render json: { error: 'Achievement not found' }, status: :not_found
+          render json: { error: '実績が見つかりません' }, status: :not_found
         end
       end
 
