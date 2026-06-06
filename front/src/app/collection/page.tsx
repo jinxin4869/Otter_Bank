@@ -1,14 +1,14 @@
 "use client"
 
 import { useRouter } from "next/navigation"
-import { useState, useEffect } from "react"
+import { useEffect, useMemo } from "react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import Image from "next/image"
 import { cn } from "@/lib/utils"
-import { LockIcon, UnlockIcon, AlertTriangle, Trophy } from 'lucide-react';
+import { LockIcon, UnlockIcon, AlertTriangle, Trophy, Clock, History } from 'lucide-react';
 import { useAuth } from "@/hooks/useAuth"
 import { useAchievements } from "@/hooks/useAchievements"
 
@@ -18,7 +18,18 @@ const categoryLabels: Record<string, string> = {
   savings: '貯金',
   streak: '連続記録',
   expense: '支出管理',
-  special: '特別'
+  special: '特別',
+  history: '解除履歴',
+};
+
+const formatUnlockedAt = (dateStr: string): string => {
+  return new Intl.DateTimeFormat('ja-JP', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(new Date(dateStr));
 };
 
 // ティア表示用の日本語マッピング
@@ -49,8 +60,20 @@ export default function CollectionPage() {
     }
   }, [authIsLoading, isAuthenticated, router])
 
-  // 表示するカテゴリを動的に生成
-  const achievementCategories = ["all", ...new Set(achievements.map(ach => ach.category))];
+  // 解除済み実績を unlocked_at 降順で並べた履歴リスト
+  const historyAchievements = useMemo(
+    () =>
+      [...achievements]
+        .filter((ach) => ach.unlocked && ach.unlockedAt)
+        .sort((a, b) => new Date(b.unlockedAt!).getTime() - new Date(a.unlockedAt!).getTime()),
+    [achievements]
+  );
+
+  // 表示するカテゴリを動的に生成（履歴タブを末尾に固定追加）
+  const achievementCategories = useMemo(
+    () => ["all", ...new Set(achievements.map((ach) => ach.category)), "history"],
+    [achievements]
+  );
 
   return (
     <div className="container mx-auto p-4 md:p-6 lg:p-8 bg-background text-foreground">
@@ -130,13 +153,39 @@ export default function CollectionPage() {
           </div>
         )}
 
-        {!isLoading && !error && filteredAchievements.length === 0 && (
+        {/* 解除履歴タブ */}
+        {!isLoading && !error && activeTab === "history" && (
+          historyAchievements.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-16 text-muted-foreground gap-3">
+              <History className="h-12 w-12 opacity-30" />
+              <p className="text-sm">まだ解除した実績がありません。</p>
+            </div>
+          ) : (
+            <div className="bg-card border rounded-lg divide-y divide-border">
+              {historyAchievements.map((ach) => (
+                <div key={ach.id} className="flex items-center gap-4 px-4 py-3 hover:bg-muted/50 transition-colors">
+                  <Clock className="h-4 w-4 text-muted-foreground shrink-0" />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium text-foreground truncate">{ach.title}</p>
+                    <p className="text-xs text-muted-foreground">{formatUnlockedAt(ach.unlockedAt!)}</p>
+                  </div>
+                  <Badge variant="secondary" className="text-xs shrink-0 bg-secondary text-secondary-foreground">
+                    {tierLabels[ach.tier] ?? ach.tier}
+                  </Badge>
+                </div>
+              ))}
+            </div>
+          )
+        )}
+
+        {/* カテゴリフィルタータブ（履歴タブ以外） */}
+        {!isLoading && !error && activeTab !== "history" && filteredAchievements.length === 0 && (
           <p className="text-muted-foreground py-4">
             {activeTab === "all" ? "実績はまだありません。" : `このカテゴリ (${categoryLabels[activeTab] ?? activeTab}) の実績はまだありません。`}
           </p>
         )}
 
-        {!isLoading && !error && filteredAchievements.length > 0 && (
+        {!isLoading && !error && activeTab !== "history" && filteredAchievements.length > 0 && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {filteredAchievements.map((ach) => (
               <Card
