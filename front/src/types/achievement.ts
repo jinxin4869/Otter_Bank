@@ -2,6 +2,17 @@ export type AchievementCategory = 'savings' | 'streak' | 'expense' | 'special'
 
 export type AchievementTier = 'bronze' | 'silver' | 'gold' | 'platinum'
 
+// 取引登録・更新レスポンスに含まれる新規解除実績
+export interface ApiNewlyUnlockedAchievement {
+  id: number
+  title: string
+  description: string
+  tier: AchievementTier
+  category: AchievementCategory
+  reward: string
+  image_url: string | null
+}
+
 // ========== API 型（スネークケース） ==========
 
 export interface ApiAchievement {
