@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_05_141950) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_06_051105) do
   create_table "achievements", force: :cascade do |t|
     t.integer "category", default: 0, null: false
     t.datetime "created_at", null: false
@@ -42,6 +42,17 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_05_141950) do
     t.index ["post_id"], name: "index_bookmarks_on_post_id"
     t.index ["user_id", "post_id"], name: "index_bookmarks_on_user_and_post", unique: true
     t.index ["user_id"], name: "index_bookmarks_on_user_id"
+  end
+
+  create_table "budgets", force: :cascade do |t|
+    t.decimal "amount", null: false
+    t.datetime "created_at", null: false
+    t.integer "month", null: false
+    t.datetime "updated_at", null: false
+    t.integer "user_id", null: false
+    t.integer "year", null: false
+    t.index ["user_id", "year", "month"], name: "index_budgets_on_user_id_and_year_and_month", unique: true
+    t.index ["user_id"], name: "index_budgets_on_user_id"
   end
 
   create_table "categories", force: :cascade do |t|
@@ -183,6 +194,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_05_141950) do
   add_foreign_key "achievements", "users"
   add_foreign_key "bookmarks", "posts"
   add_foreign_key "bookmarks", "users"
+  add_foreign_key "budgets", "users"
   add_foreign_key "comments", "posts"
   add_foreign_key "comments", "users"
   add_foreign_key "likes", "users"

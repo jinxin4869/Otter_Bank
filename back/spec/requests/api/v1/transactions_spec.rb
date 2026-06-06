@@ -102,6 +102,51 @@ RSpec.describe 'Api::V1::Transactions', type: :request do
         first_savings = user.achievements.find_by(original_achievement_id: 'first_savings')
         expect(first_savings.reload.unlocked).to be false
       end
+
+      it '投資カテゴリの収入取引を作成すると investment_debut が解除される' do
+        post '/api/v1/transactions',
+             params: { transaction: { amount: 10_000, transaction_type: 'income', category: 'investment',
+                                      description: '投資', date: Date.current } },
+             headers: headers
+
+        expect(response).to have_http_status(:created)
+        achievement = user.achievements.find_by(original_achievement_id: 'investment_debut')
+        expect(achievement.reload.unlocked).to be true
+      end
+
+      it '投資以外のカテゴリの収入取引では investment_debut は解除されない' do
+        post '/api/v1/transactions',
+             params: { transaction: { amount: 10_000, transaction_type: 'income', category: 'salary',
+                                      description: '給料', date: Date.current } },
+             headers: headers
+
+        achievement = user.achievements.find_by(original_achievement_id: 'investment_debut')
+        expect(achievement.reload.unlocked).to be false
+      end
+
+      context '予算実績' do
+        let!(:budget) do
+          create(:budget, user: user, year: Date.current.year, month: Date.current.month, amount: 50_000)
+        end
+
+        it '支出が予算内のとき budget_keeper_month が解除される' do
+          achievement = user.achievements.find_by(original_achievement_id: 'budget_keeper_month')
+          post '/api/v1/transactions',
+               params: { transaction: { amount: 10_000, transaction_type: 'expense', category: '食費',
+                                        description: '食費', date: Date.current } },
+               headers: headers
+          expect(achievement.reload.unlocked).to be true
+        end
+
+        it '支出が予算を超えたとき budget_keeper_month は解除されない' do
+          achievement = user.achievements.find_by(original_achievement_id: 'budget_keeper_month')
+          post '/api/v1/transactions',
+               params: { transaction: { amount: 60_000, transaction_type: 'expense', category: '食費',
+                                        description: '食費', date: Date.current } },
+               headers: headers
+          expect(achievement.reload.unlocked).to be false
+        end
+      end
     end
   end
 

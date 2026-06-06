@@ -39,6 +39,22 @@ RSpec.describe 'Api::V1::SavingsGoals', type: :request do
       post '/api/v1/savings_goals', params: valid_params
       expect(response).to have_http_status(:unauthorized)
     end
+
+    context '緊急資金実績' do
+      it 'target_amount が 100,000 以上のとき emergency_fund_created が解除される' do
+        achievement = user.achievements.find_by(original_achievement_id: 'emergency_fund_created')
+        post '/api/v1/savings_goals', params: valid_params, headers: headers
+        expect(achievement.reload.unlocked).to be true
+      end
+
+      it 'target_amount が 99,999 のとき emergency_fund_created は解除されない' do
+        achievement = user.achievements.find_by(original_achievement_id: 'emergency_fund_created')
+        params = { savings_goal: { title: '小さな目標', target_amount: 99_999, current_amount: 0,
+                                   deadline: 1.year.from_now.to_date } }
+        post '/api/v1/savings_goals', params: params, headers: headers
+        expect(achievement.reload.unlocked).to be false
+      end
+    end
   end
 
   describe 'PATCH /api/v1/savings_goals/:id' do
@@ -51,6 +67,36 @@ RSpec.describe 'Api::V1::SavingsGoals', type: :request do
       expect(response).to have_http_status(:ok)
       expect(savings_goal.reload.title).to eq('新しいタイトル')
       expect(savings_goal.reload.current_amount.to_f).to eq(10_000.0)
+    end
+
+    context '目標達成実績' do
+      it 'current_amount >= target_amount になる更新で goal_first_achieved が解除される' do
+        achievement = user.achievements.find_by(original_achievement_id: 'goal_first_achieved')
+        patch "/api/v1/savings_goals/#{savings_goal.id}",
+              params: { savings_goal: { current_amount: 50_000 } },
+              headers: headers
+        expect(achievement.reload.unlocked).to be true
+      end
+
+      it 'すでに達成済みの目標を更新しても goal_first_achieved は再解除されない（べき等）' do
+        savings_goal.update!(current_amount: 50_000)
+        achievement = user.achievements.find_by(original_achievement_id: 'goal_first_achieved')
+        achievement.update!(unlocked: true, unlocked_at: Time.current)
+        unlocked_at = achievement.unlocked_at
+
+        patch "/api/v1/savings_goals/#{savings_goal.id}",
+              params: { savings_goal: { current_amount: 50_000 } },
+              headers: headers
+        expect(achievement.reload.unlocked_at).to be_within(1.second).of(unlocked_at)
+      end
+
+      it '未達成のまま更新しても goal_first_achieved は解除されない' do
+        achievement = user.achievements.find_by(original_achievement_id: 'goal_first_achieved')
+        patch "/api/v1/savings_goals/#{savings_goal.id}",
+              params: { savings_goal: { current_amount: 10_000 } },
+              headers: headers
+        expect(achievement.reload.unlocked).to be false
+      end
     end
 
     it '他ユーザーの貯金目標にはアクセスできない' do

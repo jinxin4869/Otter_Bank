@@ -70,14 +70,23 @@ module Api
         params.expect(transaction: %i[amount transaction_type category description date])
       end
 
-      # 収入取引の登録・更新後に実績を更新する
+      # 取引の登録・更新後に実績を更新する
       def update_achievements_for_transaction(transaction)
-        return unless transaction.income?
-
         service = AchievementService.new(current_api_v1_user)
-        service.update_savings_achievements(transaction.amount)
-        service.update_milestone_achievements
+
+        if transaction.income?
+          service.update_savings_achievements(transaction.amount)
+          service.update_milestone_achievements
+          # 投資カテゴリの取引で investment_debut 実績を解除する
+          service.update_special_achievements(:investment_debut) if transaction.category == 'investment'
+        end
+
+        # income/expense どちらの取引でもストリークを再計算する
+        # （expense を先に登録した日に income が後から来たとき最新状態を反映させるため）
         service.update_streak_achievements(current_api_v1_user.current_streak)
+
+        # expense 取引のとき予算実績をチェックする
+        update_budget_achievements(service) if transaction.expense?
       rescue StandardError => e
         Rails.logger.error "実績更新エラー: #{e.message}"
       end
@@ -88,6 +97,28 @@ module Api
         service.update_milestone_achievements
       rescue StandardError => e
         Rails.logger.error "実績更新エラー（削除後）: #{e.message}"
+      end
+
+      # 予算実績（budget_keeper_month / budget_master_3months）をチェックして更新する
+      def update_budget_achievements(service)
+        budget_status = build_budget_status(service)
+        return unless budget_status
+
+        service.update_expense_achievements(budget_status)
+      end
+
+      def build_budget_status(service)
+        today = Date.current
+        budget = current_api_v1_user.budgets.find_by(year: today.year, month: today.month)
+        return nil unless budget
+
+        within = service.within_current_month_budget?(budget.amount)
+        budgets_by_month = current_api_v1_user.budgets.to_h do |b|
+          [[b.year, b.month], b.amount]
+        end
+        consecutive = service.calculate_consecutive_budget_months(budgets_by_month)
+
+        { budget_set: true, within_budget: within, consecutive_months: consecutive }
       end
     end
   end
