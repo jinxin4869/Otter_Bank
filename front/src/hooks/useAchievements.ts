@@ -57,7 +57,9 @@ export function useAchievements(): UseAchievementsReturn {
   const filterAchievements = useCallback(
     (category: string) => {
       setActiveTab(category)
-      if (category === 'all' || category === 'history') {
+      if (category === 'history') {
+        setFilteredAchievements([])
+      } else if (category === 'all') {
         setFilteredAchievements(achievements)
       } else {
         setFilteredAchievements(
