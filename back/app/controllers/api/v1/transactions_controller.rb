@@ -35,8 +35,8 @@ module Api
         @transaction = current_api_v1_user.transactions.new(transaction_params)
 
         if @transaction.save
-          update_achievements_for_transaction(@transaction)
-          render json: @transaction, status: :created
+          newly_unlocked = with_achievement_tracking { update_achievements_for_transaction(@transaction) }
+          render json: { transaction: @transaction, newly_unlocked_achievements: newly_unlocked }, status: :created
         else
           render json: { errors: @transaction.errors.full_messages }, status: :unprocessable_content
         end
@@ -44,8 +44,8 @@ module Api
 
       def update
         if @transaction.update(transaction_params)
-          update_achievements_for_transaction(@transaction)
-          render json: @transaction
+          newly_unlocked = with_achievement_tracking { update_achievements_for_transaction(@transaction) }
+          render json: { transaction: @transaction, newly_unlocked_achievements: newly_unlocked }
         else
           render json: { errors: @transaction.errors.full_messages }, status: :unprocessable_content
         end
@@ -119,6 +119,30 @@ module Api
         consecutive = service.calculate_consecutive_budget_months(budgets_by_month)
 
         { budget_set: true, within_budget: within, consecutive_months: consecutive }
+      end
+
+      # 実績更新前後を比較し、新たに解除された実績を返す
+      def with_achievement_tracking
+        previously_unlocked_ids = current_api_v1_user.achievements.where(unlocked: true).pluck(:id)
+        yield
+        current_api_v1_user.achievements
+                           .where(unlocked: true)
+                           .where.not(id: previously_unlocked_ids)
+                           .map { |a| achievement_json(a) }
+      rescue StandardError
+        []
+      end
+
+      def achievement_json(achievement)
+        {
+          id: achievement.id,
+          title: achievement.title,
+          description: achievement.description,
+          tier: achievement.tier,
+          category: achievement.category,
+          reward: achievement.reward,
+          image_url: achievement.image_url
+        }
       end
     end
   end

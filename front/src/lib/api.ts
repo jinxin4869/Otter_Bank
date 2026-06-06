@@ -1,7 +1,7 @@
 import { apiRequest, publicApiRequest } from '@/lib/api-client'
 import type { ApiTransaction } from '@/types/transaction'
 import type { ApiPost, ApiComment, ApiPostsResponse } from '@/types/post'
-import type { AchievementResponse } from '@/types/achievement'
+import type { AchievementResponse, ApiNewlyUnlockedAchievement } from '@/types/achievement'
 import type { User } from '@/types/user'
 
 // ========== 型定義 ==========
@@ -115,7 +115,7 @@ export const api = {
 
     /** 取引を作成する */
     create: (token: string, params: CreateTransactionParams) =>
-      apiRequest<ApiTransaction>('/transactions', {
+      apiRequest<{ transaction: ApiTransaction; newly_unlocked_achievements: ApiNewlyUnlockedAchievement[] }>('/transactions', {
         method: 'POST',
         token,
         body: { transaction: params },
