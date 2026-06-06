@@ -20,6 +20,11 @@ Rails.application.routes.draw do
       resources :transactions, only: %i[index create update destroy] # 取引関連
       resources :savings_goals, only: %i[index create update destroy] # 貯金目標関連
       resources :achievements, only: %i[index show update] # 実績関連
+      resources :budgets, only: %i[index create update] do # 予算関連（削除不可・update で上書き運用）
+        collection do
+          get :current
+        end
+      end
 
       # 掲示板管理
       resources :posts do

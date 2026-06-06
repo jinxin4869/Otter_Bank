@@ -12,6 +12,7 @@ class User < ApplicationRecord
   has_many :likes, dependent: :destroy
   has_many :bookmarks, dependent: :destroy
   has_many :user_actions, dependent: :destroy
+  has_many :budgets, dependent: :destroy
 
   # 貯金関連のアソシエーション（transactions の中から income タイプを取得）
   has_many :savings, -> { where(transaction_type: 'income') }, class_name: 'Transaction'
@@ -171,59 +172,58 @@ class User < ApplicationRecord
   end
 
   def current_streak
-    return 0 if transactions.where(transaction_type: 'income').empty?
+    dates = income_transaction_dates
+    return 0 if dates.empty?
 
     today = Date.current
+    # 今日に記録があればそこから、なければ昨日から遡る
+    start_date = dates.include?(today) ? today : today - 1.day
+    return 0 unless dates.include?(start_date)
+
     streak = 0
-    current_date = today
-
-    # 今日の記録があるか確認
-    has_today_record = transactions.where(transaction_type: 'income').exists?(created_at: today.all_day)
-
-    # 昨日までの記録を確認
-    loop do
-      has_record = transactions.where(transaction_type: 'income').exists?(created_at: current_date.all_day)
-
-      break unless has_record
-
+    check_date = start_date
+    while dates.include?(check_date)
       streak += 1
-      current_date -= 1.day
+      check_date -= 1.day
     end
-
-    # 今日の記録がある場合は1を加算
-    streak += 1 if has_today_record
-
     streak
   end
 
   def longest_streak
-    return 0 if transactions.where(transaction_type: 'income').empty?
-
-    dates = transactions.where(transaction_type: 'income').pluck(:created_at).map(&:to_date).uniq.sort
+    dates = income_transaction_dates
     return 0 if dates.empty?
+    return 1 if dates.size == 1
 
-    current_streak = 1
-    longest_streak = 1
-    previous_date = dates.first
-
-    dates[1..].each do |date|
-      if date == previous_date + 1.day
-        current_streak += 1
-        longest_streak = [longest_streak, current_streak].max
+    current = 1
+    longest = 1
+    dates[1..].each_with_index do |date, i|
+      if date == dates[i] + 1.day
+        current += 1
+        longest = [longest, current].max
       else
-        current_streak = 1
+        current = 1
       end
-      previous_date = date
     end
-
-    longest_streak
+    longest
   end
 
   def streak_status
     {
       current_streak: current_streak,
       longest_streak: longest_streak,
-      last_record_date: transactions.where(transaction_type: 'income').last&.created_at&.to_date
+      last_record_date: transactions.where(transaction_type: 'income').maximum(:date)&.to_date
     }
+  end
+
+  private
+
+  def income_transaction_dates
+    transactions
+      .where(transaction_type: 'income')
+      .pluck(:date)
+      .compact
+      .map(&:to_date)
+      .uniq
+      .sort
   end
 end
