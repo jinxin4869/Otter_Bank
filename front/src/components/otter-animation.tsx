@@ -6,34 +6,37 @@ import { cn } from "@/lib/utils"
 
 type OtterAnimationProps = {
   mood: "happy" | "neutral" | "sad"
+  customMessage?: string
 }
 
-export default function OtterAnimation({ mood }: OtterAnimationProps) {
+export default function OtterAnimation({ mood, customMessage }: OtterAnimationProps) {
   const [message, setMessage] = useState("")
   const [isAnimating, setIsAnimating] = useState(false)
 
   useEffect(() => {
-    // Set message based on mood
-    switch (mood) {
-      case "happy":
-        setMessage("お金が貯まってきたね！このまま頑張ろう！")
-        break
-      case "neutral":
-        setMessage("収支のバランスが取れているよ。もう少し節約できるといいね！")
-        break
-      case "sad":
-        setMessage("支出が多いみたい...節約を心がけよう。")
-        break
+    if (customMessage) {
+      setMessage(customMessage)
+    } else {
+      switch (mood) {
+        case "happy":
+          setMessage("お金が貯まってきたね！このまま頑張ろう！")
+          break
+        case "neutral":
+          setMessage("収支のバランスが取れているよ。もう少し節約できるといいね！")
+          break
+        case "sad":
+          setMessage("支出が多いみたい...節約を心がけよう。")
+          break
+      }
     }
 
-    // Trigger animation when mood changes
     setIsAnimating(true)
     const timer = setTimeout(() => {
       setIsAnimating(false)
     }, 1000)
 
     return () => clearTimeout(timer)
-  }, [mood])
+  }, [mood, customMessage])
 
   return (
     <div className="flex flex-col items-center w-full">

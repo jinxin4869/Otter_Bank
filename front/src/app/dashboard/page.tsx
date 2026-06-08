@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useMemo } from "react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -33,6 +33,7 @@ import {
   TrendingUp,
   DollarSign,
   Loader2,
+  Trophy,
 } from "lucide-react"
 import dynamic from "next/dynamic"
 import OtterAnimation from "@/components/otter-animation"
@@ -73,6 +74,8 @@ import { api } from "@/lib/api"
 import { type Transaction, mapApiTransaction } from "@/types/transaction"
 import { AchievementUnlockModal } from "@/components/achievement-unlock-modal"
 import type { ApiNewlyUnlockedAchievement } from "@/types/achievement"
+import { Badge } from "@/components/ui/badge"
+import { useAchievements } from "@/hooks/useAchievements"
 import { toast } from "sonner"
 
 const EXPENSE_CATEGORIES = [
@@ -111,12 +114,22 @@ export default function DashboardPage() {
   const [achievementQueue, setAchievementQueue] = useState<ApiNewlyUnlockedAchievement[]>([])
   const router = useRouter()
   const { user, token, isLoading: authIsLoading, isAuthenticated } = useAuth()
+  const { achievements } = useAchievements()
 
   const currentAchievement = achievementQueue[0] ?? null
 
   const handleAchievementClose = useCallback(() => {
     setAchievementQueue((prev) => prev.slice(1))
   }, [])
+
+  const recentAchievements = useMemo(
+    () =>
+      [...achievements]
+        .filter((a) => a.unlocked && a.unlockedAt)
+        .sort((a, b) => new Date(b.unlockedAt!).getTime() - new Date(a.unlockedAt!).getTime())
+        .slice(0, 3),
+    [achievements]
+  )
 
   useEffect(() => {
     if (!authIsLoading && !isAuthenticated) {
@@ -631,6 +644,41 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* 最近解除した実績バッジ */}
+      {recentAchievements.length > 0 && (
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2">
+              <Trophy className="h-5 w-5 text-yellow-500" />
+              最近解除した実績
+            </CardTitle>
+            <CardDescription>直近で達成した実績（最大3件）</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-wrap gap-3">
+              {recentAchievements.map((ach) => (
+                <div
+                  key={ach.id}
+                  className="flex items-center gap-2 rounded-lg border bg-card px-4 py-2 shadow-sm"
+                >
+                  <Trophy className="h-4 w-4 shrink-0 text-yellow-500" />
+                  <div>
+                    <p className="text-sm font-medium leading-none">{ach.title}</p>
+                    <p className="mt-1 text-xs text-muted-foreground">{ach.description}</p>
+                  </div>
+                  <Badge variant="secondary" className="ml-2 shrink-0 text-xs">
+                    {ach.tier === "platinum" ? "プラチナ"
+                      : ach.tier === "gold" ? "ゴールド"
+                      : ach.tier === "silver" ? "シルバー"
+                      : "ブロンズ"}
+                  </Badge>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
