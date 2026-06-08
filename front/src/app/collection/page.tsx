@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils"
 import { LockIcon, UnlockIcon, AlertTriangle, Trophy, Clock, History } from 'lucide-react';
 import { useAuth } from "@/hooks/useAuth"
 import { useAchievements } from "@/hooks/useAchievements"
+import OtterAnimation from "@/components/otter-animation"
 
 // カテゴリ表示用の日本語マッピング
 const categoryLabels: Record<string, string> = {
@@ -62,6 +63,23 @@ export default function CollectionPage() {
     }
   }, [authIsLoading, isAuthenticated, router])
 
+  // 実績達成率に応じたカワウソのムードとメッセージを計算
+  const otterMood = useMemo((): "happy" | "neutral" | "sad" => {
+    if (!achievementSummary || achievementSummary.totalAchievements === 0) return "neutral"
+    const rate = achievementSummary.unlockedAchievements / achievementSummary.totalAchievements
+    if (rate >= 0.7) return "happy"
+    if (rate >= 0.3) return "neutral"
+    return "sad"
+  }, [achievementSummary])
+
+  const otterMessage = useMemo((): string => {
+    if (!achievementSummary || achievementSummary.totalAchievements === 0) return "実績を解除してカワウソを喜ばせよう！"
+    const rate = achievementSummary.unlockedAchievements / achievementSummary.totalAchievements
+    if (rate >= 0.7) return `すごい！実績の${Math.round(rate * 100)}%を達成したよ！このまま全制覇を目指そう！`
+    if (rate >= 0.3) return `実績の${Math.round(rate * 100)}%を達成中！もっと頑張ろう！`
+    return "まだ実績が少ないね...取引を記録して実績を解除しよう！"
+  }, [achievementSummary])
+
   // 解除済み実績を unlocked_at 降順で並べた履歴リスト
   const historyAchievements = useMemo(
     () =>
@@ -75,28 +93,42 @@ export default function CollectionPage() {
     <div className="container mx-auto p-4 md:p-6 lg:p-8 bg-background text-foreground">
       <h1 className="text-3xl font-bold mb-8 text-foreground">コレクション</h1>
 
-      {/* 実績サマリー表示 */}
-      {achievementSummary && !isLoading && !error && (
-        <section className="mb-8 p-4 bg-card text-card-foreground rounded-lg border">
-          <h3 className="text-xl font-semibold mb-3 text-card-foreground">実績サマリー</h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-            <div>
-              <p className="text-2xl font-bold text-primary">{achievementSummary.totalAchievements}</p>
-              <p className="text-sm text-muted-foreground">総実績数</p>
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-green-600 dark:text-green-400">{achievementSummary.unlockedAchievements}</p>
-              <p className="text-sm text-muted-foreground">達成済み</p>
-            </div>
-            {Object.entries(achievementSummary.progressByCategory).map(([category, summary]) => (
-              summary && summary.total > 0 && (
-                <div key={category}>
-                  <p className="text-2xl font-bold text-accent-foreground">{summary.progressPercentage}%</p>
-                  <p className="text-sm text-muted-foreground capitalize">{categoryLabels[category] ?? category} 達成率</p>
+      {/* カワウソ + 実績サマリー */}
+      {!isLoading && !error && (
+        <section className="mb-8 grid grid-cols-1 md:grid-cols-4 gap-6">
+          <Card className="md:col-span-1">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base">カワウソの様子</CardTitle>
+              <CardDescription>実績達成率に応じて変化</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <OtterAnimation mood={otterMood} customMessage={otterMessage} />
+            </CardContent>
+          </Card>
+
+          {achievementSummary && (
+            <div className="md:col-span-3 p-4 bg-card text-card-foreground rounded-lg border flex flex-col justify-center">
+              <h3 className="text-xl font-semibold mb-3 text-card-foreground">実績サマリー</h3>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                <div>
+                  <p className="text-2xl font-bold text-primary">{achievementSummary.totalAchievements}</p>
+                  <p className="text-sm text-muted-foreground">総実績数</p>
                 </div>
-              )
-            ))}
-          </div>
+                <div>
+                  <p className="text-2xl font-bold text-green-600 dark:text-green-400">{achievementSummary.unlockedAchievements}</p>
+                  <p className="text-sm text-muted-foreground">達成済み</p>
+                </div>
+                {Object.entries(achievementSummary.progressByCategory).map(([category, summary]) => (
+                  summary && summary.total > 0 && (
+                    <div key={category}>
+                      <p className="text-2xl font-bold text-accent-foreground">{summary.progressPercentage}%</p>
+                      <p className="text-sm text-muted-foreground capitalize">{categoryLabels[category] ?? category} 達成率</p>
+                    </div>
+                  )
+                ))}
+              </div>
+            </div>
+          )}
         </section>
       )}
 
