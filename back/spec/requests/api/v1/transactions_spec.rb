@@ -65,6 +65,13 @@ RSpec.describe 'Api::V1::Transactions', type: :request do
       expect(response).to have_http_status(:created)
     end
 
+    it 'レスポンスに transaction と newly_unlocked_achievements が含まれる' do
+      post '/api/v1/transactions', params: valid_params, headers: headers
+      json = response.parsed_body
+      expect(json).to include('transaction', 'newly_unlocked_achievements')
+      expect(json['newly_unlocked_achievements']).to be_an(Array)
+    end
+
     it '不正なパラメータではエラーを返す' do
       post '/api/v1/transactions', params: { transaction: { amount: nil } }, headers: headers
       expect(response).to have_http_status(:unprocessable_entity)
@@ -80,6 +87,28 @@ RSpec.describe 'Api::V1::Transactions', type: :request do
         expect(response).to have_http_status(:created)
         first_savings = user.achievements.find_by(original_achievement_id: 'first_savings')
         expect(first_savings.reload.unlocked).to be true
+      end
+
+      it '実績が解除されるとレスポンスの newly_unlocked_achievements に含まれる' do
+        post '/api/v1/transactions',
+             params: { transaction: { amount: 5000, transaction_type: 'income', description: '給料', category: '給与',
+                                      date: Date.current } },
+             headers: headers
+
+        json = response.parsed_body
+        unlocked = json['newly_unlocked_achievements']
+        expect(unlocked).not_to be_empty
+        expect(unlocked.first).to include('id', 'title', 'description', 'tier', 'category', 'reward')
+      end
+
+      it '実績が解除されない場合は newly_unlocked_achievements が空配列になる' do
+        post '/api/v1/transactions',
+             params: { transaction: { amount: 1000, transaction_type: 'expense', description: '食費', category: '食費',
+                                      date: Date.current } },
+             headers: headers
+
+        json = response.parsed_body
+        expect(json['newly_unlocked_achievements']).to eq([])
       end
 
       it '収入取引を作成するとマイルストーン実績の進捗が更新される' do
@@ -164,6 +193,27 @@ RSpec.describe 'Api::V1::Transactions', type: :request do
       expect(response).to have_http_status(:ok)
       milestone = user.achievements.find_by(original_achievement_id: 'savings_milestone_30000')
       expect(milestone.reload.unlocked).to be true
+    end
+
+    it 'レスポンスに transaction と newly_unlocked_achievements が含まれる' do
+      patch "/api/v1/transactions/#{income_transaction.id}",
+            params: { transaction: { amount: 30_000 } },
+            headers: headers
+
+      json = response.parsed_body
+      expect(json).to include('transaction', 'newly_unlocked_achievements')
+      expect(json['newly_unlocked_achievements']).to be_an(Array)
+    end
+
+    it '更新で実績が解除されるとレスポンスの newly_unlocked_achievements に含まれる' do
+      patch "/api/v1/transactions/#{income_transaction.id}",
+            params: { transaction: { amount: 30_000 } },
+            headers: headers
+
+      json = response.parsed_body
+      unlocked = json['newly_unlocked_achievements']
+      expect(unlocked).not_to be_empty
+      expect(unlocked.first).to include('id', 'title', 'description', 'tier', 'category', 'reward')
     end
   end
 
