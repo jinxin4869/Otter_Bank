@@ -9,7 +9,7 @@ export default function Home() {
     <div className="space-y-12 bg-background transition-colors duration-500">
       {/* ヘッダーセクション */}
       <section className="relative min-h-[80vh] flex items-center overflow-hidden bg-background transition-colors duration-500">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/10 z-0" />
+        <div className="absolute inset-0 bg-linear-to-br from-primary/5 via-transparent to-accent/10 z-0" />
         <div className="absolute -right-20 top-20 w-96 h-96 bg-primary/10 rounded-full blur-3xl" />
         <div className="absolute left-10 bottom-20 w-72 h-72 bg-accent/20 rounded-full blur-3xl" />
 
@@ -75,7 +75,7 @@ export default function Home() {
 
       {/* アプリの特徴セクション - 主な機能と特徴の紹介 */}
       {/*<div className="relative">
-        <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-primary/5 rounded-lg -z-10" />
+        <div className="absolute inset-0 bg-linear-to-r from-primary/10 to-primary/5 rounded-lg -z-10" />
         <div className="grid md:grid-cols-2 gap-8 items-center p-6 rounded-lg">
           <div>
             <h2 className="text-3xl font-bold mb-4">楽しく貯金、賢く管理</h2>
@@ -169,7 +169,7 @@ export default function Home() {
                 key={feature.title}
                 className="relative group bg-card border border-border rounded-xl p-6 hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
               >
-                <div className={`absolute inset-0 bg-gradient-to-br ${feature.color} opacity-0 group-hover:opacity-100 rounded-xl transition-opacity duration-300`} />
+                <div className={`absolute inset-0 bg-linear-to-br ${feature.color} opacity-0 group-hover:opacity-100 rounded-xl transition-opacity duration-300`} />
                 <div className="p-4 bg-primary/5 rounded-full inline-block mb-4 text-primary">
                   {feature.icon}
                 </div>
@@ -185,7 +185,7 @@ export default function Home() {
       <section className="py-20 bg-accent/30 transition-colors duration-500">
         <div className="container mx-auto">
           <div className="relative rounded-2xl overflow-hidden shadow-2xl bg-card border border-border">
-            <div className="absolute top-0 right-0 w-full h-full bg-gradient-to-bl from-primary/10 to-transparent opacity-50" />
+            <div className="absolute top-0 right-0 w-full h-full bg-linear-to-bl from-primary/10 to-transparent opacity-50" />
 
             <div className="grid md:grid-cols-2 gap-8 p-8 md:p-12 relative z-10">
               <div className="space-y-6">
@@ -213,7 +213,7 @@ export default function Home() {
                     }
                   ].map((step, i) => (
                     <div key={i} className="flex items-start gap-4 group">
-                      <div className="flex-shrink-0 w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center transition-colors duration-300 group-hover:bg-primary group-hover:text-primary-foreground">
+                      <div className="shrink-0 w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center transition-colors duration-300 group-hover:bg-primary group-hover:text-primary-foreground">
                         <span className="font-bold text-primary group-hover:text-primary-foreground">{step.number}</span>
                       </div>
                       <div>
@@ -271,7 +271,7 @@ export default function Home() {
                         <button className="absolute right-2 top-1/2 transform -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-background/80 shadow-md flex items-center justify-center border border-border">
                           <svg xmlns="http://www.w3.orghttps://httpd.cloudflare.com/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
                         </button>
-                        <div className="flex-shrink-0 w-full h-full relative">
+                        <div className="shrink-0 w-full h-full relative">
                           <Image
                             src="/app-top.png"
                             alt="Otter Bank Dashboard"
@@ -313,7 +313,7 @@ export default function Home() {
       </section>
 
       {/* ロードマップセクション */}
-      <section className="py-16 bg-gradient-to-br from-primary/5 to-accent/5 rounded-3xl transition-colors duration-500">
+      <section className="py-16 bg-linear-to-br from-primary/5 to-accent/5 rounded-3xl transition-colors duration-500">
         <div className="container mx-auto">
           <div className="text-center mb-8">
             <span className="bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-medium">
@@ -393,7 +393,7 @@ export default function Home() {
                     <li key={j} className="flex items-start gap-2 text-sm text-muted-foreground">
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
-                        className="h-5 w-5 text-primary flex-shrink-0 mt-0.5"
+                        className="h-5 w-5 text-primary shrink-0 mt-0.5"
                         viewBox="0 0 20 20"
                         fill="currentColor"
                       >
@@ -469,7 +469,7 @@ export default function Home() {
                     </Button>
                   </div>
                 </div>
-                <div className="relative rounded-xl overflow-hidden h-64 md:h-auto bg-gradient-to-br from-primary/10 to-primary/5 border dark:border-slate-600/30">
+                <div className="relative rounded-xl overflow-hidden h-64 md:h-auto bg-linear-to-br from-primary/10 to-primary/5 border dark:border-slate-600/30">
                   <div className="absolute inset-0 flex items-center justify-center">
                     <Image
                       src="/otter_glasses.svg"
