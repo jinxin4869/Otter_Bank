@@ -26,7 +26,7 @@ const ImagePlaceholder = ({ icon: Icon, title, className = "" }: {
   title: string,
   className?: string
 }) => (
-  <div className={`relative aspect-[16/9] w-full rounded-lg overflow-hidden border bg-muted/50 flex flex-col items-center justify-center ${className}`}>
+  <div className={`relative aspect-video w-full rounded-lg overflow-hidden border bg-muted/50 flex flex-col items-center justify-center ${className}`}>
     <Icon className="h-16 w-16 text-muted-foreground/60 mb-2" />
     <p className="text-sm text-muted-foreground/80 font-medium">{title}</p>
   </div>
@@ -169,7 +169,7 @@ export default function TutorialPage() {
                 return (
                   <div key={index} className="p-4 border rounded-lg bg-background shadow-sm">
                     <div className="flex items-start space-x-3">
-                      <CheckCircle2 className="h-5 w-5 text-primary mt-1 flex-shrink-0" />
+                      <CheckCircle2 className="h-5 w-5 text-primary mt-1 shrink-0" />
                       <div>
                         <h4 className="font-semibold text-md text-primary">{featureTitle}</h4>
                         {featureDescription && <p className="text-sm text-muted-foreground mt-1">{featureDescription}</p>}
@@ -181,7 +181,7 @@ export default function TutorialPage() {
             </div>
           ) : (
             stepData.imageSrc && (
-              <div className="relative aspect-[16/9] w-full rounded-lg overflow-hidden border">
+              <div className="relative aspect-video w-full rounded-lg overflow-hidden border">
                 <ImagePlaceholder
                   icon={
                     stepData.id === "dashboard" ? BarChart3 :

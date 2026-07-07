@@ -130,9 +130,9 @@ export default function LoginPage() {
 
           <div className="px-2 py-4">
             <div className="flex items-center">
-              <div className="flex-grow border-t border-muted-foreground/30"></div>
-              <span className="mx-4 flex-shrink text-xs uppercase text-muted-foreground">または</span>
-              <div className="flex-grow border-t border-muted-foreground/30"></div>
+              <div className="grow border-t border-muted-foreground/30"></div>
+              <span className="mx-4 shrink text-xs uppercase text-muted-foreground">または</span>
+              <div className="grow border-t border-muted-foreground/30"></div>
             </div>
           </div>
 
