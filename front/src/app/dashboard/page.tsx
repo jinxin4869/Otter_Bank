@@ -36,7 +36,7 @@ import {
   Trophy,
 } from "lucide-react"
 import dynamic from "next/dynamic"
-import OtterAnimation from "@/components/otter-animation"
+import OtterAnimation, { type OtterMood } from "@/components/otter-animation"
 
 const ExpensePieChart = dynamic(() => import("@/components/expense-pie-chart"), {
   ssr: false,
@@ -110,6 +110,7 @@ export default function DashboardPage() {
   const [currentView, setCurrentView] = useState<"day" | "month" | "year">("month")
   const [currentDate, setCurrentDate] = useState<Date>(new Date())
   const [otterMood, setOtterMood] = useState<"happy" | "neutral" | "sad">("neutral")
+  const [celebratingSignal, setCelebratingSignal] = useState(0)
   const [isDataLoading, setIsDataLoading] = useState(false)
   const [achievementQueue, setAchievementQueue] = useState<ApiNewlyUnlockedAchievement[]>([])
   const router = useRouter()
@@ -117,6 +118,9 @@ export default function DashboardPage() {
   const { achievements } = useAchievements()
 
   const currentAchievement = achievementQueue[0] ?? null
+
+  // 実績解除直後は財務状況の mood より excited を優先して表示する
+  const displayMood: OtterMood = celebratingSignal > 0 ? "excited" : otterMood
 
   const handleAchievementClose = useCallback(() => {
     setAchievementQueue((prev) => prev.slice(1))
@@ -183,6 +187,14 @@ export default function DashboardPage() {
     }
   }, [transactions])
 
+  // 実績解除の高揚状態は一定時間で解除し、通常の mood に戻す
+  // カウンター方式にすることで連続解除時も毎回タイマーが再起動される
+  useEffect(() => {
+    if (celebratingSignal === 0) return
+    const timer = setTimeout(() => setCelebratingSignal(0), 6000)
+    return () => clearTimeout(timer)
+  }, [celebratingSignal])
+
   const validateAmount = (value: string) => {
     if (!value) {
       setAmountError(null)
@@ -227,6 +239,7 @@ export default function DashboardPage() {
             toast.success(`実績解除: ${ach.title}`, { description: ach.description })
           })
           setAchievementQueue((prev) => [...prev, ...result.newly_unlocked_achievements])
+          setCelebratingSignal((n) => n + 1)
         }
       }
       setAmount("")
@@ -395,7 +408,7 @@ export default function DashboardPage() {
             <CardDescription>財政状況に応じて変化</CardDescription>
           </CardHeader>
           <CardContent>
-            <OtterAnimation mood={otterMood} />
+            <OtterAnimation mood={displayMood} />
           </CardContent>
         </Card>
 
