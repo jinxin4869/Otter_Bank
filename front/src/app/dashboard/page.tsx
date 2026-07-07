@@ -412,7 +412,7 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-blue-50/80 to-blue-100/50 dark:from-blue-900/10 dark:to-blue-800/10 border-blue-200/70 dark:border-blue-800/30">
+        <Card className="bg-linear-to-br from-blue-50/80 to-blue-100/50 dark:from-blue-900/10 dark:to-blue-800/10 border-blue-200/70 dark:border-blue-800/30">
           <CardHeader className="pb-2">
             <CardDescription>総収入</CardDescription>
             <CardTitle className="text-2xl text-blue-500 dark:text-blue-300 flex items-center">
@@ -422,7 +422,7 @@ export default function DashboardPage() {
           </CardHeader>
         </Card>
 
-        <Card className="bg-gradient-to-br from-rose-50/80 to-rose-100/50 dark:from-rose-900/10 dark:to-rose-800/10 border-rose-200/70 dark:border-rose-800/30">
+        <Card className="bg-linear-to-br from-rose-50/80 to-rose-100/50 dark:from-rose-900/10 dark:to-rose-800/10 border-rose-200/70 dark:border-rose-800/30">
           <CardHeader className="pb-2">
             <CardDescription>総支出</CardDescription>
             <CardTitle className="text-2xl text-rose-500 dark:text-rose-300 flex items-center">
@@ -434,7 +434,7 @@ export default function DashboardPage() {
 
         <Card
           className={cn(
-            "bg-gradient-to-br",
+            "bg-linear-to-br",
             balance >= 0
               ? "from-teal-50/80 to-teal-100/50 dark:from-teal-900/10 dark:to-teal-800/10 border-teal-200/70 dark:border-teal-800/30"
               : "from-amber-50/80 to-amber-100/50 dark:from-amber-900/10 dark:to-amber-800/10 border-amber-200/70 dark:border-amber-800/30",
