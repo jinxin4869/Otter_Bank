@@ -55,6 +55,16 @@ const config: Config = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        income: {
+          DEFAULT: "hsl(var(--income))",
+          bg: "hsl(var(--income-bg))",
+          border: "hsl(var(--income-border))",
+        },
+        expense: {
+          DEFAULT: "hsl(var(--expense))",
+          bg: "hsl(var(--expense-bg))",
+          border: "hsl(var(--expense-border))",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",
