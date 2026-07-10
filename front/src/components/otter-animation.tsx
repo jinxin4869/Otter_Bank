@@ -77,7 +77,7 @@ export default function OtterAnimation({ mood, customMessage }: OtterAnimationPr
         )}
       >
         <Image
-          src={`/placeholder.svg?height=128&width=128&text=Otter+${mood}`}
+          src={`/otter_${mood}.png`}
           alt={`Otter feeling ${mood}`}
           fill
           className={cn("object-contain transition-all duration-300", isAnimating && "scale-110")}
