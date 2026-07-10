@@ -7,6 +7,7 @@
 
 @layer base {
   :root {
+    /* ---- ベース（暖色オレンジ） ---- */
     --background: 25 100% 96%; /* 柔らかいオレンジ色 */
     --foreground: 25 50% 30%; /* 濃い茶色 */
 
@@ -16,26 +17,37 @@
     --popover: 30 100% 98%; /* カード背景に合わせる */
     --popover-foreground: 25 50% 25%; /* カード文字色に合わせる */
 
+    /* ---- プライマリ（CTAもこれに統一） ---- */
     --primary: 15 80% 55%; /* 温かみのあるオレンジ色 */
     --primary-foreground: 25 100% 98%; /* 明るいクリーム色 */
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    /* ---- 寒色グレー → 暖色グレーに統一 ---- */
+    --secondary: 30 40% 94%;
+    --secondary-foreground: 25 45% 25%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 30 30% 94%;
+    --muted-foreground: 25 18% 46%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 28 60% 92%;
+    --accent-foreground: 25 45% 25%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 8 72% 55%;
+    --destructive-foreground: 30 100% 98%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --border: 28 40% 88%;
+    --input: 28 40% 88%;
+    --ring: 15 80% 55%; /* プライマリと揃える */
 
     --radius: 0.75rem; /* ボーダー半径 */
+
+    /* ---- 家計セマンティック（収入=緑 / 支出=テラコッタ） ---- */
+    --income: 150 55% 40%;
+    --income-bg: 150 45% 94%;
+    --income-border: 150 40% 86%;
+
+    --expense: 8 68% 52%;
+    --expense-bg: 8 70% 95%;
+    --expense-border: 8 60% 88%;
 
     --z-dropdown: 100;
     --z-sticky: 200;
@@ -49,45 +61,54 @@
     /* ヘッダーとフッターのテーマ変数 (ライト) */
     --header-bg: var(--primary);
     --header-fg: var(--primary-foreground);
-    --footer-bg: 25 50% 20%; /* 例: 濃い茶系のフッター */
-    --footer-fg: 25 100% 96%; /* 例: 明るいフッターテキスト */
+    --footer-bg: 25 50% 20%; /* 濃い茶系のフッター */
+    --footer-fg: 25 100% 96%; /* 明るいフッターテキスト */
   }
 
   .dark {
-    --background: 210 50% 6%; /* より青に近い濃い背景色 */
-    --foreground: 210 50% 92%; /* 明るい青白いテキスト */
+    /* ---- 1b エスプレッソ: 寒色ブルーを廃止し暖色こげ茶へ ---- */
+    --background: 24 30% 9%;
+    --foreground: 30 40% 90%;
 
-    --card: 210 50% 10%; /* カード背景をより青系に */
-    --card-foreground: 210 50% 92%; /* カードテキスト */
+    --card: 24 26% 13%;
+    --card-foreground: 30 40% 90%;
 
-    --popover: 210 50% 10%; /* ポップオーバー背景 */
-    --popover-foreground: 210 50% 92%; /* ポップオーバーテキスト */
+    --popover: 24 26% 13%;
+    --popover-foreground: 30 40% 90%;
 
-    /* プライマリカラーも寒色系に調整 */
-    --primary: 217 91% 65%; /* より明るい青色 */
-    --primary-foreground: 210 50% 6%; /* プライマリー上のテキスト */
+    --primary: 20 85% 58%; /* ダークでは少し明るいオレンジ */
+    --primary-foreground: 24 40% 10%;
 
-    --secondary: 210 50% 14%; /* セカンダリも青系に */
-    --secondary-foreground: 210 50% 92%;
+    --secondary: 24 20% 18%;
+    --secondary-foreground: 30 40% 90%;
 
-    --muted: 210 50% 14%; /* ミュートも青系に */
-    --muted-foreground: 210 30% 70%;
+    --muted: 24 18% 18%;
+    --muted-foreground: 30 20% 68%;
 
-    --accent: 210 50% 14%; /* アクセントも青系に */
-    --accent-foreground: 210 50% 92%;
+    --accent: 24 22% 20%;
+    --accent-foreground: 30 40% 90%;
 
-    --destructive: 0 70% 55%; /* 赤色は少し明るく調整 */
-    --destructive-foreground: 210 50% 92%;
+    --destructive: 8 65% 58%;
+    --destructive-foreground: 30 40% 92%;
 
-    --border: 210 50% 16%; /* ボーダーも青系に */
-    --input: 210 50% 16%; /* インプット背景も青系に */
-    --ring: 217 91% 65%; /* リングをプライマリと同じ青に */
+    --border: 24 20% 20%;
+    --input: 24 20% 22%;
+    --ring: 20 85% 58%;
 
-    /* ヘッダーとフッターも寒色系に調整 */
-    --header-bg: 210 50% 8%; /* より青系のヘッダー */
-    --header-fg: 210 50% 92%; /* ヘッダーテキスト */
-    --footer-bg: 210 50% 8%; /* フッター背景 */
-    --footer-fg: 210 50% 92%; /* フッターテキスト */
+    /* 家計セマンティック（ダーク） */
+    --income: 150 45% 60%;
+    --income-bg: 150 30% 15%;
+    --income-border: 150 25% 24%;
+
+    --expense: 10 70% 66%;
+    --expense-bg: 10 40% 17%;
+    --expense-border: 10 35% 28%;
+
+    /* ヘッダーとフッター（ダーク） */
+    --header-bg: 24 26% 13%;
+    --header-fg: 30 40% 90%;
+    --footer-bg: 24 30% 7%;
+    --footer-fg: 30 40% 90%;
   }
   /* グローバルなスタイル */
 
@@ -138,21 +159,18 @@
 
   /* 収入カテゴリーのカスタムスタイル */
   .income-category-item {
-    @apply flex items-center gap-2 text-blue-700 dark:text-blue-300;
+    @apply flex items-center gap-2 text-income;
   }
 
   /* 支出カテゴリーのカスタムスタイル */
   .expense-category-item {
-    @apply flex items-center gap-2 text-rose-700 dark:text-rose-300;
+    @apply flex items-center gap-2 text-expense;
   }
 
   /* カテゴリードロップダウンメニューのスタイル */
   .category-dropdown-menu {
-    background-color: #fef7ed !important; /* 暖色系のクリーム色 */
-  }
-
-  .dark .category-dropdown-menu {
-    border-color: #92400e !important;
+    background-color: hsl(var(--popover)) !important; /* 暖色系のクリーム色 */
+    border-color: hsl(var(--border)) !important;
   }
 
   /* ドロップダウンアイテムの基本スタイル */
@@ -164,11 +182,7 @@
   }
 
   .select-item-custom:hover {
-    background-color: #fed7aa !important; /* ホバー時の明るいオレンジ */
-  }
-
-  .dark .select-item-custom:hover {
-    background-color: #92400e !important; /* ダークモードのホバー */
+    background-color: hsl(var(--accent)) !important; /* ホバー時の暖色アクセント */
   }
 
   /* ダイアログのオーバーレイを調整 - 重複削除して統一 */
@@ -213,84 +227,47 @@
     border: 1px solid hsl(var(--border)) !important;
   }
 
-  /* 掲示板ダイアログの背景色を明示的に設定 */
+  /* 掲示板ダイアログの背景色を明示的に設定（トークンで light/dark を自動切替） */
   .board-dialog-content {
-    background-color: #fef7ed !important; /* ライトモード: 暖色系のクリーム色 */
-    color: #0c0a09 !important; /* ライトモード: 濃い茶色の文字 */
+    background-color: hsl(var(--popover)) !important;
+    color: hsl(var(--popover-foreground)) !important;
+    border-color: hsl(var(--border)) !important;
   }
 
-  .dark .board-dialog-content {
-    background-color: #1e293b !important; /* ダークモード: 落ち着いた青灰色 */
-    color: #f1f5f9 !important; /* ダークモード: 明るい灰色の文字 */
-    border-color: #475569 !important; /* ダークモード: ボーダー色も調整 */
-  }
-
-  /* コメントの背景色設定 */
+  /* コメントの背景色設定（トークンで light/dark を自動切替） */
   .comment-own {
-    background-color: #fef3c7 !important; /* ライトモード: 自分のコメント - 薄い黄色 */
+    background-color: hsl(var(--accent)) !important; /* 自分のコメント - 暖色アクセント */
   }
 
   .comment-other {
-    background-color: #f3f4f6 !important; /* ライトモード: 他人のコメント - 薄い灰色 */
-  }
-
-  .dark .comment-own {
-    background-color: #334155; /* ダークモード: 自分のコメント - より明るい青灰色 */
-  }
-
-  .dark .comment-other {
-    background-color: #475569 !important; /* ダークモード: 他人のコメント - 中間の青灰色 */
+    background-color: hsl(var(--muted)) !important; /* 他人のコメント - ミュート背景 */
   }
 
   /* テーマ切替ダイアログの文字色を統一 */
   .theme-dropdown-item {
-    color: #0c0a09 !important; /* ライトモード: board-dialog-contentと同じ濃い茶色 */
-  }
-
-  .dark .theme-dropdown-item {
-    color: #f1f5f9 !important; /* ダークモード: board-dialog-contentと同じ明るい灰色 */
+    color: hsl(var(--popover-foreground)) !important;
   }
 
   .theme-dropdown-label {
-    color: #0c0a09 !important; /* ライトモード: ラベルの色 */
-  }
-
-  .dark .theme-dropdown-label {
-    color: #f1f5f9 !important; /* ダークモード: ラベルの色 */
+    color: hsl(var(--popover-foreground)) !important;
   }
 
   /* コメント内の文字色を明示的に指定 */
   .comment-author {
-    color: #0c0a09 !important; /* ライトモード: 濃い茶色 */
+    color: hsl(var(--foreground)) !important;
   }
 
   .comment-content {
-    color: #0c0a09 !important; /* ライトモード: 濃い茶色 */
+    color: hsl(var(--foreground)) !important;
   }
 
   .comment-time {
-    color: #6b7280 !important; /* ライトモード: ミュート色 */
-  }
-
-  .dark .comment-author {
-    color: #f1f5f9 !important; /* ダークモード: 明るい灰色 */
-  }
-
-  .dark .comment-content {
-    color: #f1f5f9 !important; /* ダークモード: 明るい灰色 */
-  }
-
-  .dark .comment-time {
-    color: #9ca3af !important; /* ダークモード: 明るいミュート色 */
+    color: hsl(var(--muted-foreground)) !important;
   }
 
   /* コメント入力欄の文字色を明示的に指定 */
   .comment-textarea {
-    color: #0c0a09 !important; /* ライトモード: 濃い茶色 */
-  }
-
-  .dark .comment-textarea {
-    color: #f1f5f9 !important; /* ダークモード: 明るい灰色 */
+    color: hsl(var(--foreground)) !important;
   }
 
   /* ヘッダー専用のコンテナクラス - 完全な右寄せ対応 */
@@ -343,6 +320,12 @@
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
+  --color-income: var(--income);
+  --color-income-bg: var(--income-bg);
+  --color-income-border: var(--income-border);
+  --color-expense: var(--expense);
+  --color-expense-bg: var(--expense-bg);
+  --color-expense-border: var(--expense-border);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);

@@ -26,7 +26,7 @@ export default function Home() {
             </p>
 
             <div className="flex flex-wrap gap-4 pt-4">
-              <Button size="lg" className="rounded-full px-8 bg-blue-400 hover:bg-blue-600 text-white">
+              <Button size="lg" className="rounded-full px-8 bg-primary hover:bg-primary/90 text-primary-foreground">
                 <Link href="/register" className="flex items-center gap-2">
                   今すぐ始める <ArrowRight className="h-4 w-4" />
                 </Link>
@@ -224,7 +224,7 @@ export default function Home() {
                   ))}
                 </div>
 
-                <Button asChild className="bg-blue-400 hover:bg-blue-600 text-white">
+                <Button asChild className="bg-primary hover:bg-primary/90 text-primary-foreground">
                   <Link href="/register" className="flex items-center gap-2">
                     今すぐ始める
                     <ArrowRight className="h-4 w-4" />
@@ -448,7 +448,7 @@ export default function Home() {
                     皆さんがより良く自分のお金を管理できるよう、全力でサポートします。
                   </p>
                   <div className="flex flex-col sm:flex-row gap-4 pt-4">
-                    <Button asChild className="bg-blue-400 hover:bg-blue-600 text-white">
+                    <Button asChild className="bg-primary hover:bg-primary/90 text-primary-foreground">
                       <Link href="/register" className="flex items-center gap-2">
                         今すぐ始める
                         <ArrowRight className="h-4 w-4" />

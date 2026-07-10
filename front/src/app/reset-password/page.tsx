@@ -83,7 +83,7 @@ export default function ResetPassword() {
               <Button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full bg-blue-400 hover:bg-blue-600 text-white"
+                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
               >
                 {isSubmitting ? (
                   <Loader2 className="h-4 w-4 animate-spin" />

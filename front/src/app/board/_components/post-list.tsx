@@ -47,7 +47,7 @@ function PostList({
         <MessageSquare className="mx-auto h-12 w-12 text-muted-foreground opacity-50" />
         <h3 className="mt-4 text-lg font-medium">投稿がありません</h3>
         <p className="mt-2 text-muted-foreground">検索条件に一致する投稿がないか、まだ投稿がありません。</p>
-        <Button className="mt-4 text-white bg-blue-400 hover:bg-blue-600" onClick={onCreatePost}>
+        <Button className="mt-4 text-primary-foreground bg-primary hover:bg-primary/90" onClick={onCreatePost}>
           最初の投稿を作成
         </Button>
       </div>

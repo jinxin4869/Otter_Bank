@@ -376,7 +376,7 @@ export default function BoardPage() {
           <h1 className="text-3xl font-bold">掲示板</h1>
           <p className="text-muted-foreground">お金の管理や貯金のコツ、投資の経験などを共有しましょう</p>
         </div>
-        <Button onClick={() => setIsNewPostDialogOpen(true)} className="bg-blue-600 hover:bg-blue-700 text-white">
+        <Button onClick={() => setIsNewPostDialogOpen(true)} className="bg-primary hover:bg-primary/90 text-primary-foreground">
           <Plus className="mr-2 h-4 w-4" />
           新規投稿
         </Button>
@@ -564,7 +564,7 @@ export default function BoardPage() {
             <Button variant="outline" className="text-red-300 hover:text-red-400" onClick={() => setSelectedCategories([])}>
               リセット
             </Button>
-            <Button className="hover:bg-blue-400" onClick={() => setIsFilterDialogOpen(false)}>適用</Button>
+            <Button className="hover:bg-primary/90" onClick={() => setIsFilterDialogOpen(false)}>適用</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
