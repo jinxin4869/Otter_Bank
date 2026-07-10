@@ -92,7 +92,7 @@ export default function EditPostModal({ isOpen, post, onOpenChange, onSubmit }: 
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             キャンセル
           </Button>
-          <Button onClick={handleSubmit} className="bg-blue-600 hover:bg-blue-700 text-white">更新する</Button>
+          <Button onClick={handleSubmit} className="bg-primary hover:bg-primary/90 text-primary-foreground">更新する</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

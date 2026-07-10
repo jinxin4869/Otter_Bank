@@ -128,7 +128,7 @@ export default function CreatePostModal({
           <Button variant="outline" onClick={() => handleOpenChange(false)}>
             キャンセル
           </Button>
-          <Button onClick={handleSubmit} className="bg-blue-600 hover:bg-blue-700 text-white">投稿する</Button>
+          <Button onClick={handleSubmit} className="bg-primary hover:bg-primary/90 text-primary-foreground">投稿する</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
