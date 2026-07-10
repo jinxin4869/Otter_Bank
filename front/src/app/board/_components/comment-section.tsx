@@ -48,7 +48,7 @@ function CommentSection({ comments, currentUserEmail, currentUserId, likedCommen
               className="comment-textarea"
             />
             <div className="flex justify-end mt-2">
-              <Button size="sm" onClick={handleSubmit} className="bg-blue-600 hover:bg-blue-700 text-white">
+              <Button size="sm" onClick={handleSubmit} className="bg-primary hover:bg-primary/90 text-primary-foreground">
                 <Send className="mr-1 h-4 w-4" />
                 投稿
               </Button>

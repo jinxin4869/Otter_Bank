@@ -412,20 +412,20 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
 
-        <Card className="bg-linear-to-br from-blue-50/80 to-blue-100/50 dark:from-blue-900/10 dark:to-blue-800/10 border-blue-200/70 dark:border-blue-800/30">
+        <Card className="bg-income-bg border-income-border">
           <CardHeader className="pb-2">
             <CardDescription>総収入</CardDescription>
-            <CardTitle className="text-2xl text-blue-500 dark:text-blue-300 flex items-center">
+            <CardTitle className="text-2xl text-income flex items-center">
               <ArrowUpCircle className="mr-2 h-5 w-5" />
               {totalIncome.toLocaleString()} 円
             </CardTitle>
           </CardHeader>
         </Card>
 
-        <Card className="bg-linear-to-br from-rose-50/80 to-rose-100/50 dark:from-rose-900/10 dark:to-rose-800/10 border-rose-200/70 dark:border-rose-800/30">
+        <Card className="bg-expense-bg border-expense-border">
           <CardHeader className="pb-2">
             <CardDescription>総支出</CardDescription>
-            <CardTitle className="text-2xl text-rose-500 dark:text-rose-300 flex items-center">
+            <CardTitle className="text-2xl text-expense flex items-center">
               <ArrowDownCircle className="mr-2 h-5 w-5" />
               {totalExpense.toLocaleString()} 円
             </CardTitle>
@@ -480,8 +480,8 @@ export default function DashboardPage() {
                           className={cn(
                             "w-10 h-10 rounded-full flex items-center justify-center",
                             transaction.type === "income"
-                              ? "bg-amber-600/70 text-blue-200 dark:bg-blue-900/30 dark:text-blue-300"
-                              : "bg-purple-600/70 text-rose-200 dark:bg-rose-900/30 dark:text-rose-300",
+                              ? "bg-income-bg text-income"
+                              : "bg-expense-bg text-expense",
                           )}
                         >
                           {getCategoryIcon(transaction.category, transaction.type)}
@@ -499,8 +499,8 @@ export default function DashboardPage() {
                             className={cn(
                               "font-medium",
                               transaction.type === "income"
-                                ? "text-blue-500 dark:text-blue-300"
-                                : "text-rose-500 dark:text-rose-300",
+                                ? "text-income"
+                                : "text-expense",
                             )}
                           >
                             {transaction.type === "income" ? "+" : "-"}
@@ -573,7 +573,7 @@ export default function DashboardPage() {
                   <Button
                     type="button"
                     variant={type === "expense" ? "default" : "outline"}
-                    className={cn("flex-1", type === "expense" && "bg-rose-500/90 hover:bg-rose-600/90")}
+                    className={cn("flex-1", type === "expense" && "bg-expense hover:bg-expense/90 text-white")}
                     onClick={() => {
                       setType("expense")
                       setCategory("")
@@ -584,7 +584,7 @@ export default function DashboardPage() {
                   <Button
                     type="button"
                     variant={type === "income" ? "default" : "outline"}
-                    className={cn("flex-1", type === "income" && "bg-blue-500/90 hover:bg-blue-600/90")}
+                    className={cn("flex-1", type === "income" && "bg-income hover:bg-income/90 text-white")}
                     onClick={() => {
                       setType("income")
                       setCategory("")
