@@ -14,7 +14,7 @@ export default function Footer() {
   const currentYear = new Date().getFullYear()
 
   return (
-    <footer className="border-t bg-background dark:border-slate-800 dark:bg-slate-900">
+    <footer className="border-t bg-background dark:border-border">
       <div className="container mx-auto px-4 py-8">
         <div className="flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="text-center md:text-left">
@@ -56,7 +56,7 @@ export default function Footer() {
             */}
           </div>
         </div>
-        <div className="mt-6 pt-6 border-t dark:border-slate-700 text-center">
+        <div className="mt-6 pt-6 border-t dark:border-border text-center">
           <p className="text-xs text-muted-foreground dark:text-slate-500">
             このアプリはポートフォリオ目的で作成されました。実際の金融サービスを提供するものではありません。
           </p>

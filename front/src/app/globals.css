@@ -5,6 +5,11 @@
 @import "tailwindcss/preflight.css" layer(base);
 @import "tailwindcss/utilities.css" layer(utilities);
 
+/* Tailwind v4 の dark: を OS 設定(prefers-color-scheme)ではなく next-themes の
+   .dark クラス基準に切り替える。これがないと OS がダークのときアプリがライトでも
+   dark: が発火し、ヘッダー等だけ暗色になる不整合が起きる */
+@custom-variant dark (&:where(.dark, .dark *));
+
 @layer base {
   :root {
     /* ---- ベース（暖色オレンジ） ---- */
