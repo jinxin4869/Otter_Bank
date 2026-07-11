@@ -24,6 +24,13 @@ RSpec.describe 'Api::V1::Sessions', type: :request do
         json = response.parsed_body
         expect(json['token']).to be_present
       end
+
+      it 'ログイン成功時にサインイン時刻が記録される' do
+        expect(user.current_sign_in_at).to be_nil
+        post '/api/v1/sessions', params: { email: user.email, password: password }
+        expect(response).to have_http_status(:ok)
+        expect(user.reload.current_sign_in_at).to be_present
+      end
     end
 
     context '異常系' do

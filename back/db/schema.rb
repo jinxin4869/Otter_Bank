@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_06_051105) do
+ActiveRecord::Schema[8.1].define(version: 2026_07_11_120000) do
   create_table "achievements", force: :cascade do |t|
     t.integer "category", default: 0, null: false
     t.datetime "created_at", null: false
@@ -179,7 +179,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_06_051105) do
 
   create_table "users", force: :cascade do |t|
     t.datetime "created_at", null: false
+    t.datetime "current_sign_in_at"
     t.string "email"
+    t.datetime "last_sign_in_at"
     t.string "name"
     t.string "password_digest"
     t.datetime "reset_password_sent_at"
