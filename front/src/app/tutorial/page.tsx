@@ -250,7 +250,7 @@ export default function TutorialPage() {
         </CardFooter>
       </Card>
 
-      {!isAuthenticated && currentStep === tutorialSteps.length - 1 && (
+      {!isLoading && !isAuthenticated && currentStep === tutorialSteps.length - 1 && (
         <div className="mt-6 text-center">
           <p className="text-sm text-muted-foreground">
             すでにアカウントをお持ちですか？ <a href="/login" className="text-primary hover:underline font-medium">ログイン</a>
