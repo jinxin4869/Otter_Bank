@@ -24,7 +24,7 @@ RSpec.describe 'Api::V1::Users', type: :request do
     it 'メールアドレス重複ではエラーを返す' do
       create(:user, email: 'new@example.com')
       post '/api/v1/users', params: valid_params
-      expect(response).to have_http_status(:unprocessable_entity)
+      expect(response).to have_http_status(:unprocessable_content)
     end
   end
 
@@ -53,7 +53,7 @@ RSpec.describe 'Api::V1::Users', type: :request do
     it 'バリデーションエラーは 422 を返す' do
       other_user = create(:user)
       patch '/api/v1/user', params: { user: { email: other_user.email } }, headers: headers
-      expect(response).to have_http_status(:unprocessable_entity)
+      expect(response).to have_http_status(:unprocessable_content)
     end
 
     it '未認証では更新できない' do
