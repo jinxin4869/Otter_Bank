@@ -119,8 +119,18 @@ export default function DashboardPage() {
 
   const currentAchievement = achievementQueue[0] ?? null
 
-  // 実績解除直後は財務状況の mood より excited を優先して表示する
-  const displayMood: OtterMood = celebratingSignal > 0 ? "excited" : otterMood
+  // 前回サインインから7日以上経過していれば sleeping とみなす
+  const isSleeping = useMemo(() => {
+    if (!user?.last_sign_in_at) return false
+    const lastSignIn = new Date(user.last_sign_in_at).getTime()
+    if (Number.isNaN(lastSignIn)) return false
+    const daysSinceSignIn = (Date.now() - lastSignIn) / (1000 * 60 * 60 * 24)
+    return daysSinceSignIn >= 7
+  }, [user])
+
+  // 表示 mood の優先順位: excited（実績解除直後） > sleeping（長期未ログイン） > 財務状況
+  const displayMood: OtterMood =
+    celebratingSignal > 0 ? "excited" : isSleeping ? "sleeping" : otterMood
 
   const handleAchievementClose = useCallback(() => {
     setAchievementQueue((prev) => prev.slice(1))

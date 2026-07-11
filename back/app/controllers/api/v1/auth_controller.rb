@@ -18,6 +18,7 @@ module Api
         user = User.find_or_create_from_oauth(auth)
 
         if user
+          user.track_sign_in! # sleeping mood 判定用に前回/今回のサインイン時刻を記録
           token = JsonWebToken.encode(user_id: user.id)
           refresh_token = RefreshToken.generate_for(user)
           # フロントエンドへリダイレクト（トークンを含む）
@@ -57,7 +58,8 @@ module Api
               id: @current_user.id,
               email: @current_user.email,
               username: @current_user.username,
-              name: @current_user.name
+              name: @current_user.name,
+              last_sign_in_at: @current_user.last_sign_in_at # sleeping mood 判定に使う前回サインイン時刻
             }, status: :ok
           rescue JWT::ExpiredSignature
             render json: { error: 'トークンの有効期限が切れています', code: 'token_expired' }, status: :unauthorized
@@ -93,6 +95,7 @@ module Api
           end
 
           user = refresh_token.user
+          user.track_sign_in! # アプリ再訪も「サインイン」とみなし、前回来訪時刻を更新する
           refresh_token.revoke!
           new_token = JsonWebToken.encode(user_id: user.id)
           new_refresh_token = RefreshToken.generate_for(user)

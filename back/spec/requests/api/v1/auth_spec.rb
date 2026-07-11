@@ -16,6 +16,14 @@ RSpec.describe 'Api::V1::Auths', type: :request do
       expect(json['email']).to eq(user.email)
     end
 
+    it 'レスポンスに last_sign_in_at キーを含む' do
+      user.update_columns(last_sign_in_at: 3.days.ago)
+      get '/api/v1/auth/verify', headers: headers
+      json = response.parsed_body
+      expect(json).to have_key('last_sign_in_at')
+      expect(json['last_sign_in_at']).to be_present
+    end
+
     it '期限切れトークンで token_expired コードを返す' do
       expired_token = JsonWebToken.encode({ user_id: user.id }, 1.second.ago)
       get '/api/v1/auth/verify', headers: { 'Authorization' => "Bearer #{expired_token}" }
@@ -56,6 +64,15 @@ RSpec.describe 'Api::V1::Auths', type: :request do
       cookies[:refresh_token] = refresh_token.token
       post '/api/v1/auth/refresh'
       expect(refresh_token.reload.revoked).to be true
+    end
+
+    it 'リフレッシュ時にサインイン時刻が更新される' do
+      user.update_columns(current_sign_in_at: 10.days.ago, last_sign_in_at: 10.days.ago)
+      cookies[:refresh_token] = refresh_token.token
+      post '/api/v1/auth/refresh'
+      # current は現在時刻に、last には前回（10日前）が保持される
+      expect(user.reload.current_sign_in_at).to be_within(5.seconds).of(Time.current)
+      expect(user.last_sign_in_at).to be_within(1.second).of(10.days.ago)
     end
 
     it 'リフレッシュ後に新しいリフレッシュトークンが発行される' do

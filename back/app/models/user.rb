@@ -34,6 +34,14 @@ class User < ApplicationRecord
     false # デフォルトではロックされていない
   end
 
+  # サインイン時刻を記録する。last_sign_in_at には「前回」のサインイン時刻を
+  # 保持し、フロントの sleeping mood（7日以上ぶりのログイン）判定に使う。
+  # 初回サインインは前回がないため現在時刻を入れる（=経過0日で sleeping にしない）
+  def track_sign_in!
+    now = Time.current
+    update_columns(last_sign_in_at: current_sign_in_at || now, current_sign_in_at: now)
+  end
+
   # ゲストユーザーを取得または作成する
   def self.guest
     user = find_or_create_by!(email: 'guest@otter-bank.example.com') do |u|
