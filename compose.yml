@@ -7,7 +7,7 @@ services:
       TZ: Asia/Tokyo
     volumes:
       - ./front:/app
-    command: yarn dev -p 4000
+    command: npm run dev -- -p 4000
     ports:
       - "4000:4000"
   back:
