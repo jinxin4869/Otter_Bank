@@ -112,7 +112,7 @@ RSpec.describe 'Api::V1::Posts', type: :request do
 
     it 'タイトルなしでは422を返す' do
       post '/api/v1/posts', params: { post: { content: '内容だけ' } }, headers: headers
-      expect(response).to have_http_status(:unprocessable_entity)
+      expect(response).to have_http_status(:unprocessable_content)
     end
   end
 

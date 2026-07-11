@@ -167,7 +167,7 @@ RSpec.describe 'Api::V1::Auths', type: :request do
 
       it '422 を返す' do
         get '/api/v1/auth/google/callback', env: { 'omniauth.auth' => auth_hash }
-        expect(response).to have_http_status(:unprocessable_entity)
+        expect(response).to have_http_status(:unprocessable_content)
       end
     end
   end

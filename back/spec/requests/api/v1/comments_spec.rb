@@ -52,7 +52,7 @@ RSpec.describe 'Api::V1::Comments', type: :request do
 
     it 'contentなしでは422を返す' do
       post "/api/v1/posts/#{post_record.id}/comments", params: { comment: { content: '' } }, headers: headers
-      expect(response).to have_http_status(:unprocessable_entity)
+      expect(response).to have_http_status(:unprocessable_content)
     end
   end
 
