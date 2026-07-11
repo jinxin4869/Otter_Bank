@@ -1,0 +1,24 @@
+# 依存関係（イメージ内でnpm ciし直すため転送不要）
+node_modules
+
+# ビルド成果物・キャッシュ
+.next
+out
+
+# バージョン管理・エディタ
+.git
+.gitignore
+.vscode
+.idea
+
+# 環境変数・機密情報
+.env
+.env.*
+
+# ログ・一時ファイル
+*.log
+npm-debug.log*
+
+# テスト・その他
+coverage
+.DS_Store
