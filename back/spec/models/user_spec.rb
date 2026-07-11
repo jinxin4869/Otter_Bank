@@ -168,4 +168,25 @@ RSpec.describe User, type: :model do
       expect(user.oauth_only?).to be false
     end
   end
+
+  describe '#track_sign_in!' do
+    it '初回サインインでは last と current の両方に現在時刻が入る' do
+      user = create(:user)
+      expect(user.current_sign_in_at).to be_nil
+
+      user.track_sign_in!
+      expect(user.current_sign_in_at).to be_within(1.second).of(Time.current)
+      expect(user.last_sign_in_at).to be_within(1.second).of(Time.current)
+    end
+
+    it '2回目のサインインでは last_sign_in_at に前回の時刻が保持される' do
+      user = create(:user)
+      first_time = 10.days.ago
+      user.update_columns(current_sign_in_at: first_time, last_sign_in_at: first_time)
+
+      user.track_sign_in!
+      expect(user.last_sign_in_at).to be_within(1.second).of(first_time)
+      expect(user.current_sign_in_at).to be_within(1.second).of(Time.current)
+    end
+  end
 end
