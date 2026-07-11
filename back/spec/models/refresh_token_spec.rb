@@ -9,9 +9,31 @@ RSpec.describe RefreshToken, type: :model do
   it { should belong_to(:user) }
 
   # バリデーション
-  it { should validate_presence_of(:token_digest) }
   it { should validate_presence_of(:expires_at) }
-  it { should validate_uniqueness_of(:token_digest) }
+
+  # token_digest は before_validation :set_token_digest で token から生成されるため、
+  # shoulda の validate_presence_of/uniqueness_of ではコールバックが値を再生成してしまう。
+  # モデルの設計に沿って明示的に検証する。
+  describe 'token_digest' do
+    it 'token が存在すると before_validation で token_digest を生成する' do
+      refresh_token = build(:refresh_token, token: 'plain-token-abc')
+      refresh_token.valid?
+      expect(refresh_token.token_digest).to be_present
+    end
+
+    it 'token も token_digest も無い場合は無効' do
+      refresh_token = build(:refresh_token, token: nil, token_digest: nil)
+      expect(refresh_token).to be_invalid
+      expect(refresh_token.errors[:token_digest]).to be_present
+    end
+
+    it 'token_digest が重複する場合は無効' do
+      existing = create(:refresh_token)
+      duplicate = build(:refresh_token, token: nil, token_digest: existing.token_digest)
+      expect(duplicate).to be_invalid
+      expect(duplicate.errors[:token_digest]).to be_present
+    end
+  end
 
   describe '.generate_for' do
     let(:user) { create(:user) }
