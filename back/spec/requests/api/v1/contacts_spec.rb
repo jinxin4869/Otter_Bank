@@ -35,24 +35,24 @@ RSpec.describe 'Api::V1::Contacts', type: :request do
     context '異常系' do
       it '名前が空の場合は422を返す' do
         post '/api/v1/contacts', params: { contact: valid_params[:contact].merge(name: '') }
-        expect(response).to have_http_status(:unprocessable_entity)
+        expect(response).to have_http_status(:unprocessable_content)
         json = response.parsed_body
         expect(json['errors']).to be_present
       end
 
       it 'メールアドレスが不正な場合は422を返す' do
         post '/api/v1/contacts', params: { contact: valid_params[:contact].merge(email: 'invalid-email') }
-        expect(response).to have_http_status(:unprocessable_entity)
+        expect(response).to have_http_status(:unprocessable_content)
       end
 
       it 'メッセージが空の場合は422を返す' do
         post '/api/v1/contacts', params: { contact: valid_params[:contact].merge(message: '') }
-        expect(response).to have_http_status(:unprocessable_entity)
+        expect(response).to have_http_status(:unprocessable_content)
       end
 
       it 'subjectが空の場合は422を返す' do
         post '/api/v1/contacts', params: { contact: valid_params[:contact].merge(subject: '') }
-        expect(response).to have_http_status(:unprocessable_entity)
+        expect(response).to have_http_status(:unprocessable_content)
       end
     end
   end

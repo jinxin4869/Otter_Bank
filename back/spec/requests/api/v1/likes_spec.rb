@@ -30,7 +30,7 @@ RSpec.describe 'Api::V1::Likes', type: :request do
       it '同じ投稿に二重いいねしようとすると422を返す' do
         create(:like, user: user, likeable: post_record)
         post "/api/v1/posts/#{post_record.id}/like", headers: headers
-        expect(response).to have_http_status(:unprocessable_entity)
+        expect(response).to have_http_status(:unprocessable_content)
       end
 
       it '合計いいねが10件に達すると投稿者のcommunity_likes_10実績が解除される' do

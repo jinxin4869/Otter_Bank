@@ -27,7 +27,7 @@ RSpec.describe 'Api::V1::Bookmarks', type: :request do
     it '同じ投稿を二重ブックマークしようとすると422を返す' do
       create(:bookmark, user: user, post: post_record)
       post "/api/v1/posts/#{post_record.id}/bookmark", headers: headers
-      expect(response).to have_http_status(:unprocessable_entity)
+      expect(response).to have_http_status(:unprocessable_content)
     end
   end
 
