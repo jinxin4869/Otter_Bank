@@ -1,7 +1,8 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { useRouter } from "next/navigation"
+import { useAuth } from "@/hooks/useAuth"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import {
@@ -123,13 +124,8 @@ const tutorialSteps = [
 
 export default function TutorialPage() {
   const router = useRouter();
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const { isAuthenticated } = useAuth();
   const [currentStep, setCurrentStep] = useState(0);
-
-  useEffect(() => {
-    const loggedIn = localStorage.getItem("isLoggedIn") === "true";
-    setIsLoggedIn(loggedIn);
-  }, []);
 
   const handleNext = () => {
     if (currentStep < tutorialSteps.length - 1) {
@@ -254,7 +250,7 @@ export default function TutorialPage() {
         </CardFooter>
       </Card>
 
-      {!isLoggedIn && currentStep === tutorialSteps.length - 1 && (
+      {!isAuthenticated && currentStep === tutorialSteps.length - 1 && (
         <div className="mt-6 text-center">
           <p className="text-sm text-muted-foreground">
             すでにアカウントをお持ちですか？ <a href="/login" className="text-primary hover:underline font-medium">ログイン</a>
