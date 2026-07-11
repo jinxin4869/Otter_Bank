@@ -74,7 +74,7 @@ RSpec.describe 'Api::V1::Transactions', type: :request do
 
     it '不正なパラメータではエラーを返す' do
       post '/api/v1/transactions', params: { transaction: { amount: nil } }, headers: headers
-      expect(response).to have_http_status(:unprocessable_entity)
+      expect(response).to have_http_status(:unprocessable_content)
     end
 
     context '実績連携' do
