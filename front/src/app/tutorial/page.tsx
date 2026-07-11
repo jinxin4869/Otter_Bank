@@ -124,7 +124,7 @@ const tutorialSteps = [
 
 export default function TutorialPage() {
   const router = useRouter();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
   const [currentStep, setCurrentStep] = useState(0);
 
   const handleNext = () => {
