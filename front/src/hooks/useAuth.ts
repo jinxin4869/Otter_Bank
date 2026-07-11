@@ -10,6 +10,7 @@ interface User {
   email: string;
   username: string;
   name?: string;
+  last_sign_in_at?: string | null; // 前回サインイン時刻（sleeping mood 判定用）
 }
 
 export const useAuth = () => {
