@@ -78,3 +78,8 @@ Lint/DuplicateBranch:
 # self メソッドの private は別途対応
 Lint/IneffectiveAccessModifier:
   Enabled: false
+
+# 適用済みマイグレーションの書き換えを避けるため除外（PostgreSQL 統一で有効化された）
+Rails/BulkChangeTable:
+  Exclude:
+    - 'db/migrate/**/*'
