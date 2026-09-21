@@ -13,6 +13,9 @@ interface User {
   last_sign_in_at?: string | null; // 前回サインイン時刻（sleeping mood 判定用）
 }
 
+// 認証状態が変わったことを、他の useAuth インスタンス（ヘッダー等）へ知らせるイベント名
+const AUTH_STATE_CHANGED_EVENT = "auth-state-changed";
+
 export const useAuth = () => {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
@@ -21,6 +24,14 @@ export const useAuth = () => {
 
   useEffect(() => {
     checkAuth();
+
+    // useAuth は呼び出しごとに状態を持つため、他のインスタンス（ログイン画面など）の
+    // ログイン・ログアウトをヘッダー等へ反映するためにイベントで再検証する
+    const handleAuthStateChanged = () => {
+      void checkAuth();
+    };
+    window.addEventListener(AUTH_STATE_CHANGED_EVENT, handleAuthStateChanged);
+    return () => window.removeEventListener(AUTH_STATE_CHANGED_EVENT, handleAuthStateChanged);
   }, []);
 
   // リフレッシュトークンを使ってアクセストークンを更新する
@@ -140,6 +151,7 @@ export const useAuth = () => {
     setToken(accessToken);
     // トークン情報をもとに検証・セッション状態構築
     await checkAuthWithToken(accessToken);
+    window.dispatchEvent(new Event(AUTH_STATE_CHANGED_EVENT));
   };
 
   const clearAuthStorage = () => {
@@ -158,6 +170,7 @@ export const useAuth = () => {
       localStorage.setItem("currentUserEmail", email);
     }
     setToken(newToken);
+    window.dispatchEvent(new Event(AUTH_STATE_CHANGED_EVENT));
   };
 
   // 新しい関数: 認証エラーの共通処理
@@ -202,7 +215,7 @@ export const useAuth = () => {
       clearAuthStorage();
       setUser(null);
       setToken(null);
-      window.dispatchEvent(new Event("auth-state-changed"));
+      window.dispatchEvent(new Event(AUTH_STATE_CHANGED_EVENT));
       router.push("/login");
     }
   };
