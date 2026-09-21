@@ -19,10 +19,10 @@ export function Tutorial() {
   const [hasSeenTutorial, setHasSeenTutorial] = useState(false)
 
   useEffect(() => {
-    // Check if the user has seen the tutorial before
+    // 閲覧済みは "true" のときだけ（登録時に "false" を保存するため、真偽値の truthy 判定は使わない）
     const tutorialSeen = localStorage.getItem("tutorialSeen")
 
-    if (!tutorialSeen) {
+    if (tutorialSeen !== "true") {
       // Show tutorial after a short delay
       const timer = setTimeout(() => {
         setOpen(true)

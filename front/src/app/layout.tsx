@@ -5,6 +5,7 @@ import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
 import Header from "@/components/header"
 import Footer from "@/components/footer"
+import { Toaster } from "@/components/ui/sonner"
 
 const inter = Inter({ subsets: ["latin"], variable: '--font-inter' })
 
@@ -21,6 +22,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <Header />
           <main>{children}</main>
           <Footer />
+          {/* toast 通知の表示先。next-themes の useTheme を使うため ThemeProvider 内に置く */}
+          <Toaster />
         </ThemeProvider>
       </body>
     </html>
