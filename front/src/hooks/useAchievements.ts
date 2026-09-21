@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useAuth } from '@/hooks/useAuth'
 import { api } from '@/lib/api'
 import {
@@ -27,18 +27,22 @@ export function useAchievements(): UseAchievementsReturn {
   const [activeTab, setActiveTab] = useState('all')
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  // 連続リクエストで古いレスポンスが新しいものを上書きしないよう、最新のリクエストだけ反映する
+  const latestRequestId = useRef(0)
 
   const fetchAchievements = useCallback(
     async (options?: { silent?: boolean }) => {
       if (!isAuthenticated || !token) return
 
       const silent = options?.silent === true
+      const requestId = ++latestRequestId.current
       if (!silent) {
         setIsLoading(true)
         setError(null)
       }
       try {
         const data = await api.achievements.list(token)
+        if (requestId !== latestRequestId.current) return
         if (data) {
           const list = (data.achievements ?? []).map(mapApiAchievement)
           setAchievements(list)
@@ -50,12 +54,12 @@ export function useAchievements(): UseAchievementsReturn {
         }
       } catch (err) {
         console.error('実績データの取得エラー:', err)
-        // silent 時は表示中のデータを保つため、エラー状態にはしない
-        if (!silent) {
+        // silent 時は表示中のデータを保つため、エラー状態にはしない（ステージ表示は次回取得で追いつく）
+        if (!silent && requestId === latestRequestId.current) {
           setError(err instanceof Error ? err.message : '実績データの取得に失敗しました')
         }
       } finally {
-        if (!silent) setIsLoading(false)
+        if (!silent && requestId === latestRequestId.current) setIsLoading(false)
       }
     },
     [isAuthenticated, token]
