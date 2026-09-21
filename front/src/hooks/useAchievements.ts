@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { useAuth } from '@/hooks/useAuth'
 import { api } from '@/lib/api'
 import {
@@ -15,14 +15,13 @@ type UseAchievementsReturn = {
   isLoading: boolean
   error: string | null
   filterAchievements: (category: string) => void
-  // silent: true ではローディング表示・タブ・絞り込みをリセットせず、実績とサマリーだけ更新する
+  // silent: true ではローディング表示とタブをリセットせず、実績とサマリーだけ更新する（絞り込みは保たれる）
   refetch: (options?: { silent?: boolean }) => Promise<void>
 }
 
 export function useAchievements(): UseAchievementsReturn {
   const { token, isAuthenticated } = useAuth()
   const [achievements, setAchievements] = useState<Achievement[]>([])
-  const [filteredAchievements, setFilteredAchievements] = useState<Achievement[]>([])
   const [achievementSummary, setAchievementSummary] = useState<AchievementSummary | null>(null)
   const [activeTab, setActiveTab] = useState('all')
   const [isLoading, setIsLoading] = useState(true)
@@ -48,7 +47,6 @@ export function useAchievements(): UseAchievementsReturn {
           setAchievements(list)
           setAchievementSummary(data.summary ? mapApiAchievementSummary(data.summary) : null)
           if (!silent) {
-            setFilteredAchievements(list)
             setActiveTab('all')
           }
         }
@@ -69,21 +67,14 @@ export function useAchievements(): UseAchievementsReturn {
     void fetchAchievements()
   }, [fetchAchievements])
 
-  const filterAchievements = useCallback(
-    (category: string) => {
-      setActiveTab(category)
-      if (category === 'history') {
-        setFilteredAchievements([])
-      } else if (category === 'all') {
-        setFilteredAchievements(achievements)
-      } else {
-        setFilteredAchievements(
-          achievements.filter((ach) => ach.category === (category as AchievementCategory))
-        )
-      }
-    },
-    [achievements]
-  )
+  // 絞り込み結果は実績とタブから導出する（silent 更新後も選択中のタブに最新の内容が反映される）
+  const filteredAchievements = useMemo(() => {
+    if (activeTab === 'history') return []
+    if (activeTab === 'all') return achievements
+    return achievements.filter((ach) => ach.category === (activeTab as AchievementCategory))
+  }, [achievements, activeTab])
+
+  const filterAchievements = useCallback((category: string) => setActiveTab(category), [])
 
   return {
     achievements,
