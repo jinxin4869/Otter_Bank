@@ -11,8 +11,14 @@ jest.mock("@/lib/api", () => ({
 
 const list = api.achievements.list as jest.Mock
 
-const response = (unlocked: number, stage: string) => ({
-  achievements: [],
+const ach = (id: number, category: string) => ({
+  id, original_achievement_id: `a${id}`, title: `t${id}`, description: "d", category, unlocked: false,
+  progress: 0, progress_percentage: 0, progress_target: 1, image_url: null, reward: "", tier: "bronze",
+  created_at: "", updated_at: "", unlocked_at: null,
+})
+
+const response = (unlocked: number, stage: string, achievements: unknown[] = []) => ({
+  achievements,
   summary: {
     total_achievements: 20,
     unlocked_achievements: unlocked,
@@ -74,5 +80,29 @@ describe("useAchievements", () => {
     })
 
     expect(result.current.achievementSummary?.growthStage.stage).toBe("silver")
+  })
+
+  it("silent 更新後も選択中のタブの絞り込みが保たれ、最新の内容が反映される", async () => {
+    list.mockResolvedValueOnce(response(0, "none", [ach(1, "savings"), ach(2, "streak")]))
+    const { result } = renderHook(() => useAchievements())
+    await waitFor(() => expect(result.current.isLoading).toBe(false))
+    act(() => result.current.filterAchievements("savings"))
+    expect(result.current.filteredAchievements.map((a) => a.id)).toEqual([1])
+
+    list.mockResolvedValueOnce(response(0, "none", [ach(1, "savings"), ach(2, "streak"), ach(3, "savings")]))
+    await act(async () => {
+      await result.current.refetch({ silent: true })
+    })
+
+    expect(result.current.activeTab).toBe("savings")
+    expect(result.current.filteredAchievements.map((a) => a.id)).toEqual([1, 3])
+  })
+
+  it("history タブでは絞り込み結果が空になる", async () => {
+    list.mockResolvedValueOnce(response(0, "none", [ach(1, "savings")]))
+    const { result } = renderHook(() => useAchievements())
+    await waitFor(() => expect(result.current.isLoading).toBe(false))
+    act(() => result.current.filterAchievements("history"))
+    expect(result.current.filteredAchievements).toEqual([])
   })
 })
