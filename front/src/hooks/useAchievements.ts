@@ -15,7 +15,8 @@ type UseAchievementsReturn = {
   isLoading: boolean
   error: string | null
   filterAchievements: (category: string) => void
-  refetch: () => Promise<void>
+  // silent: true ではローディング表示・タブ・絞り込みをリセットせず、実績とサマリーだけ更新する
+  refetch: (options?: { silent?: boolean }) => Promise<void>
 }
 
 export function useAchievements(): UseAchievementsReturn {
@@ -27,31 +28,41 @@ export function useAchievements(): UseAchievementsReturn {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const fetchAchievements = useCallback(async () => {
-    if (!isAuthenticated || !token) return
+  const fetchAchievements = useCallback(
+    async (options?: { silent?: boolean }) => {
+      if (!isAuthenticated || !token) return
 
-    setIsLoading(true)
-    setError(null)
-    try {
-      const data = await api.achievements.list(token)
-      if (data) {
-        const list = (data.achievements ?? []).map(mapApiAchievement)
-        setAchievements(list)
-        setFilteredAchievements(list)
-        setAchievementSummary(data.summary ? mapApiAchievementSummary(data.summary) : null)
-        setActiveTab('all')
+      const silent = options?.silent === true
+      if (!silent) {
+        setIsLoading(true)
+        setError(null)
       }
-    } catch (err) {
-      const message = err instanceof Error ? err.message : '実績データの取得に失敗しました'
-      setError(message)
-      console.error('実績データの取得エラー:', err)
-    } finally {
-      setIsLoading(false)
-    }
-  }, [isAuthenticated, token])
+      try {
+        const data = await api.achievements.list(token)
+        if (data) {
+          const list = (data.achievements ?? []).map(mapApiAchievement)
+          setAchievements(list)
+          setAchievementSummary(data.summary ? mapApiAchievementSummary(data.summary) : null)
+          if (!silent) {
+            setFilteredAchievements(list)
+            setActiveTab('all')
+          }
+        }
+      } catch (err) {
+        console.error('実績データの取得エラー:', err)
+        // silent 時は表示中のデータを保つため、エラー状態にはしない
+        if (!silent) {
+          setError(err instanceof Error ? err.message : '実績データの取得に失敗しました')
+        }
+      } finally {
+        if (!silent) setIsLoading(false)
+      }
+    },
+    [isAuthenticated, token]
+  )
 
   useEffect(() => {
-    fetchAchievements()
+    void fetchAchievements()
   }, [fetchAchievements])
 
   const filterAchievements = useCallback(
