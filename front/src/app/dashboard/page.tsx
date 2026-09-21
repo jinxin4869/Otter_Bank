@@ -420,7 +420,7 @@ export default function DashboardPage() {
             <CardDescription>財政状況に応じて変化</CardDescription>
           </CardHeader>
           <CardContent>
-            <OtterAnimation mood={displayMood} growthStage={achievementSummary?.growthStage.stage ?? "none"} />
+            <OtterAnimation mood={displayMood} growthStage={achievementSummary?.growthStage.stage} />
           </CardContent>
         </Card>
 
