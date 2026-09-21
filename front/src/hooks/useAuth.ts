@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { getApiUrl } from "@/lib/api-client";
@@ -13,14 +13,34 @@ interface User {
   last_sign_in_at?: string | null; // 前回サインイン時刻（sleeping mood 判定用）
 }
 
+// 認証状態が変わったことを、他の useAuth インスタンス（ヘッダー等）へ知らせるイベント名
+const AUTH_STATE_CHANGED_EVENT = "auth-state-changed";
+
+// 検証リクエストの完了までの間に、保存済みトークンが別のもの（ログアウト・再ログイン）に変わったか。
+// 変わっていれば古い検証結果は状態へ反映しない
+const isSuperseded = (checkedToken: string) => localStorage.getItem("authToken") !== checkedToken;
+
 export const useAuth = () => {
   const router = useRouter();
+  // イベントの発火元を識別し、発火元自身が再検証しないようにする
+  const instanceRef = useRef({});
+  const notifyAuthStateChanged = () =>
+    window.dispatchEvent(new CustomEvent(AUTH_STATE_CHANGED_EVENT, { detail: { source: instanceRef.current } }));
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [token, setToken] = useState<string | null>(null);
 
   useEffect(() => {
-    checkAuth();
+    void checkAuth();
+
+    // useAuth は呼び出しごとに状態を持つため、他のインスタンス（ログイン画面など）の
+    // ログイン・ログアウトをヘッダー等へ反映するためにイベントで再検証する
+    const handleAuthStateChanged = (event: Event) => {
+      if ((event as CustomEvent<{ source?: unknown }>).detail?.source === instanceRef.current) return;
+      void checkAuth();
+    };
+    window.addEventListener(AUTH_STATE_CHANGED_EVENT, handleAuthStateChanged);
+    return () => window.removeEventListener(AUTH_STATE_CHANGED_EVENT, handleAuthStateChanged);
   }, []);
 
   // リフレッシュトークンを使ってアクセストークンを更新する
@@ -60,6 +80,7 @@ export const useAuth = () => {
           "Content-Type": "application/json",
         },
       });
+      if (isSuperseded(storedToken)) return;
 
       if (!response.ok) {
         const errorData = await response.json();
@@ -84,6 +105,7 @@ export const useAuth = () => {
       setToken(storedToken);
       localStorage.setItem("isLoggedIn", "true");
     } catch (error) {
+      if (isSuperseded(storedToken)) return;
       console.error("[Auth] JWT Token verification failed:", error);
       clearAuthStorage();
       setUser(null);
@@ -94,7 +116,9 @@ export const useAuth = () => {
         error instanceof Error &&
         error.message.includes("認証期限が切れました")
       ) {
+        // 複数インスタンスが同時に失敗しても 1 件だけ表示する
         toast.error("認証期限切れ", {
+          id: "auth-expired",
           description: error.message,
         });
       }
@@ -113,6 +137,7 @@ export const useAuth = () => {
           "Content-Type": "application/json",
         },
       });
+      if (isSuperseded(accessToken)) return;
 
       if (!response.ok) throw new Error("Token verification failed");
 
@@ -121,6 +146,7 @@ export const useAuth = () => {
       setToken(accessToken);
       localStorage.setItem("isLoggedIn", "true");
     } catch {
+      if (isSuperseded(accessToken)) return;
       clearAuthStorage();
       setUser(null);
       setToken(null);
@@ -140,6 +166,7 @@ export const useAuth = () => {
     setToken(accessToken);
     // トークン情報をもとに検証・セッション状態構築
     await checkAuthWithToken(accessToken);
+    notifyAuthStateChanged();
   };
 
   const clearAuthStorage = () => {
@@ -158,6 +185,7 @@ export const useAuth = () => {
       localStorage.setItem("currentUserEmail", email);
     }
     setToken(newToken);
+    notifyAuthStateChanged();
   };
 
   // 新しい関数: 認証エラーの共通処理
@@ -202,7 +230,7 @@ export const useAuth = () => {
       clearAuthStorage();
       setUser(null);
       setToken(null);
-      window.dispatchEvent(new Event("auth-state-changed"));
+      notifyAuthStateChanged();
       router.push("/login");
     }
   };
