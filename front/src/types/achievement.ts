@@ -2,6 +2,11 @@ export type AchievementCategory = 'savings' | 'streak' | 'expense' | 'special'
 
 export type AchievementTier = 'bronze' | 'silver' | 'gold' | 'platinum'
 
+// カワウソの成長ステージ（none は装備なし）。閾値はバックエンド（Achievement::GROWTH_STAGES）が持つ
+export const OTTER_GROWTH_STAGES = ['none', 'bronze', 'silver', 'gold', 'platinum'] as const
+
+export type OtterGrowthStage = (typeof OTTER_GROWTH_STAGES)[number]
+
 // 取引登録・更新レスポンスに含まれる新規解除実績
 export interface ApiNewlyUnlockedAchievement {
   id: number
@@ -33,9 +38,18 @@ export interface ApiAchievement {
   unlocked_at: string | null
 }
 
+export interface ApiGrowthStage {
+  stage: OtterGrowthStage
+  next_stage: OtterGrowthStage | null
+  achievements_to_next: number | null
+  progress_percentage: number
+}
+
 export interface ApiAchievementSummary {
   total_achievements: number
   unlocked_achievements: number
+  // 旧バックエンドのレスポンスには存在しないため optional
+  growth_stage?: ApiGrowthStage
   progress_by_category: {
     [key in AchievementCategory]?: {
       total: number
@@ -70,9 +84,17 @@ export interface Achievement {
   unlockedAt: string | null
 }
 
+export interface GrowthStage {
+  stage: OtterGrowthStage
+  nextStage: OtterGrowthStage | null
+  achievementsToNext: number | null
+  progressPercentage: number
+}
+
 export interface AchievementSummary {
   totalAchievements: number
   unlockedAchievements: number
+  growthStage: GrowthStage
   progressByCategory: {
     [key in AchievementCategory]?: {
       total: number
@@ -104,6 +126,31 @@ export function mapApiAchievement(a: ApiAchievement): Achievement {
   }
 }
 
+const DEFAULT_GROWTH_STAGE: GrowthStage = {
+  stage: 'none',
+  nextStage: null,
+  achievementsToNext: null,
+  progressPercentage: 0,
+}
+
+function isOtterGrowthStage(v: unknown): v is OtterGrowthStage {
+  return typeof v === 'string' && (OTTER_GROWTH_STAGES as readonly string[]).includes(v)
+}
+
+// 外部データ（API レスポンス）を検証して成長ステージへ変換する。不正・欠落時は none にフォールバックする
+export function parseGrowthStage(v: unknown): GrowthStage {
+  if (typeof v !== 'object' || v === null || Array.isArray(v)) return DEFAULT_GROWTH_STAGE
+  const raw = v as Record<string, unknown>
+  if (!isOtterGrowthStage(raw.stage)) return DEFAULT_GROWTH_STAGE
+
+  return {
+    stage: raw.stage,
+    nextStage: isOtterGrowthStage(raw.next_stage) ? raw.next_stage : null,
+    achievementsToNext: typeof raw.achievements_to_next === 'number' ? raw.achievements_to_next : null,
+    progressPercentage: typeof raw.progress_percentage === 'number' ? raw.progress_percentage : 0,
+  }
+}
+
 export function mapApiAchievementSummary(s: ApiAchievementSummary): AchievementSummary {
   const progressByCategory = Object.fromEntries(
     Object.entries(s.progress_by_category).map(([key, val]) => [
@@ -117,6 +164,7 @@ export function mapApiAchievementSummary(s: ApiAchievementSummary): AchievementS
   return {
     totalAchievements: s.total_achievements,
     unlockedAchievements: s.unlocked_achievements,
+    growthStage: parseGrowthStage(s.growth_stage),
     progressByCategory,
   }
 }
