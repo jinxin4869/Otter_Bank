@@ -83,3 +83,107 @@ describe("useAuth", () => {
     expect(pushMock).toHaveBeenCalledWith("/login")
   })
 })
+
+describe("useAuth（複数インスタンス間の認証状態の共有）", () => {
+  const verifiedUser = { id: 1, email: "dev@example.com", username: "devuser" }
+  const originalFetch = global.fetch
+
+  beforeEach(() => {
+    localStorage.clear()
+    jest.clearAllMocks()
+    jest.spyOn(console, "error").mockImplementation(() => {})
+    global.fetch = jest.fn(async (_url: string, init?: RequestInit) => {
+      if (init?.method === "DELETE") return { ok: true, json: async () => ({}) }
+      return { ok: true, json: async () => ({ user: verifiedUser }) }
+    }) as unknown as typeof fetch
+  })
+
+  afterEach(() => {
+    global.fetch = originalFetch
+    jest.restoreAllMocks()
+  })
+
+  const verifyCalls = () =>
+    (global.fetch as jest.Mock).mock.calls.filter(([url]) => String(url).endsWith("/auth/verify")).length
+
+  it("別インスタンスでログインしたら、ヘッダー相当のインスタンスも認証済みになる", async () => {
+    const header = renderHook(() => useAuth())
+    const loginPage = renderHook(() => useAuth())
+    await waitFor(() => expect(header.result.current.isLoading).toBe(false))
+    expect(header.result.current.isAuthenticated).toBe(false)
+
+    await act(async () => {
+      await loginPage.result.current.login("access-token", "dev@example.com")
+    })
+
+    expect(loginPage.result.current.isAuthenticated).toBe(true)
+    await waitFor(() => expect(header.result.current.isAuthenticated).toBe(true))
+  })
+
+  it("ログインした発火元自身は再検証しない（検証は発火元 1 回と他インスタンス 1 回ずつ）", async () => {
+    const header = renderHook(() => useAuth())
+    const loginPage = renderHook(() => useAuth())
+    await waitFor(() => expect(header.result.current.isLoading).toBe(false))
+    await waitFor(() => expect(loginPage.result.current.isLoading).toBe(false))
+
+    await act(async () => {
+      await loginPage.result.current.login("access-token", "dev@example.com")
+    })
+    await waitFor(() => expect(header.result.current.isAuthenticated).toBe(true))
+
+    expect(verifyCalls()).toBe(2)
+  })
+
+  it("別インスタンスでログアウトしたら、もう一方も未認証になる", async () => {
+    localStorage.setItem("authToken", "access-token")
+    const header = renderHook(() => useAuth())
+    const dashboard = renderHook(() => useAuth())
+    await waitFor(() => expect(header.result.current.isAuthenticated).toBe(true))
+    await waitFor(() => expect(dashboard.result.current.isAuthenticated).toBe(true))
+
+    await act(async () => {
+      await dashboard.result.current.logout()
+    })
+
+    await waitFor(() => expect(header.result.current.isAuthenticated).toBe(false))
+  })
+
+  it("検証中にログアウトされたら、遅れて返った検証結果で認証済みに戻らない", async () => {
+    localStorage.setItem("authToken", "old-token")
+    let resolveVerify: (v: unknown) => void = () => {}
+    global.fetch = jest.fn((_url: string, init?: RequestInit) => {
+      if (init?.method === "DELETE") return Promise.resolve({ ok: true, json: async () => ({}) })
+      return new Promise((resolve) => {
+        resolveVerify = resolve
+      })
+    }) as unknown as typeof fetch
+
+    const { result } = renderHook(() => useAuth())
+    await act(async () => {
+      await result.current.logout()
+    })
+
+    await act(async () => {
+      resolveVerify({ ok: true, json: async () => ({ user: verifiedUser }) })
+    })
+
+    expect(result.current.isAuthenticated).toBe(false)
+    expect(localStorage.getItem("authToken")).toBeNull()
+  })
+
+  it("アンマウント後はイベントを購読しない", async () => {
+    const other = renderHook(() => useAuth())
+    const target = renderHook(() => useAuth())
+    await waitFor(() => expect(target.result.current.isLoading).toBe(false))
+    target.unmount()
+    const before = verifyCalls()
+
+    localStorage.setItem("authToken", "access-token")
+    await act(async () => {
+      await other.result.current.login("access-token", "dev@example.com")
+    })
+
+    // 発火元の検証 1 回のみ（アンマウント済みのインスタンスは検証しない）
+    expect(verifyCalls() - before).toBe(1)
+  })
+})
