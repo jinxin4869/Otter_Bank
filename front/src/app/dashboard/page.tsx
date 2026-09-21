@@ -115,7 +115,7 @@ export default function DashboardPage() {
   const [achievementQueue, setAchievementQueue] = useState<ApiNewlyUnlockedAchievement[]>([])
   const router = useRouter()
   const { user, token, isLoading: authIsLoading, isAuthenticated } = useAuth()
-  const { achievements } = useAchievements()
+  const { achievements, achievementSummary, refetch: refetchAchievements } = useAchievements()
 
   const currentAchievement = achievementQueue[0] ?? null
 
@@ -250,6 +250,8 @@ export default function DashboardPage() {
           })
           setAchievementQueue((prev) => [...prev, ...result.newly_unlocked_achievements])
           setCelebratingSignal((n) => n + 1)
+          // 解除で成長ステージが変わる可能性があるため、表示を変えずに再取得する
+          void refetchAchievements({ silent: true })
         }
       }
       setAmount("")
@@ -418,7 +420,7 @@ export default function DashboardPage() {
             <CardDescription>財政状況に応じて変化</CardDescription>
           </CardHeader>
           <CardContent>
-            <OtterAnimation mood={displayMood} />
+            <OtterAnimation mood={displayMood} growthStage={achievementSummary?.growthStage.stage ?? "none"} />
           </CardContent>
         </Card>
 
