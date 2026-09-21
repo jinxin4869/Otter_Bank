@@ -54,6 +54,43 @@ RSpec.describe Achievement, type: :model do
     end
   end
 
+  describe '.growth_stage_for' do
+    # 境界値（各ステージの下限・上限）を検証する
+    {
+      0 => 'none', 2 => 'none',
+      3 => 'bronze', 7 => 'bronze',
+      8 => 'silver', 12 => 'silver',
+      13 => 'gold', 17 => 'gold',
+      18 => 'platinum', 20 => 'platinum', 21 => 'platinum', 100 => 'platinum'
+    }.each do |count, stage|
+      it "解除数#{count}件はステージ#{stage}になる" do
+        expect(described_class.growth_stage_for(count)[:stage]).to eq(stage)
+      end
+    end
+
+    it '次のステージと残り件数、ステージ内の進捗率を返す' do
+      expect(described_class.growth_stage_for(9)).to eq(
+        stage: 'silver', next_stage: 'gold', achievements_to_next: 4, progress_percentage: 20
+      )
+    end
+
+    it '次のステージ直前の解除数では残り1件を返す' do
+      result = described_class.growth_stage_for(2)
+      expect(result).to include(stage: 'none', next_stage: 'bronze', achievements_to_next: 1)
+    end
+
+    it '最終ステージでは次のステージが nil で進捗率は100になる' do
+      expect(described_class.growth_stage_for(18)).to eq(
+        stage: 'platinum', next_stage: nil, achievements_to_next: nil, progress_percentage: 100
+      )
+    end
+
+    it '負数や nil は none として扱う' do
+      expect(described_class.growth_stage_for(-5)[:stage]).to eq('none')
+      expect(described_class.growth_stage_for(nil)[:stage]).to eq('none')
+    end
+  end
+
   describe 'category enum' do
     it { should define_enum_for(:category).with_values(savings: 0, streak: 1, expense: 2, special: 3) }
   end
