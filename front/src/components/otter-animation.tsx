@@ -11,7 +11,8 @@ export type OtterMood = "happy" | "neutral" | "sad" | "excited" | "sleeping"
 type OtterAnimationProps = {
   mood: OtterMood
   customMessage?: string
-  // 解除実績数に応じた成長ステージ。見た目への反映は別 issue（#313）で行う
+  // 解除実績数に応じた成長ステージ。未取得（読み込み中）は undefined とし、none と区別する
+  // 見た目への反映は別 issue（#313）で行う
   growthStage?: OtterGrowthStage
 }
 
@@ -49,7 +50,7 @@ const MOOD_MESSAGES: Record<OtterMood, string[]> = {
   ],
 }
 
-export default function OtterAnimation({ mood, customMessage, growthStage = "none" }: OtterAnimationProps) {
+export default function OtterAnimation({ mood, customMessage, growthStage }: OtterAnimationProps) {
   const [message, setMessage] = useState("")
   const [isAnimating, setIsAnimating] = useState(false)
 
