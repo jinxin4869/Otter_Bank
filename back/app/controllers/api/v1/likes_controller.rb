@@ -2,71 +2,74 @@
 
 module Api
   module V1
+    # 投稿・コメントへのいいね（Like はポリモーフィックなので、対象を @likeable にして共通の処理で扱う）
     class LikesController < ApplicationController
-      def create_post_like
-        post = Post.find(params.expect(:id))
-        like = post.likes.new(user: current_api_v1_user)
+      include PostLookup
 
-        if like.save
-          post.increment!(:likes_count)
-          if post.user
-            begin
-              AchievementService.new(post.user).update_community_likes_received_achievements
-            rescue StandardError => e
-              Rails.logger.error "実績更新失敗 user_id=#{post.user.id} error=#{e.message}"
-            end
-          end
-          render json: { message: 'いいねしました', likes_count: post.likes_count }, status: :created
-        else
-          render json: { errors: like.errors.full_messages }, status: :unprocessable_content
-        end
-      rescue ActiveRecord::RecordNotFound
-        render json: { error: '投稿が見つかりません' }, status: :not_found
+      before_action :set_post_likeable, only: %i[create_post_like destroy_post_like]
+      before_action :set_comment_likeable, only: %i[create_comment_like destroy_comment_like]
+
+      def create_post_like
+        create_like { update_likes_received_achievement(@likeable) }
       end
 
       def destroy_post_like
-        post = Post.find(params.expect(:id))
-        like = post.likes.find_by(user: current_api_v1_user)
-
-        if like
-          like.destroy
-          post.decrement!(:likes_count) if post.likes_count.to_i.positive?
-          render json: { message: 'いいねを取り消しました', likes_count: post.likes_count }
-        else
-          render json: { error: 'いいねが見つかりません' }, status: :not_found
-        end
-      rescue ActiveRecord::RecordNotFound
-        render json: { error: '投稿が見つかりません' }, status: :not_found
+        destroy_like
       end
 
       def create_comment_like
-        comment = Comment.find(params.expect(:id))
-        like = comment.likes.new(user: current_api_v1_user)
+        create_like
+      end
 
-        if like.save
-          comment.increment!(:likes_count)
-          render json: { message: 'いいねしました', likes_count: comment.likes_count },
-                 status: :created
-        else
-          render json: { errors: like.errors.full_messages }, status: :unprocessable_content
-        end
+      def destroy_comment_like
+        destroy_like
+      end
+
+      private
+
+      def set_post_likeable
+        load_post(params.expect(:id))
+        @likeable = @post
+      end
+
+      def set_comment_likeable
+        @likeable = Comment.find(params.expect(:id))
       rescue ActiveRecord::RecordNotFound
         render json: { error: 'コメントが見つかりません' }, status: :not_found
       end
 
-      def destroy_comment_like
-        comment = Comment.find(params.expect(:id))
-        like = comment.likes.find_by(user: current_api_v1_user)
+      # いいねを作成する。作成できたときだけブロック（実績の更新など）を実行する
+      def create_like
+        like = @likeable.likes.new(user: current_api_v1_user)
+
+        if like.save
+          @likeable.increment!(:likes_count)
+          yield if block_given?
+          render json: { message: 'いいねしました', likes_count: @likeable.likes_count }, status: :created
+        else
+          render json: { errors: like.errors.full_messages }, status: :unprocessable_content
+        end
+      end
+
+      def destroy_like
+        like = @likeable.likes.find_by(user: current_api_v1_user)
 
         if like
           like.destroy
-          comment.decrement!(:likes_count) if comment.likes_count.to_i.positive?
-          render json: { message: 'いいねを取り消しました', likes_count: comment.likes_count }
+          @likeable.decrement!(:likes_count) if @likeable.likes_count.to_i.positive?
+          render json: { message: 'いいねを取り消しました', likes_count: @likeable.likes_count }
         else
           render json: { error: 'いいねが見つかりません' }, status: :not_found
         end
-      rescue ActiveRecord::RecordNotFound
-        render json: { error: 'コメントが見つかりません' }, status: :not_found
+      end
+
+      # 投稿者の「いいねを受け取った」実績を更新する。失敗しても、いいね自体は成功させる
+      def update_likes_received_achievement(post)
+        return unless post.user
+
+        AchievementService.new(post.user).update_community_likes_received_achievements
+      rescue StandardError => e
+        Rails.logger.error "実績更新失敗 user_id=#{post.user.id} error=#{e.message}"
       end
     end
   end
