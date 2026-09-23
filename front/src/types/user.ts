@@ -1,11 +1,3 @@
-/** 認証済みユーザーの型 */
-export type User = {
-  id: number
-  email: string
-  username: string
-  name?: string
-}
-
 /** 認証済みユーザー（認証 API のレスポンスから作るフロント内部型） */
 export type AuthUser = {
   id: number

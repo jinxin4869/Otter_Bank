@@ -2,7 +2,6 @@ import { apiRequest, publicApiRequest } from '@/lib/api-client'
 import type { ApiTransaction } from '@/types/transaction'
 import type { ApiPost, ApiComment, ApiPostsResponse } from '@/types/post'
 import type { AchievementResponse, ApiNewlyUnlockedAchievement } from '@/types/achievement'
-import type { User } from '@/types/user'
 
 // ========== 型定義 ==========
 
@@ -12,10 +11,6 @@ type LoginResponse = {
 
 type RefreshResponse = {
   token: string
-}
-
-type VerifyResponse = {
-  user: User
 }
 
 type RegisterParams = {
@@ -87,9 +82,9 @@ export const api = {
         body: { token, password },
       }),
 
-    /** JWT トークンを検証してユーザー情報を取得する */
+    /** JWT トークンを検証してユーザー情報を取得する（形式は parseAuthUser で検証する） */
     verify: (token: string) =>
-      apiRequest<VerifyResponse>('/auth/verify', { token }),
+      apiRequest<unknown>('/auth/verify', { token }),
 
     /** リフレッシュトークンを使ってアクセストークンを更新する（Cookie 経由） */
     refresh: () =>
