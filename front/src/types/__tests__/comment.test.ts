@@ -28,7 +28,7 @@ describe("mapApiComment", () => {
   it("liked_by_me が無い古いレスポンスでは false にする", () => {
     const comment = mapApiComment({
       id: 1, post_id: 2, content: "c", author: "a", user_id: 3, likes_count: 0, created_at: "",
-    } as Parameters<typeof mapApiComment>[0])
+    })
     expect(comment.likedByMe).toBe(false)
   })
 })
