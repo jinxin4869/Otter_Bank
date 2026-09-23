@@ -145,9 +145,22 @@ RSpec.describe 'Api::V1::Auths', type: :request do
       )
     end
 
+    # OmniAuth のミドルウェアがコールバックのパスを処理するため、テストモードで Google の応答を差し替える
     before do
       allow(ENV).to receive(:fetch).and_call_original
       allow(ENV).to receive(:fetch).with('FRONTEND_URL', nil).and_return('http://localhost:3001')
+      OmniAuth.config.test_mode = true
+      OmniAuth.config.mock_auth[:google_oauth2] = auth_hash
+    end
+
+    after do
+      OmniAuth.config.test_mode = false
+      OmniAuth.config.mock_auth[:google_oauth2] = nil
+    end
+
+    it '開始 URL からのリダイレクト先がコールバックのルートと一致する' do
+      get '/auth/google_oauth2'
+      expect(response.headers['Location']).to end_with('/api/v1/auth/google/callback')
     end
 
     context 'OAuth認証成功時' do
@@ -155,20 +168,27 @@ RSpec.describe 'Api::V1::Auths', type: :request do
         allow(User).to receive(:find_or_create_from_oauth).and_return(user)
       end
 
-      it 'フロントエンドのコールバックURLにリダイレクトする' do
-        get '/api/v1/auth/google/callback', env: { 'omniauth.auth' => auth_hash }
+      it 'トークンを URL に載せずにフロントエンドのコールバック画面へリダイレクトする' do
+        get '/api/v1/auth/google/callback'
         expect(response).to have_http_status(:redirect)
-        expect(response.headers['Location']).to include('/auth/callback?token=')
+        expect(response.headers['Location']).to eq('http://localhost:3001/auth/callback')
+      end
+
+      it 'サインイン時刻はここでは記録しない（フロントが続けて呼ぶリフレッシュで 1 回だけ記録する）' do
+        user.update_columns(last_sign_in_at: 10.days.ago, current_sign_in_at: 10.days.ago)
+        expect do
+          get '/api/v1/auth/google/callback'
+        end.not_to(change { user.reload.current_sign_in_at })
       end
 
       it 'リフレッシュトークンをHttpOnly Cookieにセットする' do
-        get '/api/v1/auth/google/callback', env: { 'omniauth.auth' => auth_hash }
+        get '/api/v1/auth/google/callback'
         expect(response.cookies['refresh_token']).to be_present
       end
 
       it 'DBにリフレッシュトークンが作成される' do
         expect do
-          get '/api/v1/auth/google/callback', env: { 'omniauth.auth' => auth_hash }
+          get '/api/v1/auth/google/callback'
         end.to change(RefreshToken, :count).by(1)
       end
     end
@@ -178,10 +198,22 @@ RSpec.describe 'Api::V1::Auths', type: :request do
         allow(User).to receive(:find_or_create_from_oauth).and_return(nil)
       end
 
-      it '422 を返す' do
-        get '/api/v1/auth/google/callback', env: { 'omniauth.auth' => auth_hash }
-        expect(response).to have_http_status(:unprocessable_content)
+      it 'ログイン画面へ oauth_error=failed を付けてリダイレクトする' do
+        get '/api/v1/auth/google/callback'
+        expect(response.headers['Location']).to eq('http://localhost:3001/login?oauth_error=failed')
       end
+    end
+
+    it 'ユーザーがキャンセルしたら oauth_error=cancelled でログイン画面へ戻す' do
+      OmniAuth.config.mock_auth[:google_oauth2] = :access_denied
+      get '/api/v1/auth/google/callback'
+      expect(response.headers['Location']).to eq('http://localhost:3001/login?oauth_error=cancelled')
+    end
+
+    it 'その他の失敗では oauth_error=failed でログイン画面へ戻す' do
+      OmniAuth.config.mock_auth[:google_oauth2] = :invalid_credentials
+      get '/api/v1/auth/google/callback'
+      expect(response.headers['Location']).to eq('http://localhost:3001/login?oauth_error=failed')
     end
   end
 end

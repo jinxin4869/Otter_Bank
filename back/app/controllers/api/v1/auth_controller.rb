@@ -13,19 +13,16 @@ module Api
       end
 
       # Google OAuth2コールバック処理
+      # アクセストークンは URL に載せない（履歴・ログ・Referer から漏れるため）。リフレッシュトークンだけを
+      # HttpOnly cookie に入れてフロントへ戻し、フロントがリフレッシュ API でアクセストークンを受け取る。
+      # サインイン時刻はそのリフレッシュで記録する（ここでも記録すると前回サインイン時刻が上書きされる）
       def google_callback
         auth = request.env['omniauth.auth']
-        user = User.find_or_create_from_oauth(auth)
+        user = auth && User.find_or_create_from_oauth(auth)
+        return redirect_to_frontend('/login?oauth_error=failed') unless user
 
-        if user
-          user.track_sign_in! # sleeping mood 判定用に前回/今回のサインイン時刻を記録
-          token = issue_tokens_for(user)
-          # フロントエンドへリダイレクト（トークンを含む）
-          callback_url = "#{ENV.fetch('FRONTEND_URL', nil)}/auth/callback?token=#{token}"
-          redirect_to callback_url, allow_other_host: true
-        else
-          render json: { error: 'OAuth認証に失敗しました' }, status: :unprocessable_content
-        end
+        issue_refresh_token_for(user)
+        redirect_to_frontend('/auth/callback')
       end
 
       def verify
@@ -83,6 +80,12 @@ module Api
         render json: {
           token: new_token
         }, status: :ok
+      end
+
+      private
+
+      def redirect_to_frontend(path)
+        redirect_to "#{ENV.fetch('FRONTEND_URL', nil)}#{path}", allow_other_host: true
       end
     end
   end

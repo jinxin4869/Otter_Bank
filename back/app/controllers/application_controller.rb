@@ -15,8 +15,13 @@ class ApplicationController < ActionController::API
 
   # ログイン・登録時にアクセストークンを発行して返し、リフレッシュトークンを HttpOnly cookie に書き込む
   def issue_tokens_for(user)
-    write_refresh_token_cookie(RefreshToken.generate_for(user).token)
+    issue_refresh_token_for(user)
     JsonWebToken.encode(user_id: user.id)
+  end
+
+  # リフレッシュトークンだけを発行して HttpOnly cookie に書き込む
+  def issue_refresh_token_for(user)
+    write_refresh_token_cookie(RefreshToken.generate_for(user).token)
   end
 
   # Authorization ヘッダーの Bearer トークン（ヘッダーが無ければ nil）
