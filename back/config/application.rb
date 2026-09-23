@@ -31,6 +31,10 @@ module OtterBank
     # Skip views, helpers and assets when generating a new resource.
     config.api_only = true
 
+    # 検証エラーなどユーザーに返すメッセージを日本語にする
+    config.i18n.default_locale = :ja
+    config.i18n.available_locales = %i[ja en]
+
     # API専用モードでもセッションとクッキーを有効にする（OmniAuthに必要）
     config.middleware.use ActionDispatch::Cookies
     config.middleware.use ActionDispatch::Session::CookieStore, key: '_otter_bank_session'

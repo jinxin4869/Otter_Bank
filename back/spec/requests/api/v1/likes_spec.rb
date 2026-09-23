@@ -112,4 +112,20 @@ RSpec.describe 'Api::V1::Likes', type: :request do
       end
     end
   end
+
+  describe 'レスポンスメッセージ' do
+    let(:target_post) { create(:post) }
+    let(:comment) { create(:comment, post: target_post) }
+
+    it '投稿・コメントのいいねと取り消しで日本語のメッセージを返す' do
+      post "/api/v1/posts/#{target_post.id}/like", headers: headers
+      expect(response.parsed_body['message']).to eq('いいねしました')
+      post "/api/v1/posts/#{target_post.id}/unlike", headers: headers
+      expect(response.parsed_body['message']).to eq('いいねを取り消しました')
+      post "/api/v1/posts/#{target_post.id}/comments/#{comment.id}/like", headers: headers
+      expect(response.parsed_body['message']).to eq('いいねしました')
+      post "/api/v1/posts/#{target_post.id}/comments/#{comment.id}/unlike", headers: headers
+      expect(response.parsed_body['message']).to eq('いいねを取り消しました')
+    end
+  end
 end

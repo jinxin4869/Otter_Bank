@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import Image from "next/image"
 import { cn } from "@/lib/utils"
+import type { OtterGrowthStage } from "@/types/achievement"
 
 // カワウソの気分。excited は実績解除直後、sleeping は長期未ログイン時に使用する
 export type OtterMood = "happy" | "neutral" | "sad" | "excited" | "sleeping"
@@ -10,6 +11,9 @@ export type OtterMood = "happy" | "neutral" | "sad" | "excited" | "sleeping"
 type OtterAnimationProps = {
   mood: OtterMood
   customMessage?: string
+  // 解除実績数に応じた成長ステージ。未取得（読み込み中）は undefined とし、none と区別する
+  // 見た目への反映は別 issue（#313）で行う
+  growthStage?: OtterGrowthStage
 }
 
 // 各 mood のセリフ候補。表示時にランダムで1つ選ぶことで単調さを避ける
@@ -46,7 +50,7 @@ const MOOD_MESSAGES: Record<OtterMood, string[]> = {
   ],
 }
 
-export default function OtterAnimation({ mood, customMessage }: OtterAnimationProps) {
+export default function OtterAnimation({ mood, customMessage, growthStage }: OtterAnimationProps) {
   const [message, setMessage] = useState("")
   const [isAnimating, setIsAnimating] = useState(false)
 
@@ -67,7 +71,7 @@ export default function OtterAnimation({ mood, customMessage }: OtterAnimationPr
   }, [mood, customMessage])
 
   return (
-    <div className="flex flex-col items-center w-full">
+    <div className="flex flex-col items-center w-full" data-growth-stage={growthStage}>
       <div
         className={cn(
           "relative w-full h-32 mb-2 transition-all duration-500",

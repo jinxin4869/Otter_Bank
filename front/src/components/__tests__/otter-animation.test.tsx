@@ -72,4 +72,19 @@ describe("OtterAnimation", () => {
     const image = screen.getByAltText("Otter feeling neutral")
     expect(image).toBeInTheDocument()
   })
+
+  it("growthStage 未指定（読み込み中）では data 属性を出さない", () => {
+    const { container } = render(<OtterAnimation mood="happy" />)
+    expect(container.firstElementChild).not.toHaveAttribute("data-growth-stage")
+  })
+
+  it("growthStage が none のときは none を data 属性に持つ", () => {
+    const { container } = render(<OtterAnimation mood="happy" growthStage="none" />)
+    expect(container.firstElementChild).toHaveAttribute("data-growth-stage", "none")
+  })
+
+  it("growthStage を data 属性へ反映する", () => {
+    const { container } = render(<OtterAnimation mood="happy" growthStage="gold" />)
+    expect(container.firstElementChild).toHaveAttribute("data-growth-stage", "gold")
+  })
 })

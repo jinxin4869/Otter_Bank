@@ -39,7 +39,7 @@
 | --- | --- |
 | フレームワーク | Ruby on Rails 7.1（API モード） |
 | 言語 | Ruby 3.2.2 |
-| DB（開発） | SQLite3 |
+| DB（開発・テスト） | PostgreSQL 16（Docker Compose の db サービス） |
 | DB（本番） | PostgreSQL 16 |
 | 認証 | JWT + bcrypt, Google OAuth2（OmniAuth） |
 | デプロイ | Render |
