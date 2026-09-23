@@ -8,16 +8,8 @@ class ApplicationController < ActionController::API
 
   attr_reader :current_user
 
-  def logged_in?
-    !!@current_user
-  end
-
   # コントローラーから統一的にアクセスするためのヘルパー（エイリアス）
   alias current_api_v1_user current_user
-
-  def authenticate_user!
-    authorize_request unless @current_user
-  end
 
   private
 
