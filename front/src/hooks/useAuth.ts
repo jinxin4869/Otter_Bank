@@ -4,14 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { getApiUrl } from "@/lib/api-client";
-
-interface User {
-  id: number;
-  email: string;
-  username: string;
-  name?: string;
-  last_sign_in_at?: string | null; // 前回サインイン時刻（sleeping mood 判定用）
-}
+import { parseAuthUser, type AuthUser } from "@/types/user";
 
 // 認証状態が変わったことを、他の useAuth インスタンス（ヘッダー等）へ知らせるイベント名
 const AUTH_STATE_CHANGED_EVENT = "auth-state-changed";
@@ -26,7 +19,7 @@ export const useAuth = () => {
   const instanceRef = useRef({});
   const notifyAuthStateChanged = () =>
     window.dispatchEvent(new CustomEvent(AUTH_STATE_CHANGED_EVENT, { detail: { source: instanceRef.current } }));
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [token, setToken] = useState<string | null>(null);
 
@@ -100,8 +93,9 @@ export const useAuth = () => {
         throw new Error(errorData.error || "Token verification failed");
       }
 
-      const data = await response.json();
-      setUser(data.user || data);
+      const verifiedUser = parseAuthUser(await response.json());
+      if (!verifiedUser) throw new Error("ユーザー情報の取得に失敗しました");
+      setUser(verifiedUser);
       setToken(storedToken);
       localStorage.setItem("isLoggedIn", "true");
     } catch (error) {
@@ -141,8 +135,9 @@ export const useAuth = () => {
 
       if (!response.ok) throw new Error("Token verification failed");
 
-      const data = await response.json();
-      setUser(data.user || data);
+      const verifiedUser = parseAuthUser(await response.json());
+      if (!verifiedUser) throw new Error("ユーザー情報の取得に失敗しました");
+      setUser(verifiedUser);
       setToken(accessToken);
       localStorage.setItem("isLoggedIn", "true");
     } catch {
