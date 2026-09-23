@@ -1,10 +1,8 @@
 import { renderHook, waitFor, act } from "@testing-library/react"
 import { useAuth } from "@/hooks/useAuth"
 
-// getApiUrl は環境変数に依存するためテスト用に固定値を返すようモックする
-jest.mock("@/lib/api-client", () => ({
-  getApiUrl: () => "http://localhost:3000",
-}))
+// API のベース URL（getApiUrl は NODE_ENV=test では NEXT_PUBLIC_API_URL を読む）
+process.env.NEXT_PUBLIC_API_URL = "http://localhost:3000"
 
 // useRouter（next/navigation）はテスト環境では動かないためモックする
 const pushMock = jest.fn()
@@ -186,5 +184,89 @@ describe("useAuth（複数インスタンス間の認証状態の共有）", () 
 
     // 発火元の検証 1 回のみ（アンマウント済みのインスタンスは検証しない）
     expect(verifyCalls() - before).toBe(1)
+  })
+})
+
+describe("useAuth（トークンの期限切れ・一時的な失敗）", () => {
+  const verifiedUser = { id: 1, email: "dev@example.com", username: "devuser" }
+  const originalFetch = global.fetch
+
+  const jsonResponse = (status: number, body: unknown) => ({
+    ok: status >= 200 && status < 300,
+    status,
+    json: async () => body,
+  })
+
+  beforeEach(() => {
+    localStorage.clear()
+    jest.clearAllMocks()
+    jest.spyOn(console, "error").mockImplementation(() => {})
+  })
+
+  afterEach(() => {
+    global.fetch = originalFetch
+    jest.restoreAllMocks()
+  })
+
+  it("ネットワーク障害では保存済みトークンを消さない（次回の確認でやり直せる）", async () => {
+    localStorage.setItem("authToken", "valid-token")
+    global.fetch = jest.fn().mockRejectedValue(new TypeError("Failed to fetch")) as unknown as typeof fetch
+
+    const { result } = renderHook(() => useAuth())
+    await waitFor(() => expect(result.current.isLoading).toBe(false))
+
+    expect(result.current.isAuthenticated).toBe(false)
+    expect(localStorage.getItem("authToken")).toBe("valid-token")
+  })
+
+  it("期限切れならリフレッシュした新しいトークンで認証済みになる", async () => {
+    localStorage.setItem("authToken", "expired-token")
+    global.fetch = jest.fn(async (url: string, init?: RequestInit) => {
+      if (String(url).endsWith("/auth/refresh")) return jsonResponse(200, { token: "new-token" })
+      const auth = (init?.headers as Record<string, string>)?.Authorization
+      return auth === "Bearer new-token"
+        ? jsonResponse(200, verifiedUser)
+        : jsonResponse(401, { error: "トークンの有効期限が切れています", code: "token_expired" })
+    }) as unknown as typeof fetch
+
+    const { result } = renderHook(() => useAuth())
+    await waitFor(() => expect(result.current.isAuthenticated).toBe(true))
+
+    expect(result.current.token).toBe("new-token")
+    expect(localStorage.getItem("authToken")).toBe("new-token")
+  })
+
+  it("複数のインスタンスが同時に期限切れを検知しても、リフレッシュは 1 回だけ呼ぶ", async () => {
+    localStorage.setItem("authToken", "expired-token")
+    global.fetch = jest.fn(async (url: string, init?: RequestInit) => {
+      if (String(url).endsWith("/auth/refresh")) return jsonResponse(200, { token: "new-token" })
+      const auth = (init?.headers as Record<string, string>)?.Authorization
+      return auth === "Bearer new-token"
+        ? jsonResponse(200, verifiedUser)
+        : jsonResponse(401, { error: "期限切れ", code: "token_expired" })
+    }) as unknown as typeof fetch
+
+    const header = renderHook(() => useAuth())
+    const dashboard = renderHook(() => useAuth())
+    await waitFor(() => expect(header.result.current.isAuthenticated).toBe(true))
+    await waitFor(() => expect(dashboard.result.current.isAuthenticated).toBe(true))
+
+    const refreshCalls = (global.fetch as jest.Mock).mock.calls.filter(([url]) => String(url).endsWith("/auth/refresh"))
+    expect(refreshCalls).toHaveLength(1)
+  })
+
+  it("リフレッシュにも失敗したら認証情報を消す", async () => {
+    localStorage.setItem("authToken", "expired-token")
+    global.fetch = jest.fn(async (url: string) =>
+      String(url).endsWith("/auth/refresh")
+        ? jsonResponse(401, { error: "無効", code: "invalid_refresh_token" })
+        : jsonResponse(401, { error: "期限切れ", code: "token_expired" })
+    ) as unknown as typeof fetch
+
+    const { result } = renderHook(() => useAuth())
+    await waitFor(() => expect(result.current.isLoading).toBe(false))
+
+    expect(result.current.isAuthenticated).toBe(false)
+    expect(localStorage.getItem("authToken")).toBeNull()
   })
 })

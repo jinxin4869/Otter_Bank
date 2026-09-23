@@ -13,14 +13,13 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Sun, Moon, Menu, LogIn, LogOut, UserPlus, Home, BookOpen, MessageSquare, UserCircle, Award, Palette, Check } from "lucide-react"
 import Image from "next/image"
-import { usePathname, useRouter } from 'next/navigation'
+import { usePathname } from 'next/navigation'
 import { useEffect, useState } from "react"
 import { useAuth } from "@/hooks/useAuth"
 
 export default function Header() {
   const { theme, setTheme } = useTheme()
   const pathname = usePathname()
-  const router = useRouter()
   const { isAuthenticated, logout, isLoading } = useAuth()
   const [mounted, setMounted] = useState(false)
   const logoHref = isAuthenticated ? "/dashboard" : "/";

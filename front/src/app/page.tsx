@@ -375,7 +375,7 @@ export default function Home() {
                 ],
                 color: "bg-indigo-500/10 border-indigo-500/20",
               }
-            ].map((phase, i) => (
+            ].map((phase) => (
               <div
                 key={phase.title}
                 className={`relative group rounded-xl p-6 border shadow-sm hover:shadow-md transition-all duration-300 ${phase.color}`}
