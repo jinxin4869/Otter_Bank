@@ -13,6 +13,14 @@ RSpec.describe 'Api::V1::Users', type: :request do
                 password_confirmation: 'password123' } }
     end
 
+    it '検証エラーを日本語（属性名も日本語）で返す' do
+      post '/api/v1/users', params: { user: { username: 'ab', email: 'new@example.com', password: 'short' } }
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(response.parsed_body['errors']).to include(
+        'ユーザー名は3文字以上で入力してください', 'パスワードは8文字以上で入力してください'
+      )
+    end
+
     it 'ユーザーを登録できる' do
       expect do
         post '/api/v1/users', params: valid_params
