@@ -5,6 +5,9 @@ module Api
     class SessionsController < ApplicationController
       skip_before_action :authorize_request, only: %i[create destroy]
 
+      # 未登録のメールアドレスでの照合に使うダミーのハッシュ（処理時間を登録済みの場合と揃える）
+      DUMMY_PASSWORD_DIGEST = BCrypt::Password.create('dummy-password', cost: BCrypt::Engine.cost).to_s
+
       # POST /api/v1/sessions
       def create
         # パラメータが直接送信される場合とsessionネストの両方に対応
@@ -13,20 +16,14 @@ module Api
 
         user = User.find_by(email: email)
 
+        # 未登録でもパスワード違いと同じ応答・同程度の処理時間にする（メールアドレスの登録有無を知られないため）
         if user.nil?
-          render json: {
-            error: 'アカウントが見つかりません',
-            code: 'account_not_found'
-          }, status: :not_found
+          BCrypt::Password.new(DUMMY_PASSWORD_DIGEST).is_password?(password.to_s)
+          render_invalid_credentials
           return
         end
 
-        # パスワード認証のデバッグログ
-        Rails.logger.info "User found: #{user.id}" if Rails.env.development?
-        Rails.logger.info "OAuth providers count: #{user.oauth_providers.count}" if Rails.env.development?
-        Rails.logger.info "Password provided: #{password.present?}" if Rails.env.development?
-
-        if user&.authenticate(password)
+        if user.authenticate(password)
           Rails.logger.info "Authentication successful for user: #{user.id}" if Rails.env.development?
           user.track_sign_in! # sleeping mood 判定用に前回/今回のサインイン時刻を記録
           token = issue_tokens_for(user)
@@ -38,10 +35,7 @@ module Api
           }, status: :ok
         else
           Rails.logger.info "Authentication failed for user: #{user.id}" if Rails.env.development?
-          render json: {
-            error: 'メールアドレスまたはパスワードが無効です',
-            code: 'invalid_credentials'
-          }, status: :unauthorized
+          render_invalid_credentials
         end
       end
 
@@ -59,6 +53,15 @@ module Api
           status: 'success',
           message: 'ログアウトしました'
         }, status: :ok
+      end
+
+      private
+
+      def render_invalid_credentials
+        render json: {
+          error: 'メールアドレスまたはパスワードが無効です',
+          code: 'invalid_credentials'
+        }, status: :unauthorized
       end
     end
   end
