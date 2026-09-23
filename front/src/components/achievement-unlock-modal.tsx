@@ -4,11 +4,11 @@ import { useEffect } from "react"
 import { Dialog, DialogContent } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
-import type { AchievementTier, ApiNewlyUnlockedAchievement } from "@/types/achievement"
+import type { AchievementTier, NewlyUnlockedAchievement } from "@/types/achievement"
 import { Trophy, Star, Gem } from "lucide-react"
 
 interface AchievementUnlockModalProps {
-  achievement: ApiNewlyUnlockedAchievement | null
+  achievement: NewlyUnlockedAchievement | null
   onClose: () => void
 }
 

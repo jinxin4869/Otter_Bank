@@ -73,7 +73,7 @@ import { useAuth } from "@/hooks/useAuth"
 import { api } from "@/lib/api"
 import { type Transaction, mapApiTransaction } from "@/types/transaction"
 import { AchievementUnlockModal } from "@/components/achievement-unlock-modal"
-import type { ApiNewlyUnlockedAchievement } from "@/types/achievement"
+import { mapApiNewlyUnlockedAchievement, type NewlyUnlockedAchievement } from "@/types/achievement"
 import { Badge } from "@/components/ui/badge"
 import { useAchievements } from "@/hooks/useAchievements"
 import { toast } from "sonner"
@@ -112,7 +112,7 @@ export default function DashboardPage() {
   const [otterMood, setOtterMood] = useState<"happy" | "neutral" | "sad">("neutral")
   const [celebratingSignal, setCelebratingSignal] = useState(0)
   const [isDataLoading, setIsDataLoading] = useState(false)
-  const [achievementQueue, setAchievementQueue] = useState<ApiNewlyUnlockedAchievement[]>([])
+  const [achievementQueue, setAchievementQueue] = useState<NewlyUnlockedAchievement[]>([])
   const router = useRouter()
   const { user, token, isLoading: authIsLoading, isAuthenticated } = useAuth()
   const { achievements, achievementSummary, refetch: refetchAchievements } = useAchievements()
@@ -121,8 +121,8 @@ export default function DashboardPage() {
 
   // 前回サインインから7日以上経過していれば sleeping とみなす
   const isSleeping = useMemo(() => {
-    if (!user?.last_sign_in_at) return false
-    const lastSignIn = new Date(user.last_sign_in_at).getTime()
+    if (!user?.lastSignInAt) return false
+    const lastSignIn = new Date(user.lastSignInAt).getTime()
     if (Number.isNaN(lastSignIn)) return false
     const daysSinceSignIn = (Date.now() - lastSignIn) / (1000 * 60 * 60 * 24)
     return daysSinceSignIn >= 7
@@ -244,11 +244,12 @@ export default function DashboardPage() {
       if (result) {
         setTransactions((prev) => [...prev, mapApiTransaction(result.transaction)])
 
-        if (result.newly_unlocked_achievements.length > 0) {
-          result.newly_unlocked_achievements.forEach((ach) => {
+        const newlyUnlocked = result.newly_unlocked_achievements.map(mapApiNewlyUnlockedAchievement)
+        if (newlyUnlocked.length > 0) {
+          newlyUnlocked.forEach((ach) => {
             toast.success(`実績解除: ${ach.title}`, { description: ach.description })
           })
-          setAchievementQueue((prev) => [...prev, ...result.newly_unlocked_achievements])
+          setAchievementQueue((prev) => [...prev, ...newlyUnlocked])
           setCelebratingSignal((n) => n + 1)
           // 解除で成長ステージが変わる可能性があるため、表示を変えずに再取得する
           void refetchAchievements({ silent: true })

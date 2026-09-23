@@ -14,7 +14,7 @@ import { Search, Filter, Plus, Loader2 } from "lucide-react"
 import { toast } from "sonner"
 import { useAuth } from "@/hooks/useAuth"
 import { api } from "@/lib/api"
-import { mapApiPost, mapApiComment, type Post, type Comment } from "@/types/post"
+import { mapApiPost, mapApiPostsResponse, mapApiComment, type Post, type Comment } from "@/types/post"
 import { BOARD_CATEGORIES, SORT_OPTIONS, getCategoryColor } from "./_components/board-constants"
 import PostList from "./_components/post-list"
 import PostDetailDialog from "./_components/post-detail-dialog"
@@ -96,11 +96,12 @@ export default function BoardPage() {
     try {
       const data = await api.posts.list(token, 1)
       if (data) {
-        setPosts(data.posts.map(mapApiPost))
-        setLikedPostIds(data.posts.filter((p) => p.liked_by_me).map((p) => String(p.id)))
-        setBookmarkedPosts(data.posts.filter((p) => p.bookmarked_by_me).map((p) => String(p.id)))
+        const { posts: fetched, meta } = mapApiPostsResponse(data)
+        setPosts(fetched)
+        setLikedPostIds(fetched.filter((p) => p.likedByMe).map((p) => p.id))
+        setBookmarkedPosts(fetched.filter((p) => p.bookmarkedByMe).map((p) => p.id))
         setCurrentPage(1)
-        setTotalPages(data.meta.total_pages)
+        setTotalPages(meta.totalPages)
       }
     } catch (err) {
       console.error("投稿取得エラー:", err)
@@ -117,17 +118,12 @@ export default function BoardPage() {
     try {
       const data = await api.posts.list(token, nextPage)
       if (data) {
-        setPosts((prev) => [...prev, ...data.posts.map(mapApiPost)])
-        setLikedPostIds((prev) => [
-          ...prev,
-          ...data.posts.filter((p) => p.liked_by_me).map((p) => String(p.id)),
-        ])
-        setBookmarkedPosts((prev) => [
-          ...prev,
-          ...data.posts.filter((p) => p.bookmarked_by_me).map((p) => String(p.id)),
-        ])
+        const { posts: fetched, meta } = mapApiPostsResponse(data)
+        setPosts((prev) => [...prev, ...fetched])
+        setLikedPostIds((prev) => [...prev, ...fetched.filter((p) => p.likedByMe).map((p) => p.id)])
+        setBookmarkedPosts((prev) => [...prev, ...fetched.filter((p) => p.bookmarkedByMe).map((p) => p.id)])
         setCurrentPage(nextPage)
-        setTotalPages(data.meta.total_pages)
+        setTotalPages(meta.totalPages)
       }
     } catch (err) {
       console.error("追加読み込みエラー:", err)
@@ -278,9 +274,13 @@ export default function BoardPage() {
     try {
       const data = await api.posts.comments.list(token, post.id)
       if (data) {
-        setComments((prev) => [
-          ...prev.filter((c) => c.postId !== post.id),
-          ...data.map(mapApiComment),
+        const fetched = data.map(mapApiComment)
+        const fetchedIds = new Set(fetched.map((c) => c.id))
+        setComments((prev) => [...prev.filter((c) => c.postId !== post.id), ...fetched])
+        // 再読み込み後もいいね済みの表示を保つため、サーバーのいいね状態で置き換える
+        setLikedCommentIds((prev) => [
+          ...prev.filter((id) => !fetchedIds.has(id)),
+          ...fetched.filter((c) => c.likedByMe).map((c) => c.id),
         ])
       }
     } catch (err) {
