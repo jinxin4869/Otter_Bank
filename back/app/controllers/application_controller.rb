@@ -13,6 +13,35 @@ class ApplicationController < ActionController::API
 
   private
 
+  # ログイン・登録時にアクセストークンを発行して返し、リフレッシュトークンを HttpOnly cookie に書き込む
+  def issue_tokens_for(user)
+    write_refresh_token_cookie(RefreshToken.generate_for(user).token)
+    JsonWebToken.encode(user_id: user.id)
+  end
+
+  # Authorization ヘッダーの Bearer トークン（ヘッダーが無ければ nil）
+  def bearer_token
+    request.headers['Authorization']&.split&.last
+  end
+
+  # トークンを復号してユーザーを返す。JWT のエラーと RecordNotFound は呼び出し元で扱う
+  def user_from_token!(token)
+    User.find(JsonWebToken.decode(token)[:user_id])
+  end
+
+  # 認証が任意のアクション用。トークンが無い・不正・ユーザーが存在しない場合は nil
+  def optional_current_user
+    token = bearer_token
+    token && user_from_token!(token)
+  rescue StandardError
+    nil
+  end
+
+  # 自分のユーザー情報として返す JSON
+  def user_json(user)
+    { id: user.id, email: user.email, username: user.username, name: user.name }
+  end
+
   def write_refresh_token_cookie(token)
     cookies[:refresh_token] = {
       value: token,
@@ -27,23 +56,13 @@ class ApplicationController < ActionController::API
     # 特定のエンドポイントではスキップ
     return if skip_authorization?
 
-    header = request.headers['Authorization']
-    token = header.split.last if header
-
-    Rails.logger.info "Authorization header: #{header.present? ? 'present' : 'missing'}" if Rails.env.development?
+    token = bearer_token
     Rails.logger.info "Token: #{token.present? ? 'present' : 'missing'}" if Rails.env.development?
 
     begin
       if token
-        @decoded = JsonWebToken.decode(token)
-        Rails.logger.info "Decoded token: #{Rails.env.development? ? @decoded : '[MASKED]'}"
-        if @decoded
-          @current_user = User.find(@decoded[:user_id])
-          Rails.logger.info "Current user set: #{Rails.env.development? ? @current_user.id : '[MASKED]'}"
-        else
-          Rails.logger.error 'Invalid token payload' if Rails.env.development?
-          render json: { error: 'トークンのペイロードが無効です' }, status: :unauthorized
-        end
+        @current_user = user_from_token!(token)
+        Rails.logger.info "Current user set: #{Rails.env.development? ? @current_user.id : '[MASKED]'}"
       else
         Rails.logger.error 'Authorization token not provided' if Rails.env.development?
         render json: { error: '認証トークンが指定されていません' }, status: :unauthorized

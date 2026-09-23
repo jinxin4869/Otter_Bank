@@ -19,10 +19,8 @@ module Api
 
         if user
           user.track_sign_in! # sleeping mood 判定用に前回/今回のサインイン時刻を記録
-          token = JsonWebToken.encode(user_id: user.id)
-          refresh_token = RefreshToken.generate_for(user)
+          token = issue_tokens_for(user)
           # フロントエンドへリダイレクト（トークンを含む）
-          write_refresh_token_cookie(refresh_token.token)
           callback_url = "#{ENV.fetch('FRONTEND_URL', nil)}/auth/callback?token=#{token}"
           redirect_to callback_url, allow_other_host: true
         else
@@ -31,31 +29,23 @@ module Api
       end
 
       def verify
-        header = request.headers['Authorization']
-        if header
-          token = header.split.last
-          begin
-            decoded = JsonWebToken.decode(token)
-            @current_user = User.find(decoded[:user_id])
-            render json: {
-              id: @current_user.id,
-              email: @current_user.email,
-              username: @current_user.username,
-              name: @current_user.name,
-              last_sign_in_at: @current_user.last_sign_in_at # sleeping mood 判定に使う前回サインイン時刻
-            }, status: :ok
-          rescue JWT::ExpiredSignature
-            render json: { error: 'トークンの有効期限が切れています', code: 'token_expired' }, status: :unauthorized
-          rescue JWT::DecodeError => e
-            # 復号エラーの詳細は返さず、開発環境のログにだけ出す
-            Rails.logger.warn("JWT復号エラー: #{e.message}") if Rails.env.development?
-            render json: { error: '無効なトークンです', code: 'invalid_token' }, status: :unauthorized
-          rescue ActiveRecord::RecordNotFound
-            render json: { error: 'ユーザーが見つかりません', code: 'user_not_found' }, status: :unauthorized
-          end
-        else
+        token = bearer_token
+        unless token
           render json: { error: 'Authorizationヘッダーがありません', code: 'missing_header' }, status: :unauthorized
+          return
         end
+
+        user = user_from_token!(token)
+        # last_sign_in_at は sleeping mood 判定に使う前回サインイン時刻
+        render json: user_json(user).merge(last_sign_in_at: user.last_sign_in_at), status: :ok
+      rescue JWT::ExpiredSignature
+        render json: { error: 'トークンの有効期限が切れています', code: 'token_expired' }, status: :unauthorized
+      rescue JWT::DecodeError => e
+        # 復号エラーの詳細は返さず、開発環境のログにだけ出す
+        Rails.logger.warn("JWT復号エラー: #{e.message}") if Rails.env.development?
+        render json: { error: '無効なトークンです', code: 'invalid_token' }, status: :unauthorized
+      rescue ActiveRecord::RecordNotFound
+        render json: { error: 'ユーザーが見つかりません', code: 'user_not_found' }, status: :unauthorized
       end
 
       # リフレッシュトークンを使ってアクセストークンを再発行する
