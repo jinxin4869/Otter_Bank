@@ -64,7 +64,9 @@ module Api
           rescue JWT::ExpiredSignature
             render json: { error: 'トークンの有効期限が切れています', code: 'token_expired' }, status: :unauthorized
           rescue JWT::DecodeError => e
-            render json: { error: '無効なトークンです', code: 'invalid_token', details: e.message }, status: :unauthorized
+            # 復号エラーの詳細は返さず、開発環境のログにだけ出す
+            Rails.logger.warn("JWT復号エラー: #{e.message}") if Rails.env.development?
+            render json: { error: '無効なトークンです', code: 'invalid_token' }, status: :unauthorized
           rescue ActiveRecord::RecordNotFound
             render json: { error: 'ユーザーが見つかりません', code: 'user_not_found' }, status: :unauthorized
           end
