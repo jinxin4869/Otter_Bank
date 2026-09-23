@@ -121,8 +121,8 @@ export default function DashboardPage() {
 
   // 前回サインインから7日以上経過していれば sleeping とみなす
   const isSleeping = useMemo(() => {
-    if (!user?.last_sign_in_at) return false
-    const lastSignIn = new Date(user.last_sign_in_at).getTime()
+    if (!user?.lastSignInAt) return false
+    const lastSignIn = new Date(user.lastSignInAt).getTime()
     if (Number.isNaN(lastSignIn)) return false
     const daysSinceSignIn = (Date.now() - lastSignIn) / (1000 * 60 * 60 * 24)
     return daysSinceSignIn >= 7
