@@ -1,17 +1,7 @@
-import { forwardRef, type ComponentProps } from "react"
 import { render, screen, fireEvent, waitFor } from "@testing-library/react"
 import { toast } from "sonner"
 import LoginPage from "@/app/login/page"
 import { api } from "@/lib/api"
-
-// Jest は React 18、アプリ本体（Next.js）は同梱の React 19 で動く。shadcn の Input は
-// React 19 の書き方（ref を props で受ける）で、React 18 では ref が渡らず react-hook-form が
-// 値を読めないため、テストでは ref を転送する Input に差し替える
-jest.mock("@/components/ui/input", () => ({
-  Input: forwardRef<HTMLInputElement, ComponentProps<"input">>(function MockInput(props, ref) {
-    return <input ref={ref} {...props} />
-  }),
-}))
 
 const push = jest.fn()
 const login = jest.fn()
