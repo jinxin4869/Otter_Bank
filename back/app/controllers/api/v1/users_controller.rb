@@ -6,20 +6,13 @@ module Api
       skip_before_action :authorize_request, only: [:create]
 
       def show
-        render json: {
-          id: @current_user.id,
-          email: @current_user.email,
-          username: @current_user.username,
-          name: @current_user.name
-        }
+        render json: user_json(@current_user)
       end
 
       def create
         user = User.new(user_params)
         if user.save
-          token = JsonWebToken.encode(user_id: user.id)
-          refresh_token = RefreshToken.generate_for(user)
-          write_refresh_token_cookie(refresh_token.token)
+          token = issue_tokens_for(user)
           render json: {
             status: 'success',
             message: 'ユーザー登録が正常に完了しました。',
@@ -33,12 +26,7 @@ module Api
 
       def update
         if @current_user.update(update_user_params)
-          render json: {
-            id: @current_user.id,
-            email: @current_user.email,
-            username: @current_user.username,
-            name: @current_user.name
-          }
+          render json: user_json(@current_user)
         else
           render json: { errors: @current_user.errors.full_messages }, status: :unprocessable_content
         end

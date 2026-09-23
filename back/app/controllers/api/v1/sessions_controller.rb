@@ -29,9 +29,7 @@ module Api
         if user&.authenticate(password)
           Rails.logger.info "Authentication successful for user: #{user.id}" if Rails.env.development?
           user.track_sign_in! # sleeping mood 判定用に前回/今回のサインイン時刻を記録
-          token = JsonWebToken.encode(user_id: user.id)
-          refresh_token = RefreshToken.generate_for(user)
-          write_refresh_token_cookie(refresh_token.token)
+          token = issue_tokens_for(user)
           render json: {
             status: 'success',
             message: 'ログインに成功しました。',

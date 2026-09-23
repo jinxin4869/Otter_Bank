@@ -44,6 +44,14 @@ RSpec.describe 'Api::V1::Auths', type: :request do
       expect(json['code']).to eq('invalid_token')
     end
 
+    it '削除済みユーザーのトークンで user_not_found コードを返す' do
+      deleted_token = JsonWebToken.encode(user_id: user.id)
+      user.destroy
+      get '/api/v1/auth/verify', headers: { 'Authorization' => "Bearer #{deleted_token}" }
+      expect(response).to have_http_status(:unauthorized)
+      expect(response.parsed_body['code']).to eq('user_not_found')
+    end
+
     it 'Authorizationヘッダーなしで missing_header コードを返す' do
       get '/api/v1/auth/verify'
       expect(response).to have_http_status(:unauthorized)
