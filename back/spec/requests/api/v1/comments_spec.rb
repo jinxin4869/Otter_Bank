@@ -24,6 +24,31 @@ RSpec.describe 'Api::V1::Comments', type: :request do
       expect(response).to have_http_status(:ok)
     end
 
+    describe 'liked_by_me' do
+      let(:liked_comment) { post_record.comments.first }
+
+      before { create(:like, likeable: liked_comment, user: user) }
+
+      it 'ログインユーザーがいいね済みのコメントだけ true になる' do
+        get "/api/v1/posts/#{post_record.id}/comments", headers: headers
+        liked = response.parsed_body.to_h { |c| [c['id'], c['liked_by_me']] }
+        expect(liked[liked_comment.id]).to be true
+        expect(liked.except(liked_comment.id).values).to all(be false)
+      end
+
+      it '他のユーザーのいいねは反映しない' do
+        other_headers = { 'Authorization' => "Bearer #{JsonWebToken.encode(user_id: create(:user).id)}" }
+        get "/api/v1/posts/#{post_record.id}/comments", headers: other_headers
+        expect(response.parsed_body.pluck('liked_by_me')).to all(be false)
+      end
+
+      it '未ログイン・不正なトークンではすべて false になる' do
+        get "/api/v1/posts/#{post_record.id}/comments", headers: { 'Authorization' => 'Bearer invalid-token' }
+        expect(response).to have_http_status(:ok)
+        expect(response.parsed_body.pluck('liked_by_me')).to all(be false)
+      end
+    end
+
     it '存在しない投稿のコメントは404を返す' do
       get '/api/v1/posts/0/comments'
       expect(response).to have_http_status(:not_found)
