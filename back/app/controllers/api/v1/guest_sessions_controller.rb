@@ -11,9 +11,7 @@ module Api
       def create
         user = User.guest
 
-        token = JsonWebToken.encode(user_id: user.id)
-        refresh_token = RefreshToken.generate_for(user)
-        write_refresh_token_cookie(refresh_token.token)
+        token = issue_tokens_for(user)
 
         render json: {
           logged_in: true,

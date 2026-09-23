@@ -134,17 +134,6 @@ module Api
         post.categories = existing_categories.values + new_categories
       end
 
-      def optional_current_user
-        header = request.headers['Authorization']
-        return nil unless header
-
-        token = header.split.last
-        decoded = JsonWebToken.decode(token)
-        User.find_by(id: decoded[:user_id])
-      rescue StandardError
-        nil
-      end
-
       def post_json(post, liked_ids: [].to_set, bookmarked_ids: [].to_set)
         {
           id: post.id,
