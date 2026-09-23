@@ -48,8 +48,8 @@ export default function LoginPage() {
       router.push("/dashboard")
     } catch (error) {
       const message = error instanceof Error ? error.message : "ログインに失敗しました。もう一度お試しください。"
+      // フォームのエラーは入力と並べて読めるインライン表示だけにする（トーストとの二重表示を避ける）
       setApiError(message)
-      toast.error("エラー", { description: message })
     }
   }
 
