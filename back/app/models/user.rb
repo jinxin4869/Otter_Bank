@@ -29,11 +29,6 @@ class User < ApplicationRecord
     oauth_providers.any? && password_digest.blank?
   end
 
-  # アカウントロック状態を確認するメソッド
-  def locked?
-    false # デフォルトではロックされていない
-  end
-
   # サインイン時刻を記録する。last_sign_in_at には「前回」のサインイン時刻を
   # 保持し、フロントの sleeping mood（7日以上ぶりのログイン）判定に使う。
   # 初回サインインは前回がないため現在時刻を入れる（=経過0日で sleeping にしない）
