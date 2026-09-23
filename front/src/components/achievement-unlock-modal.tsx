@@ -13,7 +13,6 @@ interface AchievementUnlockModalProps {
   onClose: () => void
 }
 
-
 export function AchievementUnlockModal({ achievement, onClose }: AchievementUnlockModalProps) {
   const tier = achievement?.tier ?? "bronze"
   const config = TIER_CONFIG[tier]
