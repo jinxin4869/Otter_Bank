@@ -3,7 +3,15 @@ import { cn } from "@/lib/utils"
 import type { AchievementTier } from "@/types/achievement"
 
 // 実績のティア（難易度）ごとの表示ラベルと配色。実績解除モーダルとカワウソの成長ステージで共有する
-export const TIER_CONFIG: Record<AchievementTier, { label: string; bg: string; text: string; border: string; ring: string }> = {
+type TierStyle = {
+  label: string
+  bg: string
+  text: string
+  border: string
+  ring: string
+}
+
+export const TIER_CONFIG: Record<AchievementTier, TierStyle> = {
   bronze: {
     label: "ブロンズ",
     bg: "bg-amber-100 dark:bg-amber-900/30",
