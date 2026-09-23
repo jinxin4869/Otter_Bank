@@ -41,4 +41,18 @@ RSpec.describe Transaction, type: :model do
       expect(transaction).to be_valid
     end
   end
+
+  describe '.expense_in_month' do
+    let(:user) { create(:user) }
+    let(:date) { Date.new(2026, 9, 15) }
+
+    it '指定した日を含む月の支出だけを返す' do
+      in_month = create(:transaction, user: user, transaction_type: :expense, date: Date.new(2026, 9, 1))
+      create(:transaction, user: user, transaction_type: :income, date: Date.new(2026, 9, 10))
+      create(:transaction, user: user, transaction_type: :expense, date: Date.new(2026, 8, 31))
+      create(:transaction, user: user, transaction_type: :expense, date: Date.new(2026, 10, 1))
+
+      expect(described_class.expense_in_month(date)).to contain_exactly(in_month)
+    end
+  end
 end
