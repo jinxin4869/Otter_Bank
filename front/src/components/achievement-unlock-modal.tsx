@@ -4,49 +4,13 @@ import { useEffect } from "react"
 import { Dialog, DialogContent } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
-import type { AchievementTier, NewlyUnlockedAchievement } from "@/types/achievement"
-import { Trophy, Star, Gem } from "lucide-react"
+import type { NewlyUnlockedAchievement } from "@/types/achievement"
+import { TIER_CONFIG, TierIcon } from "@/lib/tier"
+import { Trophy } from "lucide-react"
 
 interface AchievementUnlockModalProps {
   achievement: NewlyUnlockedAchievement | null
   onClose: () => void
-}
-
-const TIER_CONFIG: Record<AchievementTier, { label: string; bg: string; text: string; border: string; ring: string }> = {
-  bronze: {
-    label: "ブロンズ",
-    bg: "bg-amber-100 dark:bg-amber-900/30",
-    text: "text-amber-700 dark:text-amber-400",
-    border: "border-amber-400",
-    ring: "ring-amber-300",
-  },
-  silver: {
-    label: "シルバー",
-    bg: "bg-slate-100 dark:bg-slate-800/50",
-    text: "text-slate-600 dark:text-slate-300",
-    border: "border-slate-400",
-    ring: "ring-slate-300",
-  },
-  gold: {
-    label: "ゴールド",
-    bg: "bg-yellow-100 dark:bg-yellow-900/30",
-    text: "text-yellow-700 dark:text-yellow-400",
-    border: "border-yellow-400",
-    ring: "ring-yellow-300",
-  },
-  platinum: {
-    label: "プラチナ",
-    bg: "bg-purple-100 dark:bg-purple-900/30",
-    text: "text-purple-700 dark:text-purple-400",
-    border: "border-purple-400",
-    ring: "ring-purple-300",
-  },
-}
-
-function TierIcon({ tier }: { tier: AchievementTier }) {
-  if (tier === "platinum") return <Gem className="h-12 w-12" />
-  if (tier === "gold") return <Trophy className="h-12 w-12" />
-  return <Star className="h-12 w-12" />
 }
 
 export function AchievementUnlockModal({ achievement, onClose }: AchievementUnlockModalProps) {
