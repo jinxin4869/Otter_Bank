@@ -1,36 +1,30 @@
 'use client'
 
-import { useEffect, useState, Suspense } from 'react'
-import { useSearchParams, useRouter } from 'next/navigation'
+import { useEffect, useRef, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { useAuth } from '@/hooks/useAuth'
+import { api } from '@/lib/api'
 
-function CallbackContent() {
-  const searchParams = useSearchParams()
+// Google ログインの戻り先。バックエンドはアクセストークンを URL に載せず、リフレッシュトークンだけを
+// HttpOnly cookie に入れて戻すので、リフレッシュ API でアクセストークンを受け取ってからログインする
+export default function CallbackPage() {
   const router = useRouter()
   const { login } = useAuth()
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading')
   const [message, setMessage] = useState('')
+  // リフレッシュトークンは使うたびに作り直されるため、開発モードの二重実行でも 1 回だけ処理する
+  const hasHandled = useRef(false)
 
   useEffect(() => {
+    if (hasHandled.current) return
+    hasHandled.current = true
+
     const handleCallback = async () => {
       try {
-        const token = searchParams.get('token')
+        const data = await api.auth.refresh()
+        if (!data?.token) throw new Error('アクセストークンを受け取れませんでした')
 
-        const error = searchParams.get('error')
-
-        if (error) {
-          setStatus('error')
-          setMessage('認証がキャンセルされました')
-          return
-        }
-
-        if (!token) {
-          setStatus('error')
-          setMessage('認証トークンが見つかりません')
-          return
-        }
-
-        await login(token)
+        await login(data.token)
         setStatus('success')
         setMessage('ログインしました。リダイレクトしています...')
         setTimeout(() => {
@@ -43,8 +37,8 @@ function CallbackContent() {
       }
     }
 
-    handleCallback()
-  }, [searchParams, router])
+    void handleCallback()
+  }, [router, login])
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -75,17 +69,5 @@ function CallbackContent() {
         )}
       </div>
     </div>
-  )
-}
-
-export default function CallbackPage() {
-  return (
-    <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-indigo-600"></div>
-      </div>
-    }>
-      <CallbackContent />
-    </Suspense>
   )
 }
