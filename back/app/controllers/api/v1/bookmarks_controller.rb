@@ -14,7 +14,7 @@ module Api
         end
 
         if bookmark.save
-          render json: { message: 'Post bookmarked' }, status: :created
+          render json: { message: 'ブックマークしました' }, status: :created
         else
           render json: { errors: bookmark.errors.full_messages }, status: :unprocessable_content
         end
@@ -25,7 +25,7 @@ module Api
 
         if bookmark
           bookmark.destroy
-          render json: { message: 'Post unbookmarked' }, status: :ok
+          render json: { message: 'ブックマークを解除しました' }, status: :ok
         else
           render json: { error: 'ブックマークが見つかりません' }, status: :not_found
         end

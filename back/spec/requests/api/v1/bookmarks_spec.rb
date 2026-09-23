@@ -50,4 +50,13 @@ RSpec.describe 'Api::V1::Bookmarks', type: :request do
       expect(response).to have_http_status(:not_found)
     end
   end
+
+  describe 'レスポンスメッセージ' do
+    it 'ブックマークと解除で日本語のメッセージを返す' do
+      post "/api/v1/posts/#{post_record.id}/bookmark", headers: headers
+      expect(response.parsed_body['message']).to eq('ブックマークしました')
+      delete "/api/v1/posts/#{post_record.id}/bookmark", headers: headers
+      expect(response.parsed_body['message']).to eq('ブックマークを解除しました')
+    end
+  end
 end
