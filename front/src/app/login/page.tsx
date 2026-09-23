@@ -12,11 +12,17 @@ import { toast } from "sonner"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { AlertCircle, Loader2 } from "lucide-react"
 import Image from "next/image"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { loginSchema, type LoginFormValues } from "@/lib/schemas/auth"
 import { api } from "@/lib/api"
 import { getApiUrl } from "@/lib/api-client"
 import { useAuth } from "@/hooks/useAuth"
+
+// Google ログインの失敗・キャンセルで戻ってきたときの表示（URL の値はそのまま表示せず、この対応表だけを使う）
+const OAUTH_ERROR_MESSAGES: Record<string, string> = {
+  cancelled: "Googleログインがキャンセルされました",
+  failed: "Googleログインに失敗しました。もう一度お試しください。",
+}
 
 export default function LoginPage() {
   const [apiError, setApiError] = useState<string | null>(null)
@@ -31,6 +37,13 @@ export default function LoginPage() {
   } = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
   })
+
+  useEffect(() => {
+    const reason = new URLSearchParams(window.location.search).get("oauth_error")
+    if (reason) {
+      setApiError(OAUTH_ERROR_MESSAGES[reason] ?? OAUTH_ERROR_MESSAGES.failed)
+    }
+  }, [])
 
   const onSubmit = async (data: LoginFormValues) => {
     setApiError(null)
