@@ -102,7 +102,11 @@ export default function CollectionPage() {
               <CardDescription>実績達成率に応じて変化</CardDescription>
             </CardHeader>
             <CardContent>
-              <OtterAnimation mood={otterMood} customMessage={otterMessage} />
+              <OtterAnimation
+                mood={otterMood}
+                customMessage={otterMessage}
+                growthStage={achievementSummary?.growthStage.stage}
+              />
             </CardContent>
           </Card>
 
