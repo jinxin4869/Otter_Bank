@@ -3,6 +3,8 @@
 module Api
   module V1
     class CommentsController < ApplicationController
+      include PostLookup
+
       before_action :set_post
       before_action :set_comment, only: %i[update destroy]
 
@@ -55,9 +57,7 @@ module Api
       private
 
       def set_post
-        @post = Post.find(params.expect(:post_id))
-      rescue ActiveRecord::RecordNotFound
-        render json: { error: '投稿が見つかりません' }, status: :not_found
+        load_post(params.expect(:post_id))
       end
 
       def set_comment
