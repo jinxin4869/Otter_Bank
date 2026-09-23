@@ -1,0 +1,58 @@
+# ユーザーに返す検証エラーの属性名・モデル名（Rails 標準メッセージの日本語訳は rails-i18n gem が提供する）
+ja:
+  activerecord:
+    models:
+      user: ユーザー
+      transaction: 取引
+      post: 投稿
+      comment: コメント
+      like: いいね
+      bookmark: ブックマーク
+      budget: 予算
+      savings_goal: 貯金目標
+      contact: お問い合わせ
+      achievement: 実績
+    attributes:
+      user:
+        username: ユーザー名
+        email: メールアドレス
+        password: パスワード
+        name: 名前
+      transaction:
+        amount: 金額
+        description: 詳細
+        transaction_type: 種類
+        category: カテゴリー
+        date: 日付
+      post:
+        title: タイトル
+        content: 本文
+      comment:
+        content: コメント
+      like:
+        user: ユーザー
+        user_id: ユーザー
+      bookmark:
+        user: ユーザー
+        user_id: ユーザー
+      budget:
+        year: 年
+        month: 月
+        amount: 金額
+      savings_goal:
+        title: 目標名
+        target_amount: 目標金額
+        current_amount: 現在の金額
+        deadline: 期限
+      contact:
+        name: お名前
+        email: メールアドレス
+        subject: 件名
+        message: お問い合わせ内容
+      achievement:
+        title: タイトル
+        description: 説明
+        category: カテゴリー
+        tier: ランク
+        progress_target: 目標値
+        original_achievement_id: 実績ID
