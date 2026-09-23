@@ -125,8 +125,8 @@ class User < ApplicationRecord
 
   def password_required?
     # 新規作成時でパスワードが設定されている場合は必須
-    # OAuthユーザーの場合は不要（password_digestが空でoauth_providersが存在）
-    return false if oauth_providers.any? && password_digest.blank?
+    # OAuthユーザーの場合は不要
+    return false if oauth_only?
 
     # 通常ユーザーの場合、新規作成時またはパスワード変更時は必須
     new_record? || !password.nil?
