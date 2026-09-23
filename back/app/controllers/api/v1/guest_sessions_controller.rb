@@ -17,7 +17,7 @@ module Api
 
         render json: {
           logged_in: true,
-          user: user.as_json(except: [:password_digest]),
+          user: user.as_json(only: %i[id email username]), # 他のログイン経路と同じく許可したキーだけ返す
           token: token
         }
       end
