@@ -7,6 +7,7 @@ module Api
 
       def index
         achievements = @current_user.achievements.order(:tier, :original_achievement_id).to_a
+        unlocked_count = achievements.count(&:unlocked)
 
         render json: {
           achievements: achievements.map do |ach|
@@ -30,14 +31,15 @@ module Api
           end,
           summary: {
             total_achievements: achievements.size,
-            unlocked_achievements: achievements.count(&:unlocked),
+            unlocked_achievements: unlocked_count,
             progress_by_category: achievements.group_by(&:category).transform_values do |achs|
               {
                 total: achs.count,
                 unlocked: achs.count(&:unlocked),
                 progress_percentage: (achs.count(&:unlocked).to_f / achs.count * 100).round
               }
-            end
+            end,
+            growth_stage: Achievement.growth_stage_for(unlocked_count)
           }
         }
       end

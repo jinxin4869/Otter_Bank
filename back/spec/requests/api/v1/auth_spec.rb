@@ -32,6 +32,11 @@ RSpec.describe 'Api::V1::Auths', type: :request do
       expect(json['code']).to eq('token_expired')
     end
 
+    it '不正なトークンでも復号エラーの詳細を返さない' do
+      get '/api/v1/auth/verify', headers: { 'Authorization' => 'Bearer invalid-token' }
+      expect(response.parsed_body.keys).not_to include('details')
+    end
+
     it '不正なトークンで invalid_token コードを返す' do
       get '/api/v1/auth/verify', headers: { 'Authorization' => 'Bearer invalid-token' }
       expect(response).to have_http_status(:unauthorized)

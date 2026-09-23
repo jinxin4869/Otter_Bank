@@ -24,6 +24,28 @@ RSpec.describe 'Api::V1::Achievements', type: :request do
       expect(json['summary']['total_achievements']).to eq(json['achievements'].length)
     end
 
+    it 'サマリーに成長ステージを含める' do
+      get '/api/v1/achievements', headers: headers
+      growth = response.parsed_body.dig('summary', 'growth_stage')
+      expect(growth).to eq(
+        'stage' => 'none', 'next_stage' => 'bronze', 'achievements_to_next' => 2, 'progress_percentage' => 33
+      )
+    end
+
+    it '解除数に応じて成長ステージが変わる' do
+      create_list(:achievement, 2, user: user, unlocked: true)
+      get '/api/v1/achievements', headers: headers
+      json = response.parsed_body
+      expect(json['summary']['unlocked_achievements']).to eq(3)
+      expect(json['summary']['growth_stage']['stage']).to eq('bronze')
+    end
+
+    it '他ユーザーの解除実績は成長ステージに影響しない' do
+      create_list(:achievement, 5, user: create(:user, :without_achievements), unlocked: true)
+      get '/api/v1/achievements', headers: headers
+      expect(response.parsed_body['summary']['growth_stage']['stage']).to eq('none')
+    end
+
     it '未認証ではアクセスできない' do
       get '/api/v1/achievements'
       expect(response).to have_http_status(:unauthorized)
