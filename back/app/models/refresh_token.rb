@@ -29,15 +29,6 @@ class RefreshToken < ApplicationRecord
     record&.active? ? record : nil
   end
 
-  def self.find_by_plain_token(plain_token)
-    # DB検索による一致確認後、secure_compareでの固定時間比較を行い、タイミング攻撃を防ぐ
-    record = find_by(token_digest: digest(plain_token))
-    return nil unless record
-    return record if ActiveSupport::SecurityUtils.secure_compare(record.token_digest, digest(plain_token))
-
-    nil
-  end
-
   def self.digest(plain_token)
     secret = Rails.application.credentials.secret_key_base || ENV.fetch('JWT_SECRET', 'fallback')
     OpenSSL::HMAC.hexdigest('SHA256', secret, plain_token.to_s)

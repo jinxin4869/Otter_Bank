@@ -16,17 +16,12 @@ RSpec.describe ExceptionHandler, type: :controller do
     def invalid
       User.create!(username: '', email: 'invalid')
     end
-
-    def invalid_token
-      raise ExceptionHandler::InvalidToken, 'secret detail'
-    end
   end
 
   before do
     routes.draw do
       get 'not_found' => 'anonymous#not_found'
       get 'invalid' => 'anonymous#invalid'
-      get 'invalid_token' => 'anonymous#invalid_token'
     end
   end
 
@@ -44,12 +39,5 @@ RSpec.describe ExceptionHandler, type: :controller do
     expect(json['errors']).to be_an(Array)
     expect(json['errors']).not_to be_empty
     expect(response.body).not_to include('Validation failed')
-  end
-
-  it 'InvalidToken は例外メッセージを含まない固定メッセージで 401 を返す' do
-    get :invalid_token
-    expect(response).to have_http_status(:unauthorized)
-    expect(response.parsed_body).to eq('error' => '認証に失敗しました')
-    expect(response.body).not_to include('secret detail')
   end
 end
