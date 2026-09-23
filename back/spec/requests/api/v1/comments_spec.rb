@@ -42,7 +42,12 @@ RSpec.describe 'Api::V1::Comments', type: :request do
         expect(response.parsed_body.pluck('liked_by_me')).to all(be false)
       end
 
-      it '未ログイン・不正なトークンではすべて false になる' do
+      it '未ログイン（ヘッダーなし）ではすべて false になる' do
+        get "/api/v1/posts/#{post_record.id}/comments"
+        expect(response.parsed_body.pluck('liked_by_me')).to all(be false)
+      end
+
+      it '不正なトークンではすべて false になる' do
         get "/api/v1/posts/#{post_record.id}/comments", headers: { 'Authorization' => 'Bearer invalid-token' }
         expect(response).to have_http_status(:ok)
         expect(response.parsed_body.pluck('liked_by_me')).to all(be false)
