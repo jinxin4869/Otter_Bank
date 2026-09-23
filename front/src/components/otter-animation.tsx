@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import Image from "next/image"
 import { cn } from "@/lib/utils"
 import type { OtterGrowthStage } from "@/types/achievement"
+import { TIER_CONFIG, TierIcon } from "@/lib/tier"
 
 // カワウソの気分。excited は実績解除直後、sleeping は長期未ログイン時に使用する
 export type OtterMood = "happy" | "neutral" | "sad" | "excited" | "sleeping"
@@ -12,7 +13,6 @@ type OtterAnimationProps = {
   mood: OtterMood
   customMessage?: string
   // 解除実績数に応じた成長ステージ。未取得（読み込み中）は undefined とし、none と区別する
-  // 見た目への反映は別 issue（#313）で行う
   growthStage?: OtterGrowthStage
 }
 
@@ -70,11 +70,17 @@ export default function OtterAnimation({ mood, customMessage, growthStage }: Ott
     return () => clearTimeout(timer)
   }, [mood, customMessage])
 
+  // 装備の見た目（none と読み込み中は装備なし）。装備画像の素材ができるまでは、
+  // ティア色のリング枠と右下のバッジで表す。表情（mood）とは独立した軸として重ねる
+  const equipment = growthStage && growthStage !== "none" ? TIER_CONFIG[growthStage] : null
+  const equipmentLabel = equipment ? `${equipment.label}装備` : null
+
   return (
     <div className="flex flex-col items-center w-full" data-growth-stage={growthStage}>
       <div
         className={cn(
-          "relative w-full h-32 mb-2 transition-all duration-500",
+          "relative h-32 w-32 mb-2 transition-all duration-500",
+          equipment && ["rounded-full ring-4 ring-offset-2 ring-offset-background", equipment.ring],
           isAnimating && (mood === "happy" || mood === "sad") && "animate-pulse",
           isAnimating && mood === "excited" && "animate-bounce",
           // sleeping はアニメーションなし（静止させて就寝感を演出する）
@@ -86,6 +92,21 @@ export default function OtterAnimation({ mood, customMessage, growthStage }: Ott
           fill
           className={cn("object-contain transition-all duration-300", isAnimating && "scale-110")}
         />
+        {equipment && growthStage && growthStage !== "none" && (
+          <span
+            role="img"
+            aria-label={`成長ステージ: ${equipmentLabel}`}
+            title={equipmentLabel ?? undefined}
+            className={cn(
+              "absolute -bottom-1 -right-1 flex h-8 w-8 items-center justify-center rounded-full border-2 shadow-sm",
+              equipment.bg,
+              equipment.text,
+              equipment.border,
+            )}
+          >
+            <TierIcon tier={growthStage} className="h-4 w-4" />
+          </span>
+        )}
       </div>
       <div
         className={cn(
