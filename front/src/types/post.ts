@@ -33,6 +33,8 @@ export type ApiComment = {
   author: string
   user_id: number
   likes_count: number
+  // 旧バックエンドのレスポンスには存在しないため optional
+  liked_by_me?: boolean
   created_at: string
 }
 
@@ -60,6 +62,7 @@ export type Comment = {
   userId?: number
   createdAt: string
   likes: number
+  likedByMe: boolean
 }
 
 /** ApiPost -> Post に変換する */
@@ -86,4 +89,5 @@ export const mapApiComment = (c: ApiComment): Comment => ({
   userId: c.user_id,
   createdAt: c.created_at,
   likes: c.likes_count || 0,
+  likedByMe: c.liked_by_me === true,
 })
