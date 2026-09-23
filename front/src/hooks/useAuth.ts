@@ -137,7 +137,7 @@ export const useAuth = () => {
     return () => window.removeEventListener(AUTH_STATE_CHANGED_EVENT, handleAuthStateChanged);
   }, [checkAuth]);
 
-  const login = async (accessToken: string, email?: string) => {
+  const login = useCallback(async (accessToken: string, email?: string) => {
     localStorage.setItem("authToken", accessToken);
     localStorage.setItem("isLoggedIn", "true");
     if (email) {
@@ -147,9 +147,9 @@ export const useAuth = () => {
     // トークン情報をもとに検証・セッション状態構築
     applySession(await resolveSession(accessToken));
     notifyAuthStateChanged();
-  };
+  }, [applySession, notifyAuthStateChanged]);
 
-  const logout = async () => {
+  const logout = useCallback(async () => {
     try {
       await api.auth.logout(localStorage.getItem("authToken"));
     } catch (error) {
@@ -161,7 +161,7 @@ export const useAuth = () => {
       notifyAuthStateChanged();
       router.push("/login");
     }
-  };
+  }, [notifyAuthStateChanged, router]);
 
   return {
     user,
