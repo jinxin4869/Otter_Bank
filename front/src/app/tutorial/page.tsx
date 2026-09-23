@@ -14,12 +14,7 @@ import {
   Sparkles,
   CheckCircle2,
   BarChart3,
-  PieChart,
-  TrendingUp,
-  Users,
-  Star
 } from 'lucide-react'
-import Image from "next/image"
 
 // プレースホルダーコンポーネントを追加
 const ImagePlaceholder = ({ icon: Icon, title, className = "" }: {
@@ -39,7 +34,6 @@ const tutorialSteps = [
     icon: <Wallet className="h-6 w-6 text-primary" />,
     title: "マイページの使い方",
     description: "家計簿の記録と分析を行うメインページです。",
-    imageSrc: "/placeholder.svg?height=240&width=420&text=Dashboard+Preview",
     altText: "マイページプレビュー",
     features: [
       "収入と支出を記録できます。",
@@ -65,7 +59,6 @@ const tutorialSteps = [
     icon: <Trophy className="h-6 w-6 text-primary" />,
     title: "図鑑の使い方",
     description: "貯金や継続利用などの目標を達成すると、特別な実績が解放されます。",
-    imageSrc: "/placeholder.svg?height=240&width=420&text=Collection+Preview",
     altText: "図鑑プレビュー",
     features: [
       "実績カテゴリー: 貯金、節約、継続、特別。",
@@ -86,7 +79,6 @@ const tutorialSteps = [
     icon: <MessageCircle className="h-6 w-6 text-primary" />,
     title: "掲示板の使い方",
     description: "お金の管理や貯金のコツ、投資の経験などを共有できるコミュニティです。",
-    imageSrc: "/placeholder.svg?height=240&width=420&text=Board+Preview",
     altText: "掲示板プレビュー",
     features: [
       "経験や質問を投稿できます。",
@@ -111,7 +103,6 @@ const tutorialSteps = [
     icon: <Sparkles className="h-6 w-6 text-primary" />,
     title: "Otter Bankの主な特徴",
     description: "楽しく続けられる、新しいお金管理体験を提供します。",
-    imageSrc: "/placeholder.svg?height=240&width=420&text=App+Features+Overview",
     altText: "アプリ特徴概要",
     features: [
       "ゲーム感覚の金融マネジメント: 貯金するほどカワウソが喜び、様々な実績を解放できます。",
@@ -176,19 +167,18 @@ export default function TutorialPage() {
               })}
             </div>
           ) : (
-            stepData.imageSrc && (
-              <div className="relative aspect-video w-full rounded-lg overflow-hidden border">
-                <ImagePlaceholder
-                  icon={
-                    stepData.id === "dashboard" ? BarChart3 :
-                    stepData.id === "collection" ? Trophy :
-                    stepData.id === "board" ? MessageCircle :
-                    Sparkles
-                  }
-                  title={stepData.altText || 'プレビュー画像'}
-                />
-              </div>
-            )
+            // 各ステップのプレビュー枠（画面画像の代わりにアイコンのプレースホルダーを表示する）
+            <div className="relative aspect-video w-full rounded-lg overflow-hidden border">
+              <ImagePlaceholder
+                icon={
+                  stepData.id === "dashboard" ? BarChart3 :
+                  stepData.id === "collection" ? Trophy :
+                  stepData.id === "board" ? MessageCircle :
+                  Sparkles
+                }
+                title={stepData.altText || 'プレビュー画像'}
+              />
+            </div>
           )}
 
           {stepData.id !== "features" && stepData.features && (
