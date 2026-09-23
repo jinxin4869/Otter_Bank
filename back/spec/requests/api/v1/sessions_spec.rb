@@ -43,6 +43,18 @@ RSpec.describe 'Api::V1::Sessions', type: :request do
         expect(response).to have_http_status(:unauthorized)
       end
 
+      it 'パスワードが未送信・空文字でも、未登録・登録済みのどちらも同じ応答を返す' do
+        responses = [
+          { email: user.email }, { email: 'notfound@example.com' },
+          { email: user.email, password: '' }, { email: 'notfound@example.com', password: '' }
+        ].map do |params|
+          post '/api/v1/sessions', params: params
+          [response.status, response.parsed_body]
+        end
+        expect(responses.uniq.size).to eq(1)
+        expect(responses.first.first).to eq(401)
+      end
+
       it 'Google ログイン専用（パスワード未設定）のアカウントでも同じ応答を返す' do
         oauth_user = create(:user)
         oauth_user.update_columns(password_digest: nil)

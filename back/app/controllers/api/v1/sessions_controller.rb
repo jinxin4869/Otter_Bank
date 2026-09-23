@@ -23,7 +23,7 @@ module Api
           return
         end
 
-        if user.authenticate(password)
+        if user.authenticate(password.to_s)
           Rails.logger.info "Authentication successful for user: #{user.id}" if Rails.env.development?
           user.track_sign_in! # sleeping mood 判定用に前回/今回のサインイン時刻を記録
           token = issue_tokens_for(user)
