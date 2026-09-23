@@ -19,6 +19,14 @@ RSpec.describe 'Api::V1::GuestSessions', type: :request do
       expect(json['user'].keys).not_to include('password_digest')
     end
 
+    it 'ユーザー情報は許可したキーだけを返し、パスワード再設定トークン等を露出しない' do
+      User.guest.update_columns(reset_password_token: 'secret-reset-token', reset_password_sent_at: Time.current)
+      post '/api/v1/guest_sessions'
+      json = response.parsed_body
+      expect(json['user'].keys).to match_array(%w[id email username])
+      expect(response.body).not_to include('secret-reset-token')
+    end
+
     it '認証なしでアクセスできる' do
       post '/api/v1/guest_sessions'
       expect(response).to have_http_status(:ok)
