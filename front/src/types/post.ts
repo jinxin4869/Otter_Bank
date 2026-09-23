@@ -48,7 +48,8 @@ export type Post = {
   likes: number
   comments: number
   views: number
-  isBookmarked?: boolean
+  likedByMe: boolean
+  bookmarkedByMe: boolean
 }
 
 /** フロント内部型 — コメント */
@@ -74,7 +75,27 @@ export const mapApiPost = (p: ApiPost): Post => ({
   likes: p.likes_count || 0,
   comments: p.comments_count || 0,
   views: p.views_count || 0,
-  isBookmarked: p.bookmarked_by_me,
+  likedByMe: p.liked_by_me,
+  bookmarkedByMe: p.bookmarked_by_me,
+})
+
+/** フロント内部型 — 投稿一覧のページ情報 */
+export type PostsPageMeta = {
+  currentPage: number
+  totalPages: number
+  totalCount: number
+  perPage: number
+}
+
+/** ApiPostsResponse -> 投稿一覧とページ情報に変換する */
+export const mapApiPostsResponse = (r: ApiPostsResponse): { posts: Post[]; meta: PostsPageMeta } => ({
+  posts: r.posts.map(mapApiPost),
+  meta: {
+    currentPage: r.meta.current_page,
+    totalPages: r.meta.total_pages,
+    totalCount: r.meta.total_count,
+    perPage: r.meta.per_page,
+  },
 })
 
 /** ApiComment -> Comment に変換する */
