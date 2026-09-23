@@ -14,7 +14,15 @@ module Api
 
       def index
         @comments = @post.comments.includes(:user).order(created_at: :desc)
-        render json: @comments.map { |comment| comment_json(comment) }
+        # 閲覧者がいいね済みのコメント ID をまとめて取得する（コメントごとに問い合わせない）
+        viewer = optional_current_user
+        liked_ids = if viewer
+                      Like.where(likeable_type: 'Comment', likeable_id: @comments.map(&:id), user: viewer)
+                          .pluck(:likeable_id).to_set
+                    else
+                      Set.new
+                    end
+        render json: @comments.map { |comment| comment_json(comment, liked_by_me: liked_ids.include?(comment.id)) }
       end
 
       def create
@@ -37,7 +45,7 @@ module Api
         end
 
         if @comment.update(comment_params)
-          render json: comment_json(@comment)
+          render json: comment_json(@comment, liked_by_me: @comment.likes.exists?(user: current_api_v1_user))
         else
           render json: { errors: @comment.errors.full_messages }, status: :unprocessable_content
         end
@@ -70,7 +78,7 @@ module Api
         params.expect(comment: [:content])
       end
 
-      def comment_json(comment)
+      def comment_json(comment, liked_by_me: false)
         {
           id: comment.id,
           post_id: comment.post_id,
@@ -78,6 +86,7 @@ module Api
           author: comment.user&.username,
           user_id: comment.user_id,
           likes_count: comment.likes_count || 0,
+          liked_by_me: liked_by_me,
           created_at: comment.created_at,
           updated_at: comment.updated_at
         }

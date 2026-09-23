@@ -87,4 +87,31 @@ describe("OtterAnimation", () => {
     const { container } = render(<OtterAnimation mood="happy" growthStage="gold" />)
     expect(container.firstElementChild).toHaveAttribute("data-growth-stage", "gold")
   })
+
+  describe("成長ステージの見た目", () => {
+    it.each([
+      ["bronze", "ブロンズ装備"],
+      ["silver", "シルバー装備"],
+      ["gold", "ゴールド装備"],
+      ["platinum", "プラチナ装備"],
+    ] as const)("%s ではステージ名のバッジを表示する", (stage, label) => {
+      render(<OtterAnimation mood="happy" growthStage={stage} />)
+      expect(screen.getByLabelText(`成長ステージ: ${label}`)).toBeInTheDocument()
+    })
+
+    it("none では装備のバッジを表示しない", () => {
+      render(<OtterAnimation mood="happy" growthStage="none" />)
+      expect(screen.queryByLabelText(/成長ステージ/)).toBeNull()
+    })
+
+    it("読み込み中（未指定）では装備のバッジを表示しない", () => {
+      render(<OtterAnimation mood="happy" />)
+      expect(screen.queryByLabelText(/成長ステージ/)).toBeNull()
+    })
+
+    it("mood の表情画像はステージに関係なく同じものを使う", () => {
+      render(<OtterAnimation mood="sad" growthStage="gold" />)
+      expect(screen.getByRole("img", { name: /Otter feeling sad/ })).toBeInTheDocument()
+    })
+  })
 })

@@ -1,9 +1,3 @@
-export type ApiErrorResponse = {
-  error?: string
-  errors?: string[]
-  code?: string
-}
-
 /** APIエラーをコード付きで表現するクラス */
 export class ApiError extends Error {
   constructor(message: string, public readonly code?: string) {
