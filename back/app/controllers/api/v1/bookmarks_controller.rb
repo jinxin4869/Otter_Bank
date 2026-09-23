@@ -3,6 +3,8 @@
 module Api
   module V1
     class BookmarksController < ApplicationController
+      include PostLookup
+
       before_action :set_post
 
       def create
@@ -34,9 +36,7 @@ module Api
       private
 
       def set_post
-        @post = Post.find(params.expect(:post_id))
-      rescue ActiveRecord::RecordNotFound
-        render json: { error: '投稿が見つかりません' }, status: :not_found
+        load_post(params.expect(:post_id))
       end
     end
   end

@@ -3,6 +3,8 @@
 module Api
   module V1
     class PostsController < ApplicationController
+      include PostLookup
+
       before_action :set_post_with_associations, only: %i[show update]
       before_action :set_post, only: %i[destroy increment_views]
 
@@ -105,15 +107,11 @@ module Api
       private
 
       def set_post_with_associations
-        @post = Post.includes(:user, :categories).find(params.expect(:id))
-      rescue ActiveRecord::RecordNotFound
-        render json: { error: '投稿が見つかりません' }, status: :not_found
+        load_post(params.expect(:id), Post.includes(:user, :categories))
       end
 
       def set_post
-        @post = Post.find(params.expect(:id))
-      rescue ActiveRecord::RecordNotFound
-        render json: { error: '投稿が見つかりません' }, status: :not_found
+        load_post(params.expect(:id))
       end
 
       def post_params
