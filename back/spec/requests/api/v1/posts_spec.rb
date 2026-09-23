@@ -23,6 +23,12 @@ RSpec.describe 'Api::V1::Posts', type: :request do
       expect(response).to have_http_status(:ok)
     end
 
+    it '不正なトークン付きでも一覧を取得でき、自分のいいね状態は false になる' do
+      get '/api/v1/posts', headers: { 'Authorization' => 'Bearer invalid-token' }
+      expect(response).to have_http_status(:ok)
+      expect(response.parsed_body['posts']).to all(include('liked_by_me' => false, 'bookmarked_by_me' => false))
+    end
+
     it 'レスポンスに必要なフィールドが含まれる' do
       get '/api/v1/posts', headers: headers
       json = response.parsed_body
