@@ -16,7 +16,7 @@ module Api
               Rails.logger.error "実績更新失敗 user_id=#{post.user.id} error=#{e.message}"
             end
           end
-          render json: { message: 'Post liked', likes_count: post.likes_count }, status: :created
+          render json: { message: 'いいねしました', likes_count: post.likes_count }, status: :created
         else
           render json: { errors: like.errors.full_messages }, status: :unprocessable_content
         end
@@ -31,7 +31,7 @@ module Api
         if like
           like.destroy
           post.decrement!(:likes_count) if post.likes_count.to_i.positive?
-          render json: { message: 'Post unliked', likes_count: post.likes_count }
+          render json: { message: 'いいねを取り消しました', likes_count: post.likes_count }
         else
           render json: { error: 'いいねが見つかりません' }, status: :not_found
         end
@@ -45,7 +45,7 @@ module Api
 
         if like.save
           comment.increment!(:likes_count)
-          render json: { message: 'Comment liked', likes_count: comment.likes_count },
+          render json: { message: 'いいねしました', likes_count: comment.likes_count },
                  status: :created
         else
           render json: { errors: like.errors.full_messages }, status: :unprocessable_content
@@ -61,7 +61,7 @@ module Api
         if like
           like.destroy
           comment.decrement!(:likes_count) if comment.likes_count.to_i.positive?
-          render json: { message: 'Comment unliked', likes_count: comment.likes_count }
+          render json: { message: 'いいねを取り消しました', likes_count: comment.likes_count }
         else
           render json: { error: 'いいねが見つかりません' }, status: :not_found
         end
