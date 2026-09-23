@@ -4,7 +4,7 @@ module Api
   module V1
     class AuthController < ApplicationController
       def skip_authorization?
-        action_name.in?(%w[google google_callback auth_failure verify refresh])
+        action_name.in?(%w[google google_callback verify refresh])
       end
 
       # Googleログインへのリダイレクト
@@ -27,23 +27,6 @@ module Api
           redirect_to callback_url, allow_other_host: true
         else
           render json: { error: 'OAuth認証に失敗しました' }, status: :unprocessable_content
-        end
-      end
-
-      # OAuth認証失敗時の処理
-      def auth_failure
-        error_type = params[:error] || params[:strategy] || 'unknown'
-        error_message = params[:message] || params[:error_description] || 'Authentication failed'
-
-        Rails.logger.error "OAuth認証失敗: type=#{error_type}, message=#{error_message}, keys=#{params.keys}"
-
-        # invalid_grant エラーの場合は再試行を促す
-        if error_message.include?('invalid_grant') || error_message.include?('invalid_credentials')
-          redirect_to "#{ENV.fetch('FRONTEND_URL', nil)}/auth/retry?error=#{error_message}"
-        elsif error_type == 'access_denied' || error_message.include?('cancel')
-          redirect_to "#{ENV.fetch('FRONTEND_URL', nil)}/auth/cancelled"
-        else
-          redirect_to "#{ENV.fetch('FRONTEND_URL', nil)}/auth/error?message=#{error_message}"
         end
       end
 

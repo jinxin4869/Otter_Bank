@@ -98,7 +98,7 @@ module Api
       end
 
       def increment_views
-        @post.increment!(:views_count)
+        @post.increment_views!
         render json: { id: @post.id, views_count: @post.views_count }
       end
 
