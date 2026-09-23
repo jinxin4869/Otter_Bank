@@ -1,4 +1,4 @@
-import { mapApiAchievementSummary, parseGrowthStage } from "@/types/achievement"
+import { mapApiAchievementSummary, mapApiNewlyUnlockedAchievement, parseGrowthStage } from "@/types/achievement"
 import type { ApiAchievementSummary } from "@/types/achievement"
 
 describe("parseGrowthStage", () => {
@@ -54,5 +54,15 @@ describe("mapApiAchievementSummary", () => {
 
   it("growth_stage が無い旧レスポンスでも none になる", () => {
     expect(mapApiAchievementSummary(base).growthStage.stage).toBe("none")
+  })
+})
+
+describe("mapApiNewlyUnlockedAchievement", () => {
+  it("新規解除実績をキャメルケースへ変換する", () => {
+    expect(
+      mapApiNewlyUnlockedAchievement({
+        id: 1, title: "はじめての貯金", description: "d", tier: "bronze", category: "savings", reward: "r", image_url: null,
+      })
+    ).toEqual({ id: 1, title: "はじめての貯金", description: "d", tier: "bronze", category: "savings", reward: "r", imageUrl: null })
   })
 })
