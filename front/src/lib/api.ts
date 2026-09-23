@@ -2,7 +2,6 @@ import { apiRequest, publicApiRequest } from '@/lib/api-client'
 import type { ApiTransaction } from '@/types/transaction'
 import type { ApiPost, ApiComment, ApiPostsResponse } from '@/types/post'
 import type { AchievementResponse, ApiNewlyUnlockedAchievement } from '@/types/achievement'
-import type { User } from '@/types/user'
 
 // ========== 型定義 ==========
 
@@ -12,10 +11,6 @@ type LoginResponse = {
 
 type RefreshResponse = {
   token: string
-}
-
-type VerifyResponse = {
-  user: User
 }
 
 type RegisterParams = {
@@ -65,13 +60,6 @@ export const api = {
         body: { user: params },
       }),
 
-    /** Google OAuth コールバック */
-    googleCallback: (code: string) =>
-      publicApiRequest<{ token: string }>('/auth/google/callback', {
-        method: 'POST',
-        body: { code },
-      }),
-
     /** パスワードリセットメール送信 */
     requestPasswordReset: (email: string) =>
       publicApiRequest<{ message: string }>('/auth/reset-password', {
@@ -80,16 +68,15 @@ export const api = {
       }),
 
     /** パスワードリセット確定（トークン + 新パスワード） */
-    /** パスワードリセット */
     resetPassword: (token: string, password: string) =>
       publicApiRequest<{ message: string }>('/auth/reset-password/confirm', {
         method: 'POST',
         body: { token, password },
       }),
 
-    /** JWT トークンを検証してユーザー情報を取得する */
+    /** JWT トークンを検証してユーザー情報を取得する（形式は parseAuthUser で検証する） */
     verify: (token: string) =>
-      apiRequest<VerifyResponse>('/auth/verify', { token }),
+      apiRequest<unknown>('/auth/verify', { token }),
 
     /** リフレッシュトークンを使ってアクセストークンを更新する（Cookie 経由） */
     refresh: () =>
@@ -131,14 +118,6 @@ export const api = {
     /** 実績一覧を取得する */
     list: (token: string) =>
       apiRequest<AchievementResponse>('/achievements', { token }),
-
-    /** 実績の進捗・解除状態を更新する */
-    update: (token: string, id: number, params: { progress?: number; unlocked?: boolean }) =>
-      apiRequest<AchievementResponse['achievements'][number]>(`/achievements/${id}`, {
-        method: 'PATCH',
-        token,
-        body: { achievement: params },
-      }),
   },
 
   /** お問い合わせ */
