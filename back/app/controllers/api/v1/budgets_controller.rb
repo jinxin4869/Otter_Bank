@@ -13,10 +13,7 @@ module Api
       def current
         today = Date.current
         budget = current_api_v1_user.budgets.find_by(year: today.year, month: today.month)
-        total_expense = current_api_v1_user.transactions
-                                           .where(transaction_type: 'expense')
-                                           .where(date: today.all_month)
-                                           .sum(:amount)
+        total_expense = current_api_v1_user.transactions.expense_in_month(today).sum(:amount)
 
         render json: {
           budget: budget,
