@@ -274,9 +274,13 @@ export default function BoardPage() {
     try {
       const data = await api.posts.comments.list(token, post.id)
       if (data) {
-        setComments((prev) => [
-          ...prev.filter((c) => c.postId !== post.id),
-          ...data.map(mapApiComment),
+        const fetched = data.map(mapApiComment)
+        const fetchedIds = new Set(fetched.map((c) => c.id))
+        setComments((prev) => [...prev.filter((c) => c.postId !== post.id), ...fetched])
+        // 再読み込み後もいいね済みの表示を保つため、サーバーのいいね状態で置き換える
+        setLikedCommentIds((prev) => [
+          ...prev.filter((id) => !fetchedIds.has(id)),
+          ...fetched.filter((c) => c.likedByMe).map((c) => c.id),
         ])
       }
     } catch (err) {
