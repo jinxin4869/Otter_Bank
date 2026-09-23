@@ -11,7 +11,7 @@ jest.mock("next/dynamic", () => () => () => null)
 jest.mock("sonner", () => ({ toast: { success: jest.fn(), error: jest.fn() } }))
 jest.mock("@/hooks/useAuth", () => ({
   useAuth: () => ({
-    user: { last_sign_in_at: null },
+    user: { lastSignInAt: null },
     token: "test-token",
     isLoading: false,
     isAuthenticated: true,

@@ -66,6 +66,17 @@ export interface AchievementResponse {
 
 // ========== 内部型（キャメルケース） ==========
 
+// 取引登録・更新で新たに解除された実績
+export interface NewlyUnlockedAchievement {
+  id: number
+  title: string
+  description: string
+  tier: AchievementTier
+  category: AchievementCategory
+  reward: string
+  imageUrl: string | null
+}
+
 export interface Achievement {
   id: number
   originalAchievementId: string
@@ -105,6 +116,18 @@ export interface AchievementSummary {
 }
 
 // ========== マッピング関数 ==========
+
+export function mapApiNewlyUnlockedAchievement(a: ApiNewlyUnlockedAchievement): NewlyUnlockedAchievement {
+  return {
+    id: a.id,
+    title: a.title,
+    description: a.description,
+    tier: a.tier,
+    category: a.category,
+    reward: a.reward,
+    imageUrl: a.image_url,
+  }
+}
 
 export function mapApiAchievement(a: ApiAchievement): Achievement {
   return {
