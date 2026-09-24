@@ -37,6 +37,7 @@ export default function AchievementImage({ imageUrl, title, tier, unlocked }: Ac
       src={imageUrl}
       alt={title}
       fill
+      sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 25vw"
       style={{ objectFit: "cover" }}
       className={cn("rounded-md", lockedClass)}
       onError={() => setFailed(true)}
