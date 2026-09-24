@@ -40,4 +40,26 @@ RSpec.describe 'Rack::Attack レート制限', type: :request do
       expect(response.status).to eq(429)
     end
   end
+
+  describe 'パスワードリセット (POST /api/v1/auth/reset-password)' do
+    it 'リセットメールの送信は 1 時間に 5 回を超えると 429 を返す' do
+      6.times do
+        post '/api/v1/auth/reset-password', params: { email: 'a@example.com' }, env: { 'REMOTE_ADDR' => '3.3.3.3' }
+      end
+      expect(response.status).to eq(429)
+    end
+
+    it 'リセットの確定（トークンの総当たり）も同じ制限を受ける' do
+      params = { token: 'guess', password: 'newpassword1' }
+      6.times { post '/api/v1/auth/reset-password/confirm', params: params, env: { 'REMOTE_ADDR' => '3.3.3.4' } }
+      expect(response.status).to eq(429)
+    end
+
+    it '制限回数以内では通常レスポンスを返す' do
+      5.times do
+        post '/api/v1/auth/reset-password', params: { email: 'a@example.com' }, env: { 'REMOTE_ADDR' => '3.3.3.5' }
+      end
+      expect(response.status).not_to eq(429)
+    end
+  end
 end
