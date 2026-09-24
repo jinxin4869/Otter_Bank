@@ -24,6 +24,14 @@ RSpec.describe 'Api::V1::Achievements', type: :request do
       expect(json['summary']['total_achievements']).to eq(json['achievements'].length)
     end
 
+    it '各実績に一覧・詳細と同じ項目を含める' do
+      get '/api/v1/achievements', headers: headers
+      expect(response.parsed_body['achievements'].first.keys).to match_array(
+        %w[id original_achievement_id title description category unlocked progress progress_percentage progress_target
+           image_url reward tier created_at updated_at unlocked_at]
+      )
+    end
+
     it 'サマリーに成長ステージを含める' do
       get '/api/v1/achievements', headers: headers
       growth = response.parsed_body.dig('summary', 'growth_stage')
@@ -62,6 +70,17 @@ RSpec.describe 'Api::V1::Achievements', type: :request do
       expect(json['achievement']['id']).to eq(achievement.id)
       expect(json['achievement']).to include('title', 'description', 'category', 'unlocked')
       expect(json['related_achievements']).to be_an(Array)
+    end
+
+    it '一覧と同じ項目の実績と、関連実績（id・title・進捗率・解除状態）を返す' do
+      get "/api/v1/achievements/#{achievement.id}", headers: headers
+      json = response.parsed_body
+      expect(json['achievement'].keys).to match_array(
+        %w[id original_achievement_id title description category unlocked progress progress_percentage
+           progress_target image_url reward tier created_at updated_at unlocked_at]
+      )
+      related_keys = %w[id progress_percentage title unlocked]
+      expect(json['related_achievements']).to all(satisfy { |r| r.keys.sort == related_keys })
     end
 
     it '他ユーザーの実績にはアクセスできない' do

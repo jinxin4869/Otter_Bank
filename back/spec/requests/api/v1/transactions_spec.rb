@@ -101,6 +101,15 @@ RSpec.describe 'Api::V1::Transactions', type: :request do
         expect(unlocked.first).to include('id', 'title', 'description', 'tier', 'category', 'reward')
       end
 
+      it '新たに解除された実績は解除モーダルに必要な項目だけを返す' do
+        params = { transaction: { amount: 5000, transaction_type: 'income', description: '給料', category: '給料',
+                                  date: Date.current } }
+        post '/api/v1/transactions', params: params, headers: headers
+        unlocked = response.parsed_body['newly_unlocked_achievements']
+        expect(unlocked).not_to be_empty
+        expect(unlocked).to all(satisfy { |a| a.keys.sort == %w[category description id image_url reward tier title] })
+      end
+
       it '実績が解除されない場合は newly_unlocked_achievements が空配列になる' do
         post '/api/v1/transactions',
              params: { transaction: { amount: 1000, transaction_type: 'expense', description: '食費', category: '食費',
