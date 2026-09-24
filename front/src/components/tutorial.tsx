@@ -101,7 +101,7 @@ export function Tutorial() {
 
         <div className="py-4">
           {/* 画面画像の素材が無いため、各ステップのアイコンを大きく表示する */}
-          <div className="flex h-48 w-full items-center justify-center rounded-lg bg-primary/10 mb-4 [&>svg]:h-16 [&>svg]:w-16">
+          <div className="flex h-48 w-full items-center justify-center rounded-lg bg-primary/10 mb-4 [&>svg]:size-16">
             {currentStepData.icon}
           </div>
 
