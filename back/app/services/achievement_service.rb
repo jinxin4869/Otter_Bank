@@ -389,6 +389,9 @@ class AchievementService
   # 未解除の実績に現在の値を反映する。目標に届いたものは解除し、届いていないものは進捗を記録する
   def apply_progress(achievements, value)
     achievements.each do |achievement|
+      # 進捗が変わらない実績は保存しない
+      next if achievement.progress == [value, achievement.progress_target].min
+
       achievement.update_progress(value)
       Rails.logger.info "実績解除: #{achievement.title} ユーザーID=#{@user.id}" if achievement.unlocked
     end

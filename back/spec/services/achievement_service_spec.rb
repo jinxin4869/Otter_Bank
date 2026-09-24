@@ -15,11 +15,10 @@ RSpec.describe AchievementService do
     [a.progress, a.unlocked, a.unlocked_at.present?]
   end
 
-  # 取引コントローラーと同じ順番で呼ぶ（収入の登録）
+  # 収入の登録（取引コントローラーと同じく update_savings_achievements だけを呼ぶ。マイルストーンの更新も含む）
   def record_income(amount)
     create(:transaction, user: user, transaction_type: :income, amount: amount)
     service.update_savings_achievements(amount)
-    service.update_milestone_achievements
   end
 
   describe '貯金実績' do
@@ -49,6 +48,12 @@ RSpec.describe AchievementService do
 
       expect(state('savings_milestone_5000')).to eq([5000, true, true])
       expect(state('savings_milestone_10000')).to eq([3000, false, false])
+    end
+
+    it '貯金額が変わらなければ実績を保存し直さない' do
+      record_income(3000)
+      milestone = achievement('savings_milestone_5000')
+      expect { service.update_milestone_achievements }.not_to(change { milestone.reload.updated_at })
     end
 
     it '金額が 0 以下のときは初めての貯金を解除しない' do
