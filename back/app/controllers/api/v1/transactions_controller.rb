@@ -75,8 +75,7 @@ module Api
         service = AchievementService.new(current_api_v1_user)
 
         if transaction.income?
-          service.update_savings_achievements(transaction.amount)
-          service.update_milestone_achievements
+          service.update_savings_achievements(transaction.amount) # マイルストーンの更新も含む
           # 投資カテゴリの取引で investment_debut 実績を解除する
           service.update_special_achievements(:investment_debut) if transaction.category == 'investment'
         end
