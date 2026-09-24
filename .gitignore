@@ -1,1 +1,5 @@
 node_modules/
+
+# ローカルの AI エージェント（Codex）用の設定・指示ファイル
+.codex/
+AGENTS.md
