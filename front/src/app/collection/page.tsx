@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import Image from "next/image"
+import AchievementImage from "./_components/achievement-image"
 import { cn } from "@/lib/utils"
 import { LockIcon, UnlockIcon, AlertTriangle, Trophy, Clock, History } from 'lucide-react';
 import { useAuth } from "@/hooks/useAuth"
@@ -227,13 +227,7 @@ export default function CollectionPage() {
               >
                 <CardHeader className="p-4">
                   <div className="relative w-full aspect-video mb-3">
-                    <Image
-                      src={ach.imageUrl || "/placeholder.svg?text=No+Image"}
-                      alt={ach.title}
-                      fill
-                      style={{ objectFit: "cover" }}
-                      className={cn("rounded-md", !ach.unlocked && "opacity-60 grayscale")}
-                    />
+                    <AchievementImage imageUrl={ach.imageUrl} title={ach.title} tier={ach.tier} unlocked={ach.unlocked} />
                     {ach.unlocked && (
                       <Badge className="absolute top-2 right-2 bg-green-500 hover:bg-green-600 text-white text-xs px-2 py-1">
                         <UnlockIcon className="h-3 w-3 mr-1" />達成済
