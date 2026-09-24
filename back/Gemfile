@@ -10,6 +10,10 @@ gem 'rails', '~> 8.1.3'
 # 検証メッセージ等の Rails 標準の日本語訳
 gem 'rails-i18n', '~> 8.1'
 
+# json 3 系は ActiveSupport 8.1 の JSON.parse(json, options)（オプションを位置引数で渡す）を受け付けず、
+# JSON のリクエストが全て 400 になる。Rails が対応するまで 2 系に固定する（#376）
+gem 'json', '~> 2.21'
+
 # Use the Puma web server [https://github.com/puma/puma]
 gem 'puma', '>= 5.0'
 
