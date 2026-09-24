@@ -11,7 +11,6 @@ import {
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { ArrowRight, ArrowLeft, Check, PlusCircle, Wallet, PieChart, Calendar, Trophy } from "lucide-react"
-import Image from "next/image"
 
 export function Tutorial() {
   const [open, setOpen] = useState(false)
@@ -44,31 +43,26 @@ export function Tutorial() {
     {
       title: "獭獭銀行へようこそ！",
       description: "このアプリでは、楽しく簡単にお金の管理ができます。カワウソと一緒に貯金の習慣を身につけましょう！",
-      image: "/placeholder.svg?height=200&width=300&text=Welcome",
       icon: <Wallet className="h-6 w-6 text-primary" />,
     },
     {
       title: "収支を記録しよう",
       description: "日々の収入と支出を記録することで、お金の流れを把握できます。右側のフォームから簡単に追加できます。",
-      image: "/placeholder.svg?height=200&width=300&text=Record+Transactions",
       icon: <PlusCircle className="h-6 w-6 text-primary" />,
     },
     {
       title: "分析を活用しよう",
       description: "支出のカテゴリー分析や月次推移のグラフで、あなたの家計の傾向を視覚的に確認できます。",
-      image: "/placeholder.svg?height=200&width=300&text=Analysis",
       icon: <PieChart className="h-6 w-6 text-primary" />,
     },
     {
       title: "実績を獲得しよう",
       description: "貯金や継続利用などの目標を達成すると、特別な実績が解放されます。図鑑ページで確認してみましょう！",
-      image: "/placeholder.svg?height=200&width=300&text=Achievements",
       icon: <Trophy className="h-6 w-6 text-primary" />,
     },
     {
       title: "継続が大切です",
       description: "毎日の記録が習慣になると、お金の管理が上手になります。カワウソも喜びますよ！",
-      image: "/placeholder.svg?height=200&width=300&text=Daily+Use",
       icon: <Calendar className="h-6 w-6 text-primary" />,
     },
   ]
@@ -106,14 +100,9 @@ export function Tutorial() {
         </DialogHeader>
 
         <div className="py-4">
-          <div className="relative w-full h-[200px] mb-4 rounded-lg overflow-hidden">
-            <Image
-              src={steps[currentStep].image}
-              alt={steps[currentStep].title}
-              width={400}
-              height={192}
-              className="w-full h-48 object-cover rounded-lg mb-4"
-            />
+          {/* 画面画像の素材が無いため、各ステップのアイコンを大きく表示する */}
+          <div className="flex h-48 w-full items-center justify-center rounded-lg bg-primary/10 mb-4 [&>svg]:h-16 [&>svg]:w-16">
+            {currentStepData.icon}
           </div>
 
           <div className="flex justify-center mt-4">
