@@ -27,7 +27,7 @@
 ### フロントエンド
 | 項目 | 技術 |
 | --- | --- |
-| フレームワーク | Next.js 15（App Router） |
+| フレームワーク | Next.js 16（App Router） |
 | 言語 | TypeScript |
 | スタイリング | Tailwind CSS 4 |
 | UI コンポーネント | shadcn/ui, Radix UI, Lucide React |
@@ -37,8 +37,8 @@
 ### バックエンド
 | 項目 | 技術 |
 | --- | --- |
-| フレームワーク | Ruby on Rails 7.1（API モード） |
-| 言語 | Ruby 3.2.2 |
+| フレームワーク | Ruby on Rails 8.1（API モード） |
+| 言語 | Ruby 3.4.11 |
 | DB（開発・テスト） | PostgreSQL 16（Docker Compose の db サービス） |
 | DB（本番） | PostgreSQL 16 |
 | 認証 | JWT + bcrypt, Google OAuth2（OmniAuth） |
@@ -55,7 +55,7 @@
 ### 前提条件
 
 - Docker / Docker Compose
-- （個別起動の場合）Node.js 22+、Ruby 3.2.2、Bundler
+- （個別起動の場合）Node.js 22+、Ruby 3.4.11、Bundler
 
 ---
 
