@@ -21,7 +21,9 @@ class Rack::Attack
 
   # パスワードリセット関連のレート制限（IPごとに1時間5回まで）
   throttle('password_reset/ip', limit: 5, period: 1.hour) do |req|
-    req.ip if req.post? && req.path.start_with?('/api/v1/passwords')
+    # リセットメールの送信（/auth/reset-password）と確定（/auth/reset-password/confirm）の両方が対象。
+    # 同じ IP からの試行を合算して、メールの大量送信とトークンの総当たりをまとめて防ぐ
+    req.ip if req.post? && req.path.start_with?('/api/v1/auth/reset-password')
   end
 
   # お問い合わせのレート制限（IPごとに1時間3回まで）
