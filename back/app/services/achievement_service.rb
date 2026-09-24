@@ -264,30 +264,23 @@ class AchievementService
     end
   end
 
-  # 貯金関連の実績を更新
-  # enum対応
-  def update_savings_achievements(amount)
-    # 貯金関連の実績を取得
-    savings_achievements = @user.achievements.where(category: :savings, unlocked: false)
+  # 貯金額で解除する実績（マイルストーン）
+  SAVINGS_MILESTONE_IDS = %w[
+    savings_milestone_1000
+    savings_milestone_5000
+    savings_milestone_10000
+    savings_milestone_30000
+    savings_milestone_50000
+    savings_milestone_100000
+    savings_milestone_300000
+  ].freeze
 
-    savings_achievements.each do |achievement|
-      case achievement.original_achievement_id
-      when 'first_savings'
-        achievement.update_progress(1) if amount.positive?
-      when 'savings_milestone_1000'
-        total_savings = @user.total_savings || 0
-        achievement.update_progress(total_savings) if total_savings >= achievement.progress_target
-      when 'savings_milestone_5000'
-        total_savings = @user.total_savings || 0
-        achievement.update_progress(total_savings) # Use total_savings instead of cumulative_savings
-      when 'savings_milestone_10000'
-        total_savings = @user.total_savings || 0
-        achievement.update_progress(total_savings) if total_savings >= achievement.progress_target
-      when 'savings_milestone_30000', 'savings_milestone_50000', 'savings_milestone_100000', 'savings_milestone_300000'
-        total_savings = @user.total_savings || 0
-        achievement.update_progress(total_savings) if total_savings >= achievement.progress_target
-      end
+  # 貯金関連の実績を更新（収入の登録・更新時）
+  def update_savings_achievements(amount)
+    if amount.positive?
+      @user.achievements.find_by(original_achievement_id: 'first_savings', unlocked: false)&.update_progress(1)
     end
+    update_milestone_achievements
   end
 
   # 連続記録の実績を更新
@@ -306,38 +299,11 @@ class AchievementService
     end
   end
 
-  # マイルストーンの実績を更新（改善版）
+  # マイルストーンの実績を、現在の貯金額で更新する（収入の削除後の再計算にも使う）
   def update_milestone_achievements(total_savings = nil)
     total_savings ||= @user.total_savings || 0
-
-    milestone_achievements = @user.achievements.where(
-      category: :savings,
-      unlocked: false,
-      original_achievement_id: %w[
-        savings_milestone_1000
-        savings_milestone_5000
-        savings_milestone_10000
-        savings_milestone_30000
-        savings_milestone_50000
-        savings_milestone_100000
-        savings_milestone_300000
-      ]
-    )
-
-    milestone_achievements.each do |achievement|
-      if total_savings >= achievement.progress_target
-        achievement.update!(
-          progress: achievement.progress_target,
-          unlocked: true,
-          unlocked_at: Time.current
-        )
-        # 実績解除時の通知などを追加する場合はここに記述
-        Rails.logger.info "実績解除: #{achievement.title} ユーザーID=#{@user.id}"
-      elsif achievement.progress != total_savings
-        # 進捗のみ更新（未達成の場合）
-        achievement.update!(progress: total_savings)
-      end
-    end
+    milestones = @user.achievements.where(unlocked: false, original_achievement_id: SAVINGS_MILESTONE_IDS)
+    apply_progress(milestones, total_savings)
   end
 
   # 支出管理実績を更新
@@ -377,11 +343,7 @@ class AchievementService
   # 今月の支出が予算内かどうか確認する
   def within_current_month_budget?(monthly_limit)
     today = Date.current
-    expense = @user.transactions
-                   .where(transaction_type: 'expense')
-                   .where(date: today.all_month)
-                   .sum(:amount)
-    expense <= monthly_limit
+    @user.transactions.expense_in_month(today).sum(:amount) <= monthly_limit
   end
 
   # 月初から遡って連続で予算内に収まっている月数を計算する
@@ -394,11 +356,7 @@ class AchievementService
       monthly_limit = budgets_by_month[key]
       break unless monthly_limit
 
-      expense = @user.transactions
-                     .where(transaction_type: 'expense')
-                     .where(date: check_date.all_month)
-                     .sum(:amount)
-      break if expense > monthly_limit
+      break if @user.transactions.expense_in_month(check_date).sum(:amount) > monthly_limit
 
       months += 1
       check_date = check_date.prev_month.beginning_of_month
@@ -419,23 +377,23 @@ class AchievementService
   # コミュニティいいね受信実績を更新
   def update_community_likes_received_achievements
     total_likes = @user.posts.sum(:likes_count)
-
     achievements = @user.achievements.where(
       original_achievement_id: %w[community_likes_10 community_likes_50],
       unlocked: false
     )
+    apply_progress(achievements, total_likes)
+  end
 
+  private
+
+  # 未解除の実績に現在の値を反映する。目標に届いたものは解除し、届いていないものは進捗を記録する
+  def apply_progress(achievements, value)
     achievements.each do |achievement|
-      if total_likes >= achievement.progress_target
-        achievement.update!(
-          progress: achievement.progress_target,
-          unlocked: true,
-          unlocked_at: Time.current
-        )
-        Rails.logger.info "実績解除: #{achievement.title} ユーザーID=#{@user.id}"
-      elsif achievement.progress != total_likes
-        achievement.update!(progress: total_likes)
-      end
+      # 進捗が変わらない実績は保存しない
+      next if achievement.progress == [value, achievement.progress_target].min
+
+      achievement.update_progress(value)
+      Rails.logger.info "実績解除: #{achievement.title} ユーザーID=#{@user.id}" if achievement.unlocked
     end
   end
 end

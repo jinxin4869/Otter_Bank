@@ -3,6 +3,8 @@
 module Api
   module V1
     class TransactionsController < ApplicationController
+      include AchievementJson
+
       before_action :set_transaction, only: %i[update destroy]
 
       def index
@@ -75,8 +77,7 @@ module Api
         service = AchievementService.new(current_api_v1_user)
 
         if transaction.income?
-          service.update_savings_achievements(transaction.amount)
-          service.update_milestone_achievements
+          service.update_savings_achievements(transaction.amount) # マイルストーンの更新も含む
           # 投資カテゴリの取引で investment_debut 実績を解除する
           service.update_special_achievements(:investment_debut) if transaction.category == 'investment'
         end
@@ -128,21 +129,9 @@ module Api
         current_api_v1_user.achievements
                            .where(unlocked: true)
                            .where.not(id: previously_unlocked_ids)
-                           .map { |a| achievement_json(a) }
+                           .map { |a| newly_unlocked_achievement_json(a) }
       rescue StandardError
         []
-      end
-
-      def achievement_json(achievement)
-        {
-          id: achievement.id,
-          title: achievement.title,
-          description: achievement.description,
-          tier: achievement.tier,
-          category: achievement.category,
-          reward: achievement.reward,
-          image_url: achievement.image_url
-        }
       end
     end
   end
