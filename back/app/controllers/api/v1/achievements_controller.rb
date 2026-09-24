@@ -3,6 +3,8 @@
 module Api
   module V1
     class AchievementsController < ApplicationController
+      include AchievementJson
+
       # before_action :authorize を削除（ApplicationControllerで処理済み）
 
       def index
@@ -10,25 +12,7 @@ module Api
         unlocked_count = achievements.count(&:unlocked)
 
         render json: {
-          achievements: achievements.map do |ach|
-            {
-              id: ach.id,
-              original_achievement_id: ach.original_achievement_id,
-              title: ach.title,
-              description: ach.description,
-              category: ach.category,
-              unlocked: ach.unlocked,
-              progress: ach.progress,
-              progress_percentage: ach.progress_percentage,
-              progress_target: ach.progress_target,
-              image_url: ach.image_url,
-              reward: ach.reward,
-              tier: ach.tier,
-              created_at: ach.created_at,
-              updated_at: ach.updated_at,
-              unlocked_at: ach.unlocked_at
-            }
-          end,
+          achievements: achievements.map { |ach| achievement_json(ach) },
           summary: {
             total_achievements: achievements.size,
             unlocked_achievements: unlocked_count,
@@ -47,23 +31,7 @@ module Api
       def show
         achievement = @current_user.achievements.find(params.expect(:id))
         render json: {
-          achievement: {
-            id: achievement.id,
-            original_achievement_id: achievement.original_achievement_id,
-            title: achievement.title,
-            description: achievement.description,
-            category: achievement.category,
-            unlocked: achievement.unlocked,
-            progress: achievement.progress,
-            progress_percentage: achievement.progress_percentage,
-            progress_target: achievement.progress_target,
-            image_url: achievement.image_url,
-            reward: achievement.reward,
-            tier: achievement.tier,
-            created_at: achievement.created_at,
-            updated_at: achievement.updated_at,
-            unlocked_at: achievement.unlocked_at
-          },
+          achievement: achievement_json(achievement),
           related_achievements: related_achievements(achievement)
         }
       rescue ActiveRecord::RecordNotFound
@@ -75,19 +43,7 @@ module Api
 
         if achievement
           if achievement.update(achievement_params)
-            # フロントエンドで使う主要な情報を返す
-            render json: {
-              id: achievement.id,
-              original_achievement_id: achievement.original_achievement_id,
-              title: achievement.title,
-              description: achievement.description,
-              category: achievement.category,
-              unlocked: achievement.unlocked,
-              progress: achievement.progress,
-              image_url: achievement.image_url,
-              reward: achievement.reward,
-              tier: achievement.tier
-            }, status: :ok
+            render json: achievement_json(achievement), status: :ok
           else
             render json: { errors: achievement.errors.full_messages }, status: :unprocessable_content
           end
@@ -108,14 +64,7 @@ module Api
                      .where(category: achievement.category)
                      .where.not(id: achievement.id)
                      .limit(3)
-                     .map do |ach|
-          {
-            id: ach.id,
-            title: ach.title,
-            progress_percentage: ach.progress_percentage,
-            unlocked: ach.unlocked
-          }
-        end
+                     .map { |ach| achievement_json(ach).slice(:id, :title, :progress_percentage, :unlocked) }
       end
     end
   end

@@ -3,6 +3,8 @@
 module Api
   module V1
     class TransactionsController < ApplicationController
+      include AchievementJson
+
       before_action :set_transaction, only: %i[update destroy]
 
       def index
@@ -127,21 +129,9 @@ module Api
         current_api_v1_user.achievements
                            .where(unlocked: true)
                            .where.not(id: previously_unlocked_ids)
-                           .map { |a| achievement_json(a) }
+                           .map { |a| newly_unlocked_achievement_json(a) }
       rescue StandardError
         []
-      end
-
-      def achievement_json(achievement)
-        {
-          id: achievement.id,
-          title: achievement.title,
-          description: achievement.description,
-          tier: achievement.tier,
-          category: achievement.category,
-          reward: achievement.reward,
-          image_url: achievement.image_url
-        }
       end
     end
   end
