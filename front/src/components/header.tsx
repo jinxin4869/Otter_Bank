@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { useTheme } from "next-themes"
 import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -122,7 +123,7 @@ export default function Header() {
               <DropdownMenuSeparator />
               {navLinks.map(link => (
                 <DropdownMenuItem key={link.href} asChild>
-                  <Link href={link.href} className={`flex items-center ${pathname === link.href ? "bg-muted font-semibold" : ""}`}>
+                  <Link href={link.href} className={cn("flex items-center", pathname === link.href && "bg-muted font-semibold")}>
                     {link.icon}
                     {link.label}
                   </Link>
