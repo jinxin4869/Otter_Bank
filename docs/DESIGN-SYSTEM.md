@@ -10,55 +10,133 @@
 ## 1. デザイン原則
 
 1. **叱らず、励ます** — 支出が多くても赤一色で責めない。カワウソが「心配する」表現にとどめ、次の行動（予算の見直し等）を示す
-2. **暖かく、やわらかい** — 暖色オレンジとこげ茶の配色、角丸大きめ。銀行アプリの冷たさを避ける
+2. **暖かく、やわらかい** — 暖色オレンジとこげ茶の配色、角丸大きめ。銀行アプリの冷たさを避ける（色のルールは §2.1）
 3. **数字は一目で** — 金額は大きく・太く・桁区切り。収入/支出は色 **と** 記号（+ / −）やアイコンで区別する（色だけに頼らない）
 4. **小さな達成を祝う** — 実績解除・目標達成はモーダルやアニメーションで明確に祝う。ただし日常操作の邪魔はしない
 5. **モバイルファースト** — 片手で記録できることを優先。`md:` 以上で情報量を増やす
 
-## 2. カラートークン
+## 2. カラー
 
-値はすべて **HSL の成分（`H S% L%`）** で定義し、使う側で `hsl(var(--token))` として包む。
+### 2.1 色の原則
 
-### 2.1 ベース
+1. **暖色で統一する** — ライトもダークも「カワウソの茶色 + オレンジ」の世界観を保つ。寒色（slate / blue / indigo）はブランド色として使わない
+2. **色は必ずトークン経由で使う** — `bg-blue-600` や `#92400e` などの直書きは禁止。`bg-primary` `text-income` などのトークンクラスを使う
+3. **役割ごとに色を 1 つに決める**
+   - 主役ボタン（CTA）= `primary`（オレンジ）
+   - 収入 = `income`（緑）／ 支出 = `expense`（テラコッタ）
+   - 削除・ログアウトなどの破壊的操作 = `destructive`
+4. **ダークモードは「1b エスプレッソ」**（こげ茶ベース）。テーマは next-themes の `class` 戦略で切り替える
 
-| トークン | ライト | ダーク（エスプレッソ） | 用途 |
+### 2.2 カラートークン
+
+値は `H S% L%`（`hsl()` なし）で定義し、使うときに `hsl(var(--x))` で包む。
+
+#### ベース
+
+| トークン | ライト | ダーク（1b） | 用途 |
 |---|---|---|---|
-| `--background` | `25 100% 96%` 柔らかいオレンジ | `24 30% 9%` | ページ背景 |
-| `--foreground` | `25 50% 30%` こげ茶 | `30 40% 90%` | 本文 |
-| `--card` / `--popover` | `30 100% 98%` | `24 26% 13%` | カード・ポップオーバー |
-| `--primary` | `15 80% 55%` 暖かいオレンジ | `20 85% 58%` | CTA・リンク・フォーカスリング |
+| `--background` | `25 100% 96%` | `24 30% 9%` | ページ背景 |
+| `--foreground` | `25 50% 30%` | `30 40% 90%` | 本文テキスト |
+| `--card` | `30 100% 98%` | `24 26% 13%` | カード背景 |
+| `--card-foreground` | `25 50% 25%` | `30 40% 90%` | カード内テキスト |
+| `--popover` | `30 100% 98%` | `24 26% 13%` | ドロップダウン・ダイアログ |
+| `--popover-foreground` | `25 50% 25%` | `30 40% 90%` | 同上テキスト |
+
+#### アクション
+
+| トークン | ライト | ダーク（1b） | 用途 |
+|---|---|---|---|
+| `--primary` | `15 80% 55%` | `20 85% 58%` | CTA・リンク・強調 |
 | `--primary-foreground` | `25 100% 98%` | `24 40% 10%` | primary 上の文字 |
-| `--secondary` | `30 40% 94%` | `24 20% 18%` | 副ボタン |
-| `--muted` / `--muted-foreground` | `30 30% 94%` / `25 18% 46%` | `24 18% 18%` / `30 20% 68%` | 補足テキスト・無効状態 |
-| `--accent` | `28 60% 92%` | `24 22% 20%` | ホバー背景 |
-| `--destructive` | `8 72% 55%` | `8 65% 58%` | 削除・エラー |
-| `--border` / `--input` | `28 40% 88%` | `24 20% 20%` / `24 20% 22%` | 枠線・入力欄 |
-| `--ring` | = primary | = primary | フォーカス |
+| `--secondary` | `30 40% 94%` | `24 20% 18%` | 補助ボタン・選択中ナビ |
+| `--secondary-foreground` | `25 45% 25%` | `30 40% 90%` | 同上文字 |
+| `--accent` | `28 60% 92%` | `24 22% 20%` | ホバー・自分のコメント |
+| `--accent-foreground` | `25 45% 25%` | `30 40% 90%` | 同上文字 |
+| `--destructive` | `8 72% 55%` | `8 65% 58%` | 削除・ログアウト |
+| `--destructive-foreground` | `30 100% 98%` | `30 40% 92%` | 同上文字 |
 
-### 2.2 家計セマンティック
+#### ニュートラル
 
-| トークン | 用途 | ルール |
+| トークン | ライト | ダーク（1b） | 用途 |
+|---|---|---|---|
+| `--muted` | `30 30% 94%` | `24 18% 18%` | 控えめな背景・他人のコメント |
+| `--muted-foreground` | `25 18% 46%` | `30 20% 68%` | 補足テキスト・日時 |
+| `--border` | `28 40% 88%` | `24 20% 20%` | 枠線 |
+| `--input` | `28 40% 88%` | `24 20% 22%` | 入力欄の枠 |
+| `--ring` | `15 80% 55%` | `20 85% 58%` | フォーカスリング（= primary） |
+
+#### 家計セマンティック
+
+| トークン | ライト | ダーク（1b） | 用途 |
+|---|---|---|---|
+| `--income` | `150 55% 40%` | `150 45% 60%` | 収入の金額・アイコン |
+| `--income-bg` | `150 45% 94%` | `150 30% 15%` | 収入カード背景 |
+| `--income-border` | `150 40% 86%` | `150 25% 24%` | 収入カード枠 |
+| `--expense` | `8 68% 52%` | `10 70% 66%` | 支出の金額・アイコン |
+| `--expense-bg` | `8 70% 95%` | `10 40% 17%` | 支出カード背景 |
+| `--expense-border` | `8 60% 88%` | `10 35% 28%` | 支出カード枠 |
+
+- 収入の金額には必ず `+`、支出には `−` を付ける（色だけで区別しない）
+- 支出は `--destructive` と使い分ける。支出はエラーではない
+
+#### レイアウト
+
+| トークン | ライト | ダーク（1b） |
 |---|---|---|
-| `--income` / `-bg` / `-border` | 収入（緑） | 金額には必ず `+` を付ける |
-| `--expense` / `-bg` / `-border` | 支出（テラコッタ） | 金額には必ず `−` を付ける。`--destructive` とは使い分ける（支出はエラーではない） |
+| `--header-bg` | `var(--primary)` | `24 26% 13%` |
+| `--header-fg` | `var(--primary-foreground)` | `30 40% 90%` |
+| `--footer-bg` | `25 50% 20%` | `24 30% 7%` |
+| `--footer-fg` | `25 100% 96%` | `30 40% 90%` |
+| `--radius` | `0.75rem` | 同左 |
 
-### 2.3 実績ティア
+ヘッダー・フッターの背景は `globals.css` の `header` / `footer` 要素セレクターが適用する。コンポーネント側で背景クラスを付けない。
 
-`front/src/lib/tier.tsx` の `TIER_CONFIG` を唯一の定義とする（ラベル・背景・文字・枠・リング色）。
+### 2.3 使い方（Tailwind クラス）
 
-| ティア | ラベル | 系統色 |
-|---|---|---|
-| bronze | ブロンズ | amber |
-| silver | シルバー | slate |
-| gold | ゴールド | yellow |
-| platinum | プラチナ | purple |
+| やりたいこと | クラス |
+|---|---|
+| CTA ボタン | `<Button>`（default）。直接書くなら `bg-primary hover:bg-primary/90 text-primary-foreground` |
+| 補助ボタン | `variant="outline"` または `variant="secondary"` |
+| 削除ボタン | `variant="destructive"`（`bg-destructive text-destructive-foreground`） |
+| 収入カード | `bg-income-bg border-income-border text-income` |
+| 支出カード | `bg-expense-bg border-expense-border text-expense` |
+| 補足テキスト | `text-muted-foreground` |
+| カード | `bg-card text-card-foreground border-border` |
 
-### 2.4 使い方のルール
+### 2.4 禁止
 
-- **Tailwind のパレット色（`text-blue-600` `bg-slate-800` `text-red-500` 等）を直接使わない**。意味に合うトークンを使う。該当するトークンがなければ、トークンを追加してから使う
-  - 例外: ティア色（`tier.tsx` 内に閉じ込める）
-- `!important` 付きのグローバルクラス（`.transaction-history-icon` 等）は新規に増やさない。コンポーネント側の `className` で解決する
-- 新しいトークンは `:root` と `.dark` の **両方** に定義し、`@theme inline` に `--color-*` を追加する
+- `bg-blue-*` `bg-slate-*` `bg-indigo-*` `text-blue-*` などの寒色直書き
+- `dark:bg-slate-900` のようなダーク用の直書き（トークンが自動で切り替わるので不要）
+- `#fef7ed` などの HEX 直書き、`!important` での色上書き
+- 収入・支出以外の意味で緑・テラコッタを使うこと
+- 該当するトークンがないときは、直書きせずトークンを追加する。追加するときは `:root` と `.dark` の**両方**に定義し、`@theme inline` に `--color-x: hsl(var(--x));` を足す
+
+### 2.5 実績ティア
+
+| ティア | ラベル | 基準色（HEX） | UI での実装 |
+|---|---|---|---|
+| bronze | ブロンズ | `#C68A4E` | amber 系 |
+| silver | シルバー | `#B8BCC2` | slate 系 |
+| gold | ゴールド | `#E8C24A` | yellow 系 |
+| platinum | プラチナ | `#B39DDB` | purple 系 |
+
+- UI では `front/src/lib/tier.tsx` の `TIER_CONFIG` を唯一の定義とし、ティア色はこのファイルの外に書かない。ここだけは §2.4 の「パレット色の直書き禁止」の例外とする
+- 基準色（HEX）はバッジ画像などイラスト制作時に使う
+
+### 2.6 マスコット・イラスト用カラー
+
+UI トークンとは別に管理し、イラスト制作時のみ使う。コードでは使わない。
+
+| 役割 | HEX |
+|---|---|
+| 輪郭・鼻・目 | `#4A3418` |
+| 毛（メイン） | `#C08F50` |
+| 毛（影） | `#9E6E30` |
+| お腹・顔 | `#F3E3C3` |
+| 小物（傘など） | `#E8703A` |
+| コイン | `#E8C24A` |
+
+ルール: 背景透過／影を焼き込まない／頬の赤みなし。
 
 ## 3. タイポグラフィ
 
@@ -159,8 +237,20 @@
 
 ## 10. 既知の不整合（要修正）
 
-- **`@theme inline` の `--color-*` が `var(--primary)` をそのまま参照している**。トークンは `15 80% 55%` のような HSL 成分なので、`bg-primary` / `text-primary` / `text-income` 等は Tailwind が `background-color: var(--primary)` を出力し、無効な色になる（Tailwind 4 でのコンパイル結果で確認済み）。`--color-primary: hsl(var(--primary));` のように `hsl()` で包む必要がある
-- `@theme inline` が `--chart-*` / `--sidebar-*` を参照しているが、`:root` / `.dark` に定義がない
-- `front/tailwind.config.ts` は Tailwind 4 では読み込まれていない（`@config` なし）。トークンの二重管理になるため削除する
-- パレット色の直書き（`text-blue-600` 11 箇所、`text-red-500` 9 箇所など）をトークンへ置き換える
-- `layout.tsx` の `metadata.title` が簡体字「水獭银行」になっている（UI は日本語「獺獺銀行」）
+2026-09-26 時点の `main` で確認した、コードが本書どおりになっていない点。
+
+1. **`@theme inline` の値が `hsl()` で包まれていない（重要）**
+   `--color-primary: var(--primary);` は `15 80% 55%` になり、色として無効。`bg-primary` / `text-primary` / `text-income` 等は色が付いていない可能性が高い（Tailwind 4 のコンパイル結果で `background-color: var(--primary)` を確認済み）。`@theme inline` 内の `--color-*` をすべて `hsl(var(--x))` にする
+2. **未定義トークンの参照** — `@theme inline` が `--chart-*` / `--sidebar-*` を参照しているが、`:root` / `.dark` に定義がない。使っていなければ削除する
+3. **`dark:` が OS の設定で発火している**
+   Tailwind 4 の `dark:` は既定で `@media (prefers-color-scheme: dark)`。next-themes（`class` 戦略）でライトを選んでも、OS がダークなら `dark:` のスタイルが当たる。`@import` の直後に `@custom-variant dark (&:where(.dark, .dark *));` を追加する
+4. **`header.tsx` に寒色の直書きが残っている**
+   `bg-background/95` `dark:bg-slate-900/95` `dark:border-slate-800` `border-slate-300` `text-indigo-500` など。ヘッダー背景は `globals.css` の `header { background-color: hsl(var(--header-bg)) }` に任せ、クラス側の背景指定を外す
+5. **パレット色の直書きがアプリ全体に残っている** — 約 190 箇所・19 ファイル（`dashboard` `board` `login` `register` `tutorial` `footer` 等）。1〜4 を直した後、画面単位でトークンに置き換える
+6. **`!important` の色上書き** — `globals.css` に `!important` が 33 箇所（`.transaction-history-icon` `.warm-bg-icon` など）。トークンで表現できるものから外す
+7. **`front/tailwind.config.ts` は読み込まれていない** — Tailwind 4 では `@config` がないため無効。トークンの二重管理になるので削除する
+8. **`button.tsx` の destructive が `text-white`** — `text-destructive-foreground` にする
+9. **`layout.tsx` の `metadata.title` が簡体字「水獭银行」**（UI は日本語「獺獺銀行」）
+10. **カワウソ画像の `alt` が英語**（`Otter feeling ${mood}`）
+
+修正の順番: 1 → 3 → 2 → 4 → 8 → 5・6 → 7（1 と 3 を直すまでは、画面の見た目で色の確認ができないため）
