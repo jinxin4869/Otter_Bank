@@ -237,20 +237,23 @@ UI トークンとは別に管理し、イラスト制作時のみ使う。コ�
 
 ## 10. 既知の不整合（要修正）
 
-2026-09-26 時点の `main` で確認した、コードが本書どおりになっていない点。
+`main` で確認した、コードが本書どおりになっていない点。
 
-1. **`@theme inline` の値が `hsl()` で包まれていない（重要）**
-   `--color-primary: var(--primary);` は `15 80% 55%` になり、色として無効。`bg-primary` / `text-primary` / `text-income` 等は色が付いていない可能性が高い（Tailwind 4 のコンパイル結果で `background-color: var(--primary)` を確認済み）。`@theme inline` 内の `--color-*` をすべて `hsl(var(--x))` にする
-2. **未定義トークンの参照** — `@theme inline` が `--chart-*` / `--sidebar-*` を参照しているが、`:root` / `.dark` に定義がない。使っていなければ削除する
-3. **`dark:` が OS の設定で発火している**
-   Tailwind 4 の `dark:` は既定で `@media (prefers-color-scheme: dark)`。next-themes（`class` 戦略）でライトを選んでも、OS がダークなら `dark:` のスタイルが当たる。`@import` の直後に `@custom-variant dark (&:where(.dark, .dark *));` を追加する
-4. **`header.tsx` に寒色の直書きが残っている**
-   `bg-background/95` `dark:bg-slate-900/95` `dark:border-slate-800` `border-slate-300` `text-indigo-500` など。ヘッダー背景は `globals.css` の `header { background-color: hsl(var(--header-bg)) }` に任せ、クラス側の背景指定を外す
-5. **パレット色の直書きがアプリ全体に残っている** — 約 190 箇所・19 ファイル（`dashboard` `board` `login` `register` `tutorial` `footer` 等）。1〜4 を直した後、画面単位でトークンに置き換える
-6. **`!important` の色上書き** — `globals.css` に `!important` が 33 箇所（`.transaction-history-icon` `.warm-bg-icon` など）。トークンで表現できるものから外す
-7. **`front/tailwind.config.ts` は読み込まれていない** — Tailwind 4 では `@config` がないため無効。トークンの二重管理になるので削除する
-8. **`button.tsx` の destructive が `text-white`** — `text-destructive-foreground` にする
-9. **`layout.tsx` の `metadata.title` が簡体字「水獭银行」**（UI は日本語「獺獺銀行」）
-10. **カワウソ画像の `alt` が英語**（`Otter feeling ${mood}`）
+### 対応済み（2026-09-26）
 
-修正の順番: 1 → 3 → 2 → 4 → 8 → 5・6 → 7（1 と 3 を直すまでは、画面の見た目で色の確認ができないため）
+- `@theme inline` の `--color-*` を `hsl(var(--x))` で包んだ（`bg-primary` / `text-income` 等が無効な色になっていた）
+- `dark:` を `@custom-variant dark (&:where(.dark, .dark *));` で `.dark` クラス基準にした（OS がダークだと、ライトを選んでいてもダーク用スタイルが当たっていた）
+- 未定義の `--chart-*` / `--sidebar-*` の参照を削除した
+- `header.tsx` の slate / indigo / orange / red の直書きをトークンと variant に置き換え、背景は `header` セレクター（`--header-bg`）に任せた
+- `button.tsx` の destructive を `text-destructive-foreground` にした（`@theme` に `--color-destructive-foreground` を追加）
+
+### 未対応
+
+1. **枠線の既定色が文字色になっている** — Tailwind 4 の `border` の既定色は `currentColor`。shadcn が前提とする `* { border-color: hsl(var(--border)) }` がないため、`Card` などの枠がライトで濃い茶色になる。`@layer base` に既定の枠線色を追加する
+2. **パレット色の直書きがアプリ全体に残っている** — 約 160 箇所・22 ファイル（ティア定義の `tier.tsx` を含む）（`dashboard` `board` `login` `register` `tutorial` `footer` 等）。画面単位でトークンに置き換える
+3. **`!important` の色上書き** — `globals.css` に 33 箇所（`.transaction-history-icon` `.warm-bg-icon` など）。トークンで表現できるものから外す
+4. **`front/tailwind.config.ts` は読み込まれていない** — Tailwind 4 では `@config` がないため無効。トークンの二重管理になるので、`tailwindcss-animate` と合わせて削除する
+5. **`layout.tsx` の `metadata.title` が簡体字「水獭银行」**（UI は日本語「獺獺銀行」）
+6. **カワウソ画像の `alt` が英語**（`Otter feeling ${mood}`）
+
+修正の順番: 1 → 2・3 → 4（1 を直すと画面全体の枠線の見え方が変わるため先に行う）
