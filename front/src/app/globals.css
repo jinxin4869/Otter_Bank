@@ -5,6 +5,9 @@
 @import "tailwindcss/preflight.css" layer(base);
 @import "tailwindcss/utilities.css" layer(utilities);
 
+/* dark: を OS 設定ではなく next-themes が付ける .dark クラスで切り替える */
+@custom-variant dark (&:where(.dark, .dark *));
+
 @layer base {
   :root {
     /* ---- ベース（暖色オレンジ） ---- */
