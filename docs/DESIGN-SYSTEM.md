@@ -250,9 +250,9 @@ UI トークンとは別に管理し、イラスト制作時のみ使う。コ�
 ### 未対応
 
 1. **枠線の既定色が文字色になっている** — Tailwind 4 の `border` の既定色は `currentColor`。shadcn が前提とする `* { border-color: hsl(var(--border)) }` がないため、`Card` などの枠がライトで濃い茶色になる。`@layer base` に既定の枠線色を追加する
-2. **パレット色の直書きがアプリ全体に残っている** — 約 160 箇所・22 ファイル（ティア定義の `tier.tsx` を含む）（`dashboard` `board` `login` `register` `tutorial` `footer` 等）。画面単位でトークンに置き換える
+2. **パレット色の直書きがアプリ全体に残っている**（例: `footer.tsx` はダークで紺色になる） — 約 160 箇所・22 ファイル（ティア定義の `tier.tsx` を含む）（`dashboard` `board` `login` `register` `tutorial` `footer` 等）。画面単位でトークンに置き換える
 3. **`!important` の色上書き** — `globals.css` に 33 箇所（`.transaction-history-icon` `.warm-bg-icon` など）。トークンで表現できるものから外す
-4. **`front/tailwind.config.ts` は読み込まれていない** — Tailwind 4 では `@config` がないため無効。トークンの二重管理になるので、`tailwindcss-animate` と合わせて削除する
+4. **`front/tailwind.config.ts` は読み込まれていない** — Tailwind 4 では `@config` がないため無効。このため `container` の設定（中央寄せ・`padding: 2rem`・`2xl` 以上のブレークポイント）も効いておらず、トップページ等で本文が画面の左端に張り付いている。`container` の設定を `globals.css` の `@utility container` / `@theme` に移してから、`tailwindcss-animate` と合わせて削除する
 5. **`layout.tsx` の `metadata.title` が簡体字「水獭银行」**（UI は日本語「獺獺銀行」）
 6. **カワウソ画像の `alt` が英語**（`Otter feeling ${mood}`）
 
