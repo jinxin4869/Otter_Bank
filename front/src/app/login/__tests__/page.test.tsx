@@ -44,4 +44,21 @@ describe("LoginPage", () => {
     expect(toast.success).toHaveBeenCalledWith("ログイン成功", expect.anything())
     expect(screen.queryByRole("alert")).toBeNull()
   })
+
+  it.each([
+    ["cancelled", "Googleログインがキャンセルされました"],
+    ["failed", "Googleログインに失敗しました。もう一度お試しください。"],
+  ])("Google ログインから oauth_error=%s で戻ってきたらインラインでエラーを表示する", async (reason, message) => {
+    window.history.pushState({}, "", `/login?oauth_error=${reason}`)
+    render(<LoginPage />)
+    expect(await screen.findByRole("alert")).toHaveTextContent(message)
+    window.history.pushState({}, "", "/login")
+  })
+
+  it("未知の oauth_error はそのまま表示せず、失敗のメッセージにする", async () => {
+    window.history.pushState({}, "", "/login?oauth_error=%3Cscript%3E")
+    render(<LoginPage />)
+    expect(await screen.findByRole("alert")).toHaveTextContent("Googleログインに失敗しました。もう一度お試しください。")
+    window.history.pushState({}, "", "/login")
+  })
 })
