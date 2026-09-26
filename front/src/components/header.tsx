@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { useTheme } from "next-themes"
 import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -56,7 +57,7 @@ export default function Header() {
 
   if (!mounted || isLoading) {
     return (
-      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 dark:border-slate-800">
+      <header className="sticky top-0 z-50 w-full border-b border-border">
         <div className="header-container flex h-16 items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
             <Image src="/logo.png" alt="Otter Bank Logo" width={32} height={32} className="rounded-full" />
@@ -69,11 +70,11 @@ export default function Header() {
   }
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 dark:border-slate-800 dark:bg-slate-900/95 shadow-sm">
+    <header className="sticky top-0 z-50 w-full border-b border-border shadow-sm">
       <div className="header-container flex h-16 items-center">
         <Link href={logoHref} className="flex items-center gap-2">
           <Image src="/logo.png" alt="Otter Bank Logo" width={36} height={36} className="rounded-full transition-transform hover:scale-110" />
-          <span className="font-bold text-lg hidden sm:inline-block text-primary dark:text-primary-foreground">Otter Bank</span>
+          <span className="font-bold text-lg hidden sm:inline-block">Otter Bank</span>
         </Link>
 
         {/* 中央のスペーサー */}
@@ -99,7 +100,7 @@ export default function Header() {
             <Button
               variant="ghost"
               size="sm"
-              className="rounded-full px-3 text-red-500 hover:bg-red-500/10 hover:text-red-600 dark:text-red-400 dark:hover:bg-red-400/10 dark:hover:text-red-500"
+              className="rounded-full px-3 hover:bg-destructive hover:text-destructive-foreground"
               onClick={handleLogout}
             >
               <LogOut className="mr-2 h-4 w-4" />
@@ -112,7 +113,7 @@ export default function Header() {
           {/* モバイル表示のハンバーガーメニュー */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="icon" className="md:hidden rounded-full">
+              <Button variant="outline" size="icon" className="md:hidden rounded-full text-foreground">
                 <Menu className="h-5 w-5" />
                 <span className="sr-only">ナビゲーションを開く</span>
               </Button>
@@ -122,7 +123,7 @@ export default function Header() {
               <DropdownMenuSeparator />
               {navLinks.map(link => (
                 <DropdownMenuItem key={link.href} asChild>
-                  <Link href={link.href} className={`flex items-center ${pathname === link.href ? "bg-muted dark:bg-slate-700 font-semibold" : ""}`}>
+                  <Link href={link.href} className={cn("flex items-center", pathname === link.href && "bg-muted font-semibold")}>
                     {link.icon}
                     {link.label}
                   </Link>
@@ -132,8 +133,9 @@ export default function Header() {
                 <>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
+                    variant="destructive"
                     onClick={handleLogout}
-                    className="flex items-center text-red-500 hover:!bg-red-500/10 hover:!text-red-600 dark:text-red-400 dark:hover:!bg-red-400/10 dark:hover:!text-red-500"
+                    className="flex items-center"
                   >
                     <LogOut className="mr-2 h-4 w-4" />
                     ログアウト
@@ -146,29 +148,29 @@ export default function Header() {
           {/* テーマ変更ボタン */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="icon" className="rounded-full border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800">
-                <Palette className="h-5 w-5 transition-transform group-hover:rotate-12 text-slate-600 dark:text-slate-400" />
+              <Button variant="outline" size="icon" className="rounded-full text-foreground">
+                <Palette className="h-5 w-5 transition-transform group-hover:rotate-12" />
                 <span className="sr-only">テーマを切り替える</span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-40 board-dialog-content">
               <DropdownMenuLabel className="px-2 py-1.5 text-sm font-semibold theme-dropdown-label">背景色を選択</DropdownMenuLabel>
-              <DropdownMenuSeparator className="bg-slate-200 dark:bg-slate-700" />
+              <DropdownMenuSeparator />
               <DropdownMenuItem
                 onClick={() => setTheme("light")}
-                className="flex items-center gap-2 px-2 py-1.5 text-sm theme-dropdown-item hover:!bg-orange-100 dark:hover:!bg-slate-700 rounded-sm cursor-pointer"
+                className="flex items-center gap-2 px-2 py-1.5 text-sm theme-dropdown-item rounded-sm cursor-pointer"
               >
-                <Sun className="h-4 w-4 text-orange-500" />
+                <Sun className="h-4 w-4 text-primary" />
                 ライト
-                {theme === "light" && <Check className="h-4 w-4 ml-auto text-orange-500 dark:text-orange-400" />}
+                {theme === "light" && <Check className="h-4 w-4 ml-auto text-primary" />}
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => setTheme("dark")}
-                className="flex items-center gap-2 px-2 py-1.5 text-sm theme-dropdown-item hover:!bg-orange-100 dark:hover:!bg-slate-700 rounded-sm cursor-pointer"
+                className="flex items-center gap-2 px-2 py-1.5 text-sm theme-dropdown-item rounded-sm cursor-pointer"
               >
-                <Moon className="h-4 w-4 text-indigo-500" />
+                <Moon className="h-4 w-4 text-primary" />
                 ダーク
-                {theme === "dark" && <Check className="h-4 w-4 ml-auto text-indigo-500 dark:text-indigo-400" />}
+                {theme === "dark" && <Check className="h-4 w-4 ml-auto text-primary" />}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
