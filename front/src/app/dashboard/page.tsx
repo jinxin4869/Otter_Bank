@@ -414,8 +414,9 @@ export default function DashboardPage() {
         </div>
       </div>
 
+      {/* md 以上: カワウソを左に置き、右に収入・支出・収支を横長で縦に積む（高さを揃えて余白を出さない） */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Card className="md:col-span-1">
+        <Card className="md:row-span-3">
           <CardHeader className="pb-2">
             <CardTitle>カワウソの様子</CardTitle>
             <CardDescription>財政状況に応じて変化</CardDescription>
@@ -425,7 +426,7 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
 
-        <Card className="bg-income-bg border-income-border">
+        <Card className="md:col-span-3 justify-center bg-income-bg border-income-border">
           <CardHeader className="pb-2">
             <CardDescription>総収入</CardDescription>
             <CardTitle className="text-2xl text-income flex items-center">
@@ -435,7 +436,7 @@ export default function DashboardPage() {
           </CardHeader>
         </Card>
 
-        <Card className="bg-expense-bg border-expense-border">
+        <Card className="md:col-span-3 justify-center bg-expense-bg border-expense-border">
           <CardHeader className="pb-2">
             <CardDescription>総支出</CardDescription>
             <CardTitle className="text-2xl text-expense flex items-center">
@@ -447,7 +448,7 @@ export default function DashboardPage() {
 
         <Card
           className={cn(
-            "bg-linear-to-br",
+            "md:col-span-3 justify-center bg-linear-to-br",
             balance >= 0
               ? "from-income-bg to-income-bg/50 border-income-border"
               : "from-expense-bg to-expense-bg/50 border-expense-border",
