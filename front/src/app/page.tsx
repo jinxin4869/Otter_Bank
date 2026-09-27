@@ -26,7 +26,7 @@ export default function Home() {
             </p>
 
             <div className="flex flex-wrap gap-4 pt-4">
-              <Button size="lg" className="rounded-full px-8 bg-primary hover:bg-primary/90 text-primary-foreground">
+              <Button asChild size="lg" className="rounded-full px-8 bg-primary hover:bg-primary/90 text-primary-foreground">
                 <Link href="/register" className="flex items-center gap-2">
                   今すぐ始める <ArrowRight className="h-4 w-4" />
                 </Link>
