@@ -10,6 +10,9 @@ class JsonWebToken
   # 以前は Rails.application.credentials.secret_key_base にフォールバックしていたが、
   # 復号鍵（config/master.key）がリポジトリに混入し公開されたため参照をやめた。
   # リフレッシュトークンのダイジェスト（RefreshToken.digest）もこの鍵を使う
+  # resolve_secret は ENV を読むだけの冪等な処理なので、
+  # マルチスレッド下で初回呼び出しが重なっても二重に計算されるだけで実害はない。
+  # そのため意図的に mutex を使っていない
   def self.hmac_secret
     @hmac_secret ||= resolve_secret
   end
@@ -39,8 +42,10 @@ class JsonWebToken
     secret = ENV['JWT_SECRET'].presence
     return secret if secret
 
-    # 本番で未設定なら起動を止める。弱い既定値のまま本番が動き続けるのを防ぐ
-    raise MissingSecretError, 'JWT_SECRET が設定されていません' if Rails.env.production?
+    # 開発・テスト以外（本番・staging 等）では未設定を許さない。
+    # production? での判定だと将来 staging を足したときに
+    # 開発用の鍵へ黙ってフォールバックするため、許可リスト方式にする
+    raise MissingSecretError, 'JWT_SECRET が設定されていません' unless Rails.env.local?
 
     INSECURE_DEVELOPMENT_SECRET
   end

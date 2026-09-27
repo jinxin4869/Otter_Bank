@@ -32,14 +32,22 @@ RSpec.describe JsonWebToken do
       expect(described_class.hmac_secret).to eq(described_class::INSECURE_DEVELOPMENT_SECRET)
     end
 
-    it '本番環境で JWT_SECRET が未設定なら例外を投げる' do
-      allow(ENV).to receive(:[]).and_call_original
-      allow(ENV).to receive(:[]).with('JWT_SECRET').and_return(nil)
-      allow(Rails).to receive(:env).and_return(ActiveSupport::StringInquirer.new('production'))
+    # 開発・テスト以外は許可リスト方式で弾く。staging を足しても
+    # 開発用の鍵に黙ってフォールバックしないことを担保する
+    [nil, ''].each do |blank|
+      %w[production staging].each do |env_name|
+        it "#{env_name} 環境で JWT_SECRET が #{blank.inspect} なら例外を投げる" do
+          allow(ENV).to receive(:[]).and_call_original
+          allow(ENV).to receive(:[]).with('JWT_SECRET').and_return(blank)
+          allow(Rails).to receive(:env).and_return(
+            ActiveSupport::EnvironmentInquirer.new(env_name)
+          )
 
-      expect { described_class.hmac_secret }.to raise_error(
-        described_class::MissingSecretError, /JWT_SECRET/
-      )
+          expect { described_class.hmac_secret }.to raise_error(
+            described_class::MissingSecretError, /JWT_SECRET/
+          )
+        end
+      end
     end
 
     it 'credentials.secret_key_base を参照しない' do
