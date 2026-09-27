@@ -143,7 +143,7 @@ export default function CollectionPage() {
           <h2 className="text-2xl font-semibold text-foreground">実績一覧</h2>
         </div>
         <Tabs value={activeTab} onValueChange={filterAchievements} className="mb-6">
-          <TabsList className="bg-muted">
+          <TabsList className="bg-muted max-w-full justify-start overflow-x-auto scrollbar-none">
             {ACHIEVEMENT_CATEGORIES.map((cat) => (
               <TabsTrigger key={cat} value={cat} className="capitalize px-4 py-2 data-[state=active]:bg-background data-[state=active]:text-foreground">
                 {categoryLabels[cat] || cat}

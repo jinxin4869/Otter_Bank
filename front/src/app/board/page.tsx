@@ -415,7 +415,7 @@ export default function BoardPage() {
 
       {/* カテゴリータブ */}
       <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="w-full flex flex-wrap justify-center">
+        <TabsList className="w-full justify-start overflow-x-auto scrollbar-none">
           <TabsTrigger value="all">すべて</TabsTrigger>
           {BOARD_CATEGORIES.map((category) => (
             <TabsTrigger
