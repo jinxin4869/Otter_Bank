@@ -58,6 +58,15 @@
     --expense-bg: 8 70% 95%;
     --expense-border: 8 60% 88%;
 
+    /* ---- カテゴリの色分け（掲示板カテゴリ・機能紹介など。収入/支出の意味では使わない） ---- */
+    /* 文字色として使い、背景は /10〜/20 の透過で敷く（透過背景上で文字のコントラスト 4.5:1 以上） */
+    --category-1: 30 80% 31%; /* オレンジ */
+    --category-2: 45 80% 25%; /* マスタード */
+    --category-3: 345 55% 42%; /* ローズ */
+    --category-4: 75 45% 28%; /* オリーブ */
+    --category-5: 20 40% 35%; /* ココア */
+    --category-6: 320 35% 40%; /* プラム */
+
     --z-dropdown: 100;
     --z-sticky: 200;
     --z-fixed: 300;
@@ -112,6 +121,14 @@
     --expense: 10 70% 66%;
     --expense-bg: 10 40% 17%;
     --expense-border: 10 35% 28%;
+
+    /* カテゴリの色分け（ダーク） */
+    --category-1: 32 80% 65%;
+    --category-2: 45 70% 60%;
+    --category-3: 345 65% 72%;
+    --category-4: 75 40% 62%;
+    --category-5: 25 40% 70%;
+    --category-6: 320 40% 74%;
 
     /* ヘッダーとフッター（ダーク） */
     --header-bg: 24 26% 13%;
@@ -203,6 +220,12 @@
   --color-expense: hsl(var(--expense));
   --color-expense-bg: hsl(var(--expense-bg));
   --color-expense-border: hsl(var(--expense-border));
+  --color-category-1: hsl(var(--category-1));
+  --color-category-2: hsl(var(--category-2));
+  --color-category-3: hsl(var(--category-3));
+  --color-category-4: hsl(var(--category-4));
+  --color-category-5: hsl(var(--category-5));
+  --color-category-6: hsl(var(--category-6));
   --color-border: hsl(var(--border));
   --color-input: hsl(var(--input));
   --color-ring: hsl(var(--ring));
