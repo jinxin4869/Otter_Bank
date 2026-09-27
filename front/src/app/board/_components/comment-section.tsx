@@ -85,9 +85,9 @@ function CommentSection({ comments, currentUserEmail, currentUserId, likedCommen
                     variant="ghost"
                     size="sm"
                     onClick={() => onLikeComment(comment.id)}
-                    className={`h-6 px-2 text-xs ${isCommentLiked ? "text-primary" : ""}`}
+                    className={cn("h-6 px-2 text-xs", isCommentLiked && "text-primary")}
                   >
-                    <ThumbsUp className={`mr-1 h-3 w-3 ${isCommentLiked ? "fill-primary text-primary" : ""}`} />
+                    <ThumbsUp className={cn("mr-1 h-3 w-3", isCommentLiked && "fill-primary text-primary")} />
                     {comment.likes}
                   </Button>
                 </div>

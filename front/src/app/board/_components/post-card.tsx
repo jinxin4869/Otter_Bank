@@ -11,6 +11,7 @@ import { ja } from "date-fns/locale"
 import { Heart, ThumbsUp, MessageCircle, MoreVertical, Edit, Trash2, Bookmark, BookmarkCheck, MessageSquare, Eye } from "lucide-react"
 import { type Post } from "@/types/post"
 import { BOARD_CATEGORIES, getCategoryColor, getUserInitial } from "./board-constants"
+import { cn } from "@/lib/utils"
 
 type PostCardProps = {
   post: Post
@@ -110,7 +111,7 @@ function PostCard({ post, isLiked, isBookmarked, isOwner, onLike, onBookmark, on
         </div>
         <div className="flex space-x-2">
           <Button variant="ghost" size="sm" onClick={() => onLike(post.id)}>
-            <Heart className={`mr-1 h-4 w-4 ${isLiked ? "fill-primary text-primary" : ""}`} />
+            <Heart className={cn("mr-1 h-4 w-4", isLiked && "fill-primary text-primary")} />
             いいね
           </Button>
           <Button variant="ghost" size="sm" onClick={() => onBookmark(post.id)}>
