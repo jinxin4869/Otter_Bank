@@ -144,25 +144,25 @@ export default function Home() {
                 icon: <PiggyBank className="h-12 w-12" />,
                 title: "楽しく貯金",
                 description: "貯金するほどカワウソが喜び、環境が豊かになります",
-                color: "from-blue-500/20 to-indigo-500/10",
+                color: "from-category-1/20 to-category-1/5",
               },
               {
                 icon: <BadgeCheck className="h-12 w-12" />,
                 title: "実績システム",
                 description: "目標を達成して特別なバッジやアイテムを獲得しよう",
-                color: "from-green-500/20 to-emerald-500/10",
+                color: "from-category-2/20 to-category-2/5",
               },
               {
                 icon: <TrendingUp className="h-12 w-12" />,
                 title: "わかりやすい分析",
                 description: "グラフやチャートで支出パターンを可視化",
-                color: "from-orange-500/20 to-amber-500/10",
+                color: "from-category-4/20 to-category-4/5",
               },
               {
                 icon: <Sparkles className="h-12 w-12" />,
                 title: "豊富なカスタマイズ",
                 description: "カワウソの環境や見た目を自分好みにアレンジ",
-                color: "from-pink-500/20 to-rose-500/10",
+                color: "from-category-3/20 to-category-3/5",
               }
             ].map((feature) => (
               <div
@@ -337,7 +337,7 @@ export default function Home() {
                   "ベーシックな実績システム",
                   "初期ユーザーテスト"
                 ],
-                color: "bg-green-500/10 border-green-500/20",
+                color: "bg-category-4/10 border-category-4/20",
               },
               {
                 emoji: "🌿",
@@ -349,7 +349,7 @@ export default function Home() {
                   "カスタマイズオプションの追加",
                   "ユーザーフィードバックの反映"
                 ],
-                color: "bg-teal-500/10 border-teal-500/20",
+                color: "bg-category-2/10 border-category-2/20",
               },
               {
                 emoji: "🌳",
@@ -361,7 +361,7 @@ export default function Home() {
                   "コミュニティ機能の強化",
                   "季節イベントの導入"
                 ],
-                color: "bg-blue-500/10 border-blue-500/20",
+                color: "bg-category-1/10 border-category-1/20",
               },
               {
                 emoji: "🌟",
@@ -373,7 +373,7 @@ export default function Home() {
                   "追加コンテンツの定期配信",
                   "ユーザーとの共創の場の提供"
                 ],
-                color: "bg-indigo-500/10 border-indigo-500/20",
+                color: "bg-category-3/10 border-category-3/20",
               }
             ].map((phase) => (
               <div
