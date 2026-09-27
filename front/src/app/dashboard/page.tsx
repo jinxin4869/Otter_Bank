@@ -414,7 +414,8 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* md 以上: カワウソを左に置き、右に収入・支出・収支を横長で縦に積む（高さを揃えて余白を出さない） */}
+      {/* md 以上: カワウソを左に置き、右に収入・支出・収支を横長で縦に積む（高さを揃えて余白を出さない）。
+          row-span-3 は右側が常に 3 枚ある前提なので、カードを条件付きで出し分けるときは配置も見直す */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <Card className="md:row-span-3">
           <CardHeader className="pb-2">
