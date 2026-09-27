@@ -80,7 +80,7 @@ export default function Home() {
           <div>
             <h2 className="text-3xl font-bold mb-4">楽しく貯金、賢く管理</h2>
             <p className="text-lg mb-6">
-              水獭银行は単なる家計簿アプリではありません。かわいいカワウソと一緒にお金の管理を楽しく続けられるアプリです。
+              獺獺銀行は単なる家計簿アプリではありません。かわいいカワウソと一緒にお金の管理を楽しく続けられるアプリです。
             </p>
             <ul className="space-y-4">
               <li className="flex items-start gap-3">
