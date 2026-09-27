@@ -115,6 +115,15 @@
   }
   /* グローバルなスタイル */
 
+  /* Tailwind 4 の border 既定色は currentColor のため、枠線の色を指定しないときは --border にする */
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: hsl(var(--border));
+  }
+
   body {
     @apply antialiased;
     background-color: hsl(var(--background));
