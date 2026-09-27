@@ -11,8 +11,10 @@ services:
     envVars:
       - key: RAILS_ENV
         value: production
-      - key: RAILS_MASTER_KEY
-        sync: false
+      # JWT の署名鍵。Render が初回に強い乱数を生成し以後保持する。
+      # 人が値を扱わないため、リポジトリや手元に鍵が残らない
+      - key: JWT_SECRET
+        generateValue: true
       - key: SECRET_KEY_BASE
         generateValue: true
       - key: WEB_CONCURRENCY

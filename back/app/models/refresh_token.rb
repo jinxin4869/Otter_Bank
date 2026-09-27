@@ -29,9 +29,17 @@ class RefreshToken < ApplicationRecord
     record&.active? ? record : nil
   end
 
+  # 署名鍵は JsonWebToken と同一のものを使う（アクセストークンと出所を揃える）。
+  # 以前は credentials.secret_key_base を優先していたが、復号鍵が公開されたため参照をやめた
   def self.digest(plain_token)
-    secret = Rails.application.credentials.secret_key_base || ENV.fetch('JWT_SECRET', 'fallback')
-    OpenSSL::HMAC.hexdigest('SHA256', secret, plain_token.to_s)
+    OpenSSL::HMAC.hexdigest('SHA256', JsonWebToken.hmac_secret, plain_token.to_s)
+  end
+
+  # 署名鍵のローテーション後に既存トークンを一括失効させる。
+  # 鍵が変わるとダイジェストが一致しなくなり実質使えなくなるが、
+  # 失効済みであることを明示的にレコードへ残すために使う。戻り値は件数
+  def self.revoke_all!
+    where(revoked: false).update_all(revoked: true, updated_at: Time.current)
   end
 
   def active?
