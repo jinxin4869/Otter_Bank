@@ -198,7 +198,7 @@ contacts                       (ユーザーと非連携)
 | `user_actions` テーブル | モデルと関連のみで書き込み箇所なし | 使う予定がなければ削除 |
 | `oauth_providers.access_token / refresh_token / expires_at` | 保存していない（保存すべきでもない） | 列を削除 |
 | ルートの `Gemfile.lock` | Rails 8.0.1 時代の残骸（`back/Gemfile.lock` が本物） | 削除 |
-| `front/tailwind.config.ts` と `tailwindcss-animate` | Tailwind 4 では `@config` がないため読み込まれていない。アニメーションは `tw-animate-css` が担当 | 削除（トークンは `globals.css` の `@theme` に一本化） |
+| ~~`front/tailwind.config.ts` と `tailwindcss-animate`~~ | 対応済み（2026-09-27）: container 設定を `globals.css` に移して削除 | — |
 | `@shadcn/ui`（devDependency） | 旧 CLI パッケージ。コードからは未参照 | 削除（コンポーネント追加は `npx shadcn@latest add`） |
 | `eslint-config-next@15` | `next@16` とメジャーがずれている | 16 系に揃える |
 | `next.config.ts` の `rewrites` | フロントは API を直接叩いているため未使用の経路 | 使わないなら削除（残すならどちらかに統一） |
