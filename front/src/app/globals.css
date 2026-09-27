@@ -8,6 +8,12 @@
 /* dark: を OS 設定ではなく next-themes が付ける .dark クラスで切り替える */
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* container は中央寄せ + 左右 2rem の余白（旧 tailwind.config.ts の設定を移行） */
+@utility container {
+  margin-inline: auto;
+  padding-inline: 2rem;
+}
+
 @layer base {
   :root {
     /* ---- ベース（暖色オレンジ） ---- */
