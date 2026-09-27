@@ -48,7 +48,7 @@ export default function Home() {
             <div className="absolute -left-12 bottom-0 w-96 h-80">
               <Image
                 src="/otter_bank.svg"
-                alt="Happy Otter with Money"
+                alt="コインと貯金箱を持つカワウソ"
                 fill
                 className="object-contain"
               />
@@ -56,7 +56,7 @@ export default function Home() {
             <div className="absolute right-0 top-20 w-80 h-80 rotate-6">
               <Image
                 src="/otter_umbrella.png"
-                alt="App Preview"
+                alt="傘をさすカワウソ"
                 fill
                 className="object-contain rounded-2xl shadow-2xl dark:shadow-slate-700/50 border dark:border-slate-600/30"
               />
@@ -64,7 +64,7 @@ export default function Home() {
             <div className="absolute right-20 bottom-10 w-64 h-64 -rotate-3">
               <Image
                 src="/otter_mathtest.svg"
-                alt="Savings Chart"
+                alt="計算するカワウソ"
                 fill
                 className="object-contain rounded-2xl shadow-xl dark:shadow-slate-700/50 border dark:border-slate-600/30"
               />
@@ -274,7 +274,7 @@ export default function Home() {
                         <div className="shrink-0 w-full h-full relative">
                           <Image
                             src="/app-top.png"
-                            alt="Otter Bank Dashboard"
+                            alt="Otter Bank のダッシュボード画面"
                             fill
                             className="object-cover rounded-lg border dark:border-slate-600/30"
                           />
@@ -296,7 +296,7 @@ export default function Home() {
                   <div className="absolute -bottom-20 right-20 w-40 h-40 z-10">
                     <Image
                       src="/otter_logo.svg"
-                      alt="Happy Otter"
+                      alt="笑顔のカワウソ"
                       fill
                       className="object-contain animate-bounce dark:drop-shadow-lg"
                     />
@@ -473,7 +473,7 @@ export default function Home() {
                   <div className="absolute inset-0 flex items-center justify-center">
                     <Image
                       src="/otter_glasses.svg"
-                      alt="Happy Otter"
+                      alt="笑顔のカワウソ"
                       width={300}
                       height={300}
                       className="object-contain dark:drop-shadow-lg"
