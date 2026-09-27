@@ -11,6 +11,7 @@ import { ja } from "date-fns/locale"
 import { Heart, ThumbsUp, MessageCircle, MoreVertical, Edit, Trash2, Bookmark, BookmarkCheck, MessageSquare, Eye } from "lucide-react"
 import { type Post } from "@/types/post"
 import { BOARD_CATEGORIES, getCategoryColor, getUserInitial } from "./board-constants"
+import { cn } from "@/lib/utils"
 
 type PostCardProps = {
   post: Post
@@ -54,15 +55,15 @@ function PostCard({ post, isLiked, isBookmarked, isOwner, onLike, onBookmark, on
                     <MoreVertical className="h-4 w-4" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="board-dialog-content">
+                <DropdownMenuContent align="end">
                   <DropdownMenuItem onClick={() => onEdit(post)}>
                     <Edit className="mr-2 h-4 w-4" />
                     編集
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
+                    variant="destructive"
                     onClick={() => onDeleteRequest(post.id)}
-                    className="text-red-600"
                   >
                     <Trash2 className="mr-2 h-4 w-4" />
                     削除
@@ -73,7 +74,7 @@ function PostCard({ post, isLiked, isBookmarked, isOwner, onLike, onBookmark, on
           </div>
         </div>
         <CardTitle
-          className="text-xl cursor-pointer hover:text-blue-600"
+          className="text-xl cursor-pointer hover:text-primary"
           onClick={() => onView(post)}
         >
           {post.title}
@@ -93,7 +94,7 @@ function PostCard({ post, isLiked, isBookmarked, isOwner, onLike, onBookmark, on
       <CardContent>
         <p className="line-clamp-3">{post.content}</p>
       </CardContent>
-      <CardFooter className="flex justify-between pt-2">
+      <CardFooter className="flex flex-wrap items-center justify-between gap-2 pt-2">
         <div className="flex space-x-4 text-sm text-muted-foreground">
           <div className="flex items-center">
             <ThumbsUp className="mr-1 h-4 w-4" />
@@ -108,22 +109,23 @@ function PostCard({ post, isLiked, isBookmarked, isOwner, onLike, onBookmark, on
             <span>{post.views}</span>
           </div>
         </div>
-        <div className="flex space-x-2">
-          <Button variant="ghost" size="sm" onClick={() => onLike(post.id)}>
-            <Heart className={`mr-1 h-4 w-4 ${isLiked ? "fill-red-500 text-red-500" : ""}`} />
-            いいね
+        {/* スマホ幅ではアイコンのみにして 1 行に収める（ラベルは aria-label で読み上げる） */}
+        <div className="flex gap-1">
+          <Button variant="ghost" size="sm" onClick={() => onLike(post.id)} aria-label="いいね" aria-pressed={isLiked}>
+            <Heart className={cn("h-4 w-4", isLiked && "fill-primary text-primary")} />
+            <span className="hidden sm:inline">いいね</span>
           </Button>
-          <Button variant="ghost" size="sm" onClick={() => onBookmark(post.id)}>
+          <Button variant="ghost" size="sm" onClick={() => onBookmark(post.id)} aria-label="ブックマーク" aria-pressed={isBookmarked}>
             {isBookmarked ? (
-              <BookmarkCheck className="mr-1 h-4 w-4 text-blue-600" />
+              <BookmarkCheck className="h-4 w-4 text-primary" />
             ) : (
-              <Bookmark className="mr-1 h-4 w-4" />
+              <Bookmark className="h-4 w-4" />
             )}
-            ブックマーク
+            <span className="hidden sm:inline">ブックマーク</span>
           </Button>
-          <Button variant="ghost" size="sm" onClick={() => onView(post)}>
-            <MessageSquare className="mr-1 h-4 w-4" />
-            詳細
+          <Button variant="ghost" size="sm" onClick={() => onView(post)} aria-label="詳細">
+            <MessageSquare className="h-4 w-4" />
+            <span className="hidden sm:inline">詳細</span>
           </Button>
         </div>
       </CardFooter>

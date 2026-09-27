@@ -210,7 +210,7 @@ export default function TutorialPage() {
               <button
                 key={index}
                 onClick={() => setCurrentStep(index)}
-                className={`h-2.5 w-2.5 rounded-full transition-colors ${currentStep === index ? "bg-primary scale-125" : "bg-gray-300 hover:bg-gray-400"
+                className={`h-2.5 w-2.5 rounded-full transition-colors ${currentStep === index ? "bg-primary scale-125" : "bg-muted-foreground/30 hover:bg-muted-foreground/50"
                   }`}
                 aria-label={`ステップ ${index + 1} へ移動`}
               />

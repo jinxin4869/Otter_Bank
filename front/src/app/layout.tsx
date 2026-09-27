@@ -10,7 +10,7 @@ import { Toaster } from "@/components/ui/sonner"
 const inter = Inter({ subsets: ["latin"], variable: '--font-inter' })
 
 export const metadata: Metadata = {
-  title: "水獭银行 (Otter Bank)",
+  title: "獺獺銀行 (Otter Bank)",
   description: "お金の管理をするためアプリ - カワウソがあなたの出費に応じてリアクションを反応してくれます！",
 }
 

@@ -34,7 +34,7 @@ export default function PostDetailDialog({
 }: PostDetailDialogProps) {
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[800px] max-h-[80vh] overflow-y-auto board-dialog-content">
+      <DialogContent className="sm:max-w-[800px] max-h-[80vh] overflow-y-auto bg-popover text-popover-foreground">
         {post && (
           <>
             <DialogHeader>
@@ -58,8 +58,8 @@ export default function PostDetailDialog({
                   <AvatarFallback>{getUserInitial(post.author)}</AvatarFallback>
                 </Avatar>
                 <div>
-                  <p className="font-medium text-gray-900 dark:text-gray-100">{post.author}</p>
-                  <p className="text-sm text-gray-600 dark:text-gray-300">
+                  <p className="font-medium text-foreground">{post.author}</p>
+                  <p className="text-sm text-muted-foreground">
                     {format(new Date(post.createdAt), "yyyy年MM月dd日 HH:mm", { locale: ja })}
                   </p>
                 </div>
@@ -67,7 +67,7 @@ export default function PostDetailDialog({
             </DialogHeader>
 
             <div className="py-4">
-              <div className="whitespace-pre-wrap text-gray-800 dark:text-gray-100 mb-6">
+              <div className="whitespace-pre-wrap text-foreground mb-6">
                 {post.content}
               </div>
               <CommentSection

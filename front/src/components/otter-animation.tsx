@@ -9,6 +9,15 @@ import { TIER_CONFIG, TierIcon } from "@/lib/tier"
 // カワウソの気分。excited は実績解除直後、sleeping は長期未ログイン時に使用する
 export type OtterMood = "happy" | "neutral" | "sad" | "excited" | "sleeping"
 
+// 画像の代替テキスト（スクリーンリーダー向け）
+const MOOD_ALT: Record<OtterMood, string> = {
+  happy: "喜んでいるカワウソ",
+  neutral: "落ち着いているカワウソ",
+  sad: "心配しているカワウソ",
+  excited: "大喜びしているカワウソ",
+  sleeping: "眠っているカワウソ",
+}
+
 type OtterAnimationProps = {
   mood: OtterMood
   customMessage?: string
@@ -88,7 +97,7 @@ export default function OtterAnimation({ mood, customMessage, growthStage }: Ott
       >
         <Image
           src={`/otter_${mood}.png`}
-          alt={`Otter feeling ${mood}`}
+          alt={MOOD_ALT[mood]}
           fill
           className={cn("object-contain transition-all duration-300", isAnimating && "scale-110")}
         />
@@ -111,11 +120,11 @@ export default function OtterAnimation({ mood, customMessage, growthStage }: Ott
       <div
         className={cn(
           "bg-primary/10 p-2 rounded-lg w-full text-center text-sm",
-          mood === "happy" && "bg-green-100 dark:bg-green-900/20",
-          mood === "neutral" && "bg-blue-100 dark:bg-blue-900/20",
-          mood === "sad" && "bg-amber-100 dark:bg-amber-900/20",
-          mood === "excited" && "bg-purple-100 dark:bg-purple-900/20",
-          mood === "sleeping" && "bg-slate-100 dark:bg-slate-800/40",
+          mood === "happy" && "bg-category-4/15",
+          mood === "neutral" && "bg-muted",
+          mood === "sad" && "bg-category-6/15",
+          mood === "excited" && "bg-category-2/20",
+          mood === "sleeping" && "bg-secondary",
         )}
       >
         <p className="text-center">{message}</p>

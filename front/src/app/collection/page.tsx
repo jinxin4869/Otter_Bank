@@ -111,27 +111,33 @@ export default function CollectionPage() {
           </Card>
 
           {achievementSummary && (
-            <div className="md:col-span-3 p-4 bg-card text-card-foreground rounded-lg border flex flex-col justify-center">
-              <h3 className="text-xl font-semibold mb-3 text-card-foreground">実績サマリー</h3>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-                <div>
-                  <p className="text-2xl font-bold text-primary">{achievementSummary.totalAchievements}</p>
-                  <p className="text-sm text-muted-foreground">総実績数</p>
+            <Card className="md:col-span-3 flex flex-col">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base">実績サマリー</CardTitle>
+                <CardDescription>カテゴリごとの達成状況</CardDescription>
+              </CardHeader>
+              {/* 高さはカワウソのカードに揃うため、数字は残りの高さの中で縦中央に置く */}
+              <CardContent className="flex flex-1 items-center">
+                <div className="grid w-full grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-4 text-center">
+                  <div>
+                    <p className="text-2xl font-bold text-primary">{achievementSummary.totalAchievements}</p>
+                    <p className="text-sm text-muted-foreground">総実績数</p>
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold text-primary">{achievementSummary.unlockedAchievements}</p>
+                    <p className="text-sm text-muted-foreground">達成済み</p>
+                  </div>
+                  {Object.entries(achievementSummary.progressByCategory).map(([category, summary]) => (
+                    summary && summary.total > 0 && (
+                      <div key={category}>
+                        <p className="text-2xl font-bold text-accent-foreground">{summary.progressPercentage}%</p>
+                        <p className="text-sm text-muted-foreground capitalize">{categoryLabels[category] ?? category} 達成率</p>
+                      </div>
+                    )
+                  ))}
                 </div>
-                <div>
-                  <p className="text-2xl font-bold text-green-600 dark:text-green-400">{achievementSummary.unlockedAchievements}</p>
-                  <p className="text-sm text-muted-foreground">達成済み</p>
-                </div>
-                {Object.entries(achievementSummary.progressByCategory).map(([category, summary]) => (
-                  summary && summary.total > 0 && (
-                    <div key={category}>
-                      <p className="text-2xl font-bold text-accent-foreground">{summary.progressPercentage}%</p>
-                      <p className="text-sm text-muted-foreground capitalize">{categoryLabels[category] ?? category} 達成率</p>
-                    </div>
-                  )
-                ))}
-              </div>
-            </div>
+              </CardContent>
+            </Card>
           )}
         </section>
       )}
@@ -143,7 +149,7 @@ export default function CollectionPage() {
           <h2 className="text-2xl font-semibold text-foreground">実績一覧</h2>
         </div>
         <Tabs value={activeTab} onValueChange={filterAchievements} className="mb-6">
-          <TabsList className="bg-muted">
+          <TabsList className="bg-muted max-w-full justify-start overflow-x-auto scrollbar-none">
             {ACHIEVEMENT_CATEGORIES.map((cat) => (
               <TabsTrigger key={cat} value={cat} className="capitalize px-4 py-2 data-[state=active]:bg-background data-[state=active]:text-foreground">
                 {categoryLabels[cat] || cat}
@@ -222,14 +228,14 @@ export default function CollectionPage() {
                 key={ach.id}
                 className={cn(
                   "flex flex-col transition-all hover:shadow-lg bg-card border",
-                  ach.unlocked ? "border-green-500 dark:border-green-600" : "border-border"
+                  ach.unlocked ? "border-primary" : "border-border"
                 )}
               >
                 <CardHeader className="p-4">
                   <div className="relative w-full aspect-video mb-3">
                     <AchievementImage imageUrl={ach.imageUrl} title={ach.title} tier={ach.tier} unlocked={ach.unlocked} />
                     {ach.unlocked && (
-                      <Badge className="absolute top-2 right-2 bg-green-500 hover:bg-green-600 text-white text-xs px-2 py-1">
+                      <Badge className="absolute top-2 right-2 bg-primary hover:bg-primary/90 text-primary-foreground text-xs px-2 py-1">
                         <UnlockIcon className="h-3 w-3 mr-1" />達成済
                       </Badge>
                     )}

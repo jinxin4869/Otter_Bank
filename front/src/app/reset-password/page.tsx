@@ -50,9 +50,9 @@ export default function ResetPassword() {
         </CardHeader>
         <CardContent>
           {successMessage ? (
-            <Alert className="border-green-200 bg-green-50 dark:bg-green-950">
-              <CheckCircle2 className="h-4 w-4 text-green-600" />
-              <AlertDescription className="text-green-700 dark:text-green-300">
+            <Alert className="border-primary/30 bg-accent">
+              <CheckCircle2 className="h-4 w-4 text-primary" />
+              <AlertDescription className="text-accent-foreground">
                 {successMessage}
               </AlertDescription>
             </Alert>

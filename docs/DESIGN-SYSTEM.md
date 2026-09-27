@@ -79,6 +79,31 @@
 - 収入の金額には必ず `+`、支出には `−` を付ける（色だけで区別しない）
 - 支出は `--destructive` と使い分ける。支出はエラーではない
 
+#### カテゴリの色分け
+
+種類を色で見分けるための暖色 6 色。**収入/支出や成功/失敗などの意味は持たせない**。
+文字色として使い、背景は `/10`〜`/20` の透過で敷く（例: `bg-category-1/10 text-category-1 border-category-1/30`）。透過背景の上で文字のコントラスト比 4.5:1 以上になる明度にしている。
+
+| トークン | 色 | ライト | ダーク（1b） |
+|---|---|---|---|
+| `--category-1` | オレンジ | `30 80% 31%` | `32 80% 65%` |
+| `--category-2` | マスタード | `45 80% 25%` | `45 70% 60%` |
+| `--category-3` | ローズ | `345 55% 42%` | `345 65% 72%` |
+| `--category-4` | オリーブ | `75 45% 28%` | `75 40% 62%` |
+| `--category-5` | ココア | `20 40% 35%` | `25 40% 70%` |
+| `--category-6` | プラム | `320 35% 40%` | `320 40% 74%` |
+
+現在の割り当て:
+
+| 用途 | 割り当て |
+|---|---|
+| 掲示板カテゴリ（`board-constants.ts`） | 貯金のコツ=1 / 投資=4 / 予算管理=2 / 借金返済=3 / 副収入=5 / 体験談=6 / 質問=`secondary` / その他=`muted` |
+| トップの機能カード | 1 / 2 / 4 / 3 |
+| トップのロードマップ | 4 → 2 → 1 → 3（段階が進むほど色が変わる） |
+| カワウソの吹き出し | §6 を参照 |
+
+色が 6 色で足りない場合は、無理に増やさず `secondary` / `muted` で中立に表す。
+
 #### レイアウト
 
 | トークン | ライト | ダーク（1b） |
@@ -102,6 +127,13 @@
 | 支出カード | `bg-expense-bg border-expense-border text-expense` |
 | 補足テキスト | `text-muted-foreground` |
 | カード | `bg-card text-card-foreground border-border` |
+| 種類の色分け（バッジ等） | `bg-category-N/10 text-category-N border-category-N/30` |
+| ローディング | `text-primary`（`Loader2 animate-spin`） |
+| 入力エラー | `text-destructive` / `border-destructive` |
+| リンク | `text-primary hover:text-primary/80` |
+| 成功メッセージ | `bg-accent text-accent-foreground border-primary/30`（成功専用のトークンは持たない） |
+| グラフ（recharts） | `fill` / `stroke` に `"hsl(var(--income))"` のように CSS 変数を渡す（テーマ切替に自動で追従する） |
+| フッター内の補足テキスト | `text-current/70`（`--footer-fg` を薄くする） |
 
 ### 2.4 禁止
 
@@ -193,18 +225,18 @@ UI トークンとは別に管理し、イラスト制作時のみ使う。コ�
 
 ## 6. カワウソ（マスコット）
 
-| mood | 画像 | 表示する状況 |
-|---|---|---|
-| `happy` | `otter_happy.png` | 収支がプラス・予算内 |
-| `neutral` | `otter_neutral.png` | 通常 |
-| `sad` | `otter_sad.png` | 予算超過・支出過多（責めない表情） |
-| `excited` | `otter_excited.png` | 実績解除・目標達成 |
-| `sleeping` | `otter_sleeping.png` | 長期間ログインがなかった |
+| mood | 画像 | 表示する状況 | 吹き出しの背景 |
+|---|---|---|---|
+| `happy` | `otter_happy.png` | 収支がプラス・予算内 | `bg-category-4/15`（オリーブ） |
+| `neutral` | `otter_neutral.png` | 通常 | `bg-muted` |
+| `sad` | `otter_sad.png` | 予算超過・支出過多（責めない表情） | `bg-category-6/15`（プラム。警告色にしない） |
+| `excited` | `otter_excited.png` | 実績解除・目標達成 | `bg-category-2/20`（マスタード） |
+| `sleeping` | `otter_sleeping.png` | 長期間ログインがなかった | `bg-secondary` |
 
 - 画像は `front/public/otter_<mood>.png` に置き、`next/image` で表示する
 - セリフは mood ごとの候補からランダムに 1 つ選ぶ（`MOOD_MESSAGES`）。口調はやさしいタメ口・語尾に「〜だよ」「〜しよう」、否定や命令はしない
 - 気分の導出は `useMemo` で行う（state + effect にしない）
-- 画像には必ず状況がわかる日本語の `alt`（例:「喜んでいるカワウソ」）を付ける（現状は英語の `Otter feeling ${mood}`）
+- 画像には必ず状況がわかる日本語の `alt` を付ける（`MOOD_ALT` で mood ごとに定義）
 
 ## 7. モーション
 
@@ -247,13 +279,16 @@ UI トークンとは別に管理し、イラスト制作時のみ使う。コ�
 - `header.tsx` の slate / indigo / orange / red の直書きをトークンと variant に置き換え、背景は `header` セレクター（`--header-bg`）に任せた
 - `button.tsx` の destructive を `text-destructive-foreground` にした（`@theme` に `--color-destructive-foreground` を追加）
 
+### 対応済み（2026-09-27）
+
+- 枠線の既定色を `--border` にした（Tailwind 4 の既定は `currentColor` で、カードの枠がライトで濃い茶色になっていた）
+- パレット色の直書きをトークンに置き換えた（`tier.tsx` を除き 0 件）。種類の色分け用に `--category-1〜6` を追加した
+- `globals.css` の `!important` 付きカスタムクラス（33 箇所）を、使用箇所のトークンクラスに置き換えて削除した。`[data-radix-dialog-*]` 向けのルールは Radix がその属性を付けないため、もともと効いていなかった
+- `container` の設定を `@utility container`（中央寄せ + 左右 2rem）に移し、読み込まれていなかった `tailwind.config.ts` と `tailwindcss-animate` を削除した。最大幅は Tailwind 4 の標準値（〜96rem）に従う
+- アプリ名を「獺獺銀行」に統一し、画像の `alt` を日本語にした
+- フッターを `--footer-bg` / `--footer-fg` に任せた（ダークで紺色になっていた）
+
 ### 未対応
 
-1. **枠線の既定色が文字色になっている** — Tailwind 4 の `border` の既定色は `currentColor`。shadcn が前提とする `* { border-color: hsl(var(--border)) }` がないため、`Card` などの枠がライトで濃い茶色になる。`@layer base` に既定の枠線色を追加する
-2. **パレット色の直書きがアプリ全体に残っている**（例: `footer.tsx` はダークで紺色になる） — 約 160 箇所・22 ファイル（ティア定義の `tier.tsx` を含む）（`dashboard` `board` `login` `register` `tutorial` `footer` 等）。画面単位でトークンに置き換える
-3. **`!important` の色上書き** — `globals.css` に 33 箇所（`.transaction-history-icon` `.warm-bg-icon` など）。トークンで表現できるものから外す
-4. **`front/tailwind.config.ts` は読み込まれていない** — Tailwind 4 では `@config` がないため無効。このため `container` の設定（中央寄せ・`padding: 2rem`・`2xl` 以上のブレークポイント）も効いておらず、トップページ等で本文が画面の左端に張り付いている。`container` の設定を `globals.css` の `@utility container` / `@theme` に移してから、`tailwindcss-animate` と合わせて削除する
-5. **`layout.tsx` の `metadata.title` が簡体字「水獭银行」**（UI は日本語「獺獺銀行」）
-6. **カワウソ画像の `alt` が英語**（`Otter feeling ${mood}`）
-
-修正の順番: 1 → 2・3 → 4（1 を直すと画面全体の枠線の見え方が変わるため先に行う）
+1. **支出の円グラフ（`expense-pie-chart.tsx`）の色が HEX 直書き** — 10 カテゴリを見分ける必要があり、暖色だけでは区別しにくい。グラフ用の `--chart-*` トークンを定義し、グラフに限り寒色も許すかを別途決める
+2. **トップページの紹介画像（`public/app-top.png`）が旧デザインのスクリーンショット** — 青系の旧 UI が写っているので撮り直す

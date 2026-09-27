@@ -13,23 +13,23 @@ export default function Footer() {
   const currentYear = new Date().getFullYear()
 
   return (
-    <footer className="border-t bg-background dark:border-slate-800 dark:bg-slate-900">
+    <footer className="border-t border-current/20">
       <div className="container mx-auto px-4 py-8">
         <div className="flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="text-center md:text-left">
             <Link href="/" className="text-lg font-semibold hover:text-primary transition-colors">
-              水獭银行 (Otter Bank)
+              獺獺銀行 (Otter Bank)
             </Link>
-            <p className="text-sm text-muted-foreground dark:text-slate-400 mt-1">
+            <p className="text-sm text-current/70 mt-1">
               &copy; {currentYear} Otter Bank. All rights reserved.
             </p>
           </div>
 
           <div className="flex items-center gap-4">
-            <Link href="/terms" className="text-sm text-muted-foreground hover:text-primary transition-colors dark:text-slate-400 dark:hover:text-primary-foreground">
+            <Link href="/terms" className="text-sm text-current/70 hover:text-primary transition-colors">
               利用規約
             </Link>
-            <Link href="/privacy" className="text-sm text-muted-foreground hover:text-primary transition-colors dark:text-slate-400 dark:hover:text-primary-foreground">
+            <Link href="/privacy" className="text-sm text-current/70 hover:text-primary transition-colors">
               プライバシーポリシー
             </Link>
           </div>
@@ -40,7 +40,7 @@ export default function Footer() {
               target="_blank"
               rel="noopener noreferrer"
               aria-label="GitHub"
-              className="text-muted-foreground hover:text-primary transition-colors dark:text-slate-400 dark:hover:text-primary-foreground"
+              className="text-current/70 hover:text-primary transition-colors"
             >
               <GithubIcon className="h-5 w-5" />
             </a>
@@ -55,8 +55,8 @@ export default function Footer() {
             */}
           </div>
         </div>
-        <div className="mt-6 pt-6 border-t dark:border-slate-700 text-center">
-          <p className="text-xs text-muted-foreground dark:text-slate-500">
+        <div className="mt-6 pt-6 border-t border-current/20 text-center">
+          <p className="text-xs text-current/60">
             このアプリはポートフォリオ目的で作成されました。実際の金融サービスを提供するものではありません。
           </p>
         </div>

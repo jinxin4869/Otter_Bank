@@ -327,10 +327,10 @@ export default function DashboardPage() {
 
     if (categoryData) {
       const IconComponent = categoryData.icon.type
-      return <IconComponent className="h-4 w-4 transition-history-icon warm-bg-icon" />
+      return <IconComponent className="h-4 w-4 text-foreground" />
     }
 
-    return <HelpCircle className="h-4 w-4 transaction-history-icon warm-bg-icon" />
+    return <HelpCircle className="h-4 w-4 text-foreground" />
   }
 
   const getViewTitle = () => {
@@ -367,7 +367,7 @@ export default function DashboardPage() {
   if (authIsLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-12 w-12 animate-spin text-blue-600" />
+        <Loader2 className="h-12 w-12 animate-spin text-primary" />
       </div>
     )
   }
@@ -405,7 +405,7 @@ export default function DashboardPage() {
             <SelectTrigger className="w-[100px]">
               <SelectValue />
             </SelectTrigger>
-            <SelectContent className="board-dialog-content">
+            <SelectContent>
               <SelectItem value="day">日別</SelectItem>
               <SelectItem value="month">月別</SelectItem>
               <SelectItem value="year">年別</SelectItem>
@@ -414,8 +414,10 @@ export default function DashboardPage() {
         </div>
       </div>
 
+      {/* md 以上: カワウソを左に置き、右に収入・支出・収支を横長で縦に積む（高さを揃えて余白を出さない）。
+          row-span-3 は右側が常に 3 枚ある前提なので、カードを条件付きで出し分けるときは配置も見直す */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Card className="md:col-span-1">
+        <Card className="md:row-span-3">
           <CardHeader className="pb-2">
             <CardTitle>カワウソの様子</CardTitle>
             <CardDescription>財政状況に応じて変化</CardDescription>
@@ -425,7 +427,7 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
 
-        <Card className="bg-income-bg border-income-border">
+        <Card className="md:col-span-3 justify-center bg-income-bg border-income-border">
           <CardHeader className="pb-2">
             <CardDescription>総収入</CardDescription>
             <CardTitle className="text-2xl text-income flex items-center">
@@ -435,7 +437,7 @@ export default function DashboardPage() {
           </CardHeader>
         </Card>
 
-        <Card className="bg-expense-bg border-expense-border">
+        <Card className="md:col-span-3 justify-center bg-expense-bg border-expense-border">
           <CardHeader className="pb-2">
             <CardDescription>総支出</CardDescription>
             <CardTitle className="text-2xl text-expense flex items-center">
@@ -447,10 +449,10 @@ export default function DashboardPage() {
 
         <Card
           className={cn(
-            "bg-linear-to-br",
+            "md:col-span-3 justify-center bg-linear-to-br",
             balance >= 0
-              ? "from-teal-50/80 to-teal-100/50 dark:from-teal-900/10 dark:to-teal-800/10 border-teal-200/70 dark:border-teal-800/30"
-              : "from-amber-50/80 to-amber-100/50 dark:from-amber-900/10 dark:to-amber-800/10 border-amber-200/70 dark:border-amber-800/30",
+              ? "from-income-bg to-income-bg/50 border-income-border"
+              : "from-expense-bg to-expense-bg/50 border-expense-border",
           )}
         >
           <CardHeader className="pb-2">
@@ -458,7 +460,7 @@ export default function DashboardPage() {
             <CardTitle
               className={cn(
                 "text-2xl flex items-center",
-                balance >= 0 ? "text-teal-500 dark:text-teal-300" : "text-amber-500 dark:text-amber-300",
+                balance >= 0 ? "text-income" : "text-expense",
               )}
             >
               <Wallet className="mr-2 h-5 w-5" />
@@ -477,7 +479,7 @@ export default function DashboardPage() {
             <div className="space-y-4">
               {isDataLoading ? (
                 <div className="flex justify-center py-8">
-                  <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
                 </div>
               ) : filteredTransactions.length === 0 ? (
                 <p className="text-center text-muted-foreground py-4">この期間の取引はありません</p>
@@ -575,9 +577,9 @@ export default function DashboardPage() {
                   value={amount}
                   onChange={handleAmountChange}
                   required
-                  className={amountError ? "border-red-500" : ""}
+                  className={amountError ? "border-destructive" : ""}
                 />
-                {amountError && <p className="text-sm text-red-500">{amountError}</p>}
+                {amountError && <p className="text-sm text-destructive">{amountError}</p>}
               </div>
 
               <div className="space-y-2">
@@ -611,11 +613,10 @@ export default function DashboardPage() {
               <div className="space-y-2">
                 <Label htmlFor="category">カテゴリー</Label>
                 <Select value={category} onValueChange={setCategory} required>
-                  <SelectTrigger className="w-full bg-orange-200">
+                  <SelectTrigger className="w-full">
                     <SelectValue placeholder="カテゴリーを選択" />
                   </SelectTrigger>
                   <SelectContent
-                    className="board-dialog-content"
                     position="item-aligned"
                     align="start"
                     side="bottom"
@@ -625,7 +626,7 @@ export default function DashboardPage() {
                       <SelectItem
                         key={cat.value}
                         value={cat.value}
-                        className={`select-item-custom ${type === "income" ? "income-category-item" : "expense-category-item"}`}
+                        className={cn("cursor-pointer", type === "income" ? "text-income" : "text-expense")}
                       >
                         <div className="flex items-center gap-2">
                           {cat.icon}
@@ -656,7 +657,7 @@ export default function DashboardPage() {
                       {format(date, "yyyy年MM月dd日", { locale: ja })}
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0 board-dialog-content">
+                  <PopoverContent className="w-auto p-0">
                     <Calendar mode="single" selected={date} onSelect={(date) => date && setDate(date)} initialFocus />
                   </PopoverContent>
                 </Popover>
@@ -676,7 +677,7 @@ export default function DashboardPage() {
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2">
-              <Trophy className="h-5 w-5 text-yellow-500" />
+              <Trophy className="h-5 w-5 text-primary" />
               最近解除した実績
             </CardTitle>
             <CardDescription>直近で達成した実績（最大3件）</CardDescription>
@@ -688,7 +689,7 @@ export default function DashboardPage() {
                   key={ach.id}
                   className="flex items-center gap-2 rounded-lg border bg-card px-4 py-2 shadow-sm"
                 >
-                  <Trophy className="h-4 w-4 shrink-0 text-yellow-500" />
+                  <Trophy className="h-4 w-4 shrink-0 text-primary" />
                   <div>
                     <p className="text-sm font-medium leading-none">{ach.title}</p>
                     <p className="mt-1 text-xs text-muted-foreground">{ach.description}</p>

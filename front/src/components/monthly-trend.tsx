@@ -1,7 +1,6 @@
 "use client"
 
 import React from "react"
-import { useTheme } from "next-themes"
 import { format, subMonths, startOfMonth, endOfMonth, parseISO } from "date-fns"
 import { ja } from "date-fns/locale"
 import {
@@ -30,8 +29,6 @@ type MonthlyTrendProps = {
 }
 
 function MonthlyTrend({ transactions }: MonthlyTrendProps) {
-  const { theme } = useTheme()
-
   const today = new Date()
   const lastSixMonthsData = Array.from({ length: 6 })
     .map((_, i) => {
@@ -88,12 +85,12 @@ function MonthlyTrend({ transactions }: MonthlyTrendProps) {
     return value
   }
 
-  // テーマに応じた色設定
-  const incomeColor = theme === "dark" ? "#68D391" : "#4CAF50" // 明るい緑 / 緑
-  const expenseColor = theme === "dark" ? "#FC8181" : "#FF6347" // 明るい赤 / トマト色
-  const balanceColor = theme === "dark" ? "#63B3ED" : "#2196F3" // 明るい青 / 青
-  const gridColor = theme === "dark" ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.1)"
-  const textColor = theme === "dark" ? "#CBD5E0" : "#4A5568" // やや明るいグレー / やや暗いグレー
+  // デザイントークンの色（CSS 変数なのでライト/ダークの切替に自動で追従する）
+  const incomeColor = "hsl(var(--income))"
+  const expenseColor = "hsl(var(--expense))"
+  const balanceColor = "hsl(var(--primary))"
+  const gridColor = "hsl(var(--border))"
+  const textColor = "hsl(var(--muted-foreground))"
 
   return (
     <ResponsiveContainer width="100%" height="100%">
@@ -129,11 +126,11 @@ function MonthlyTrend({ transactions }: MonthlyTrendProps) {
           formatter={tooltipFormatter}
           labelStyle={{ color: textColor, fontWeight: "bold" }}
           contentStyle={{
-            backgroundColor: theme === "dark" ? "rgba(0,0,0,0.8)" : "rgba(255,255,255,0.9)",
-            borderColor: theme === "dark" ? "rgba(255,255,255,0.2)" : "rgba(0,0,0,0.2)",
+            backgroundColor: "hsl(var(--popover))",
+            borderColor: "hsl(var(--border))",
             borderRadius: "0.5rem",
           }}
-          cursor={{ fill: theme === "dark" ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.03)" }}
+          cursor={{ fill: "hsl(var(--muted) / 0.5)" }}
         />
         <Legend formatter={legendFormatter} wrapperStyle={{ paddingTop: "20px", color: textColor }} />
         <Bar dataKey="income" name="収入" fill={incomeColor} barSize={20} />

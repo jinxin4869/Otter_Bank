@@ -8,6 +8,20 @@
 /* dark: を OS 設定ではなく next-themes が付ける .dark クラスで切り替える */
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* container は中央寄せ + 左右 2rem の余白（旧 tailwind.config.ts の設定を移行） */
+@utility container {
+  margin-inline: auto;
+  padding-inline: 2rem;
+}
+
+/* 横スクロールはできるままスクロールバーだけ隠す（タブ列など） */
+@utility scrollbar-none {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
 @layer base {
   :root {
     /* ---- ベース（暖色オレンジ） ---- */
@@ -51,6 +65,15 @@
     --expense: 8 68% 52%;
     --expense-bg: 8 70% 95%;
     --expense-border: 8 60% 88%;
+
+    /* ---- カテゴリの色分け（掲示板カテゴリ・機能紹介など。収入/支出の意味では使わない） ---- */
+    /* 文字色として使い、背景は /10〜/20 の透過で敷く（透過背景上で文字のコントラスト 4.5:1 以上） */
+    --category-1: 30 80% 31%; /* オレンジ */
+    --category-2: 45 80% 25%; /* マスタード */
+    --category-3: 345 55% 42%; /* ローズ */
+    --category-4: 75 45% 28%; /* オリーブ */
+    --category-5: 20 40% 35%; /* ココア */
+    --category-6: 320 35% 40%; /* プラム */
 
     --z-dropdown: 100;
     --z-sticky: 200;
@@ -107,6 +130,14 @@
     --expense-bg: 10 40% 17%;
     --expense-border: 10 35% 28%;
 
+    /* カテゴリの色分け（ダーク） */
+    --category-1: 32 80% 65%;
+    --category-2: 45 70% 60%;
+    --category-3: 345 65% 72%;
+    --category-4: 75 40% 62%;
+    --category-5: 25 40% 70%;
+    --category-6: 320 40% 74%;
+
     /* ヘッダーとフッター（ダーク） */
     --header-bg: 24 26% 13%;
     --header-fg: 30 40% 90%;
@@ -115,21 +146,19 @@
   }
   /* グローバルなスタイル */
 
+  /* Tailwind 4 の border 既定色は currentColor のため、枠線の色を指定しないときは --border にする */
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: hsl(var(--border));
+  }
+
   body {
     @apply antialiased;
     background-color: hsl(var(--background));
     color: hsl(var(--foreground));
-  }
-
-  /* 各ページのメインコンテンツエリアの背景調整が必要な場合 */
-  .main-content-area {
-    background-color: hsl(var(--background));
-  }
-
-  /* カードコンポーネントの背景 */
-  .card-custom-bg {
-    background-color: hsl(var(--card));
-    color: hsl(var(--card-foreground));
   }
 
   header {
@@ -140,137 +169,6 @@
   footer {
     background-color: hsl(var(--footer-bg));
     color: hsl(var(--footer-fg));
-  }
-
-  /* 取引履歴カテゴリーアイコン */
-  .transaction-history-icon {
-    color: #0f172a !important; /* ライトモードで非常に濃い色 */
-  }
-
-  .dark .transaction-history-icon {
-    color: #ffffff !important; /* ダークモードで白色 */
-  }
-
-  /* 暖色背景用アイコン */
-  .warm-bg-icon {
-    color: #0c0a09 !important; /* ライトモードで非常に濃い茶色 */
-  }
-
-  .dark .warm-bg-icon {
-    color: #ffffff !important; /* ダークモードで白色 */
-  }
-
-  /* 収入カテゴリーのカスタムスタイル */
-  .income-category-item {
-    @apply flex items-center gap-2 text-income;
-  }
-
-  /* 支出カテゴリーのカスタムスタイル */
-  .expense-category-item {
-    @apply flex items-center gap-2 text-expense;
-  }
-
-  /* カテゴリードロップダウンメニューのスタイル */
-  .category-dropdown-menu {
-    background-color: hsl(var(--popover)) !important; /* 暖色系のクリーム色 */
-    border-color: hsl(var(--border)) !important;
-  }
-
-  /* ドロップダウンアイテムの基本スタイル */
-  .select-item-custom {
-    padding: 8px 12px !important;
-    cursor: pointer !important;
-    border-radius: 4px !important;
-    margin: 2px 4px !important;
-  }
-
-  .select-item-custom:hover {
-    background-color: hsl(var(--accent)) !important; /* ホバー時の暖色アクセント */
-  }
-
-  /* ダイアログのオーバーレイを調整 - 重複削除して統一 */
-  [data-radix-dialog-overlay] {
-    background-color: hsla(
-      25,
-      50%,
-      20%,
-      0.3
-    ) !important; /* より薄い暖色系オーバーレイ */
-    z-index: var(--z-modal-backdrop) !important;
-  }
-
-  .dark [data-radix-dialog-overlay] {
-    background-color: rgba(
-      0,
-      0,
-      0,
-      0.4
-    ) !important; /* ダークモードでもより薄く */
-  }
-
-  /* AlertDialogのオーバーレイも同様に */
-  [data-radix-alert-dialog-overlay] {
-    background-color: hsla(25, 50%, 20%, 0.3) !important;
-  }
-
-  .dark [data-radix-alert-dialog-overlay] {
-    background-color: rgba(0, 0, 0, 0.4) !important;
-  }
-
-  /* ダイアログコンテンツのz-indexも統一 */
-  [data-radix-dialog-content] {
-    z-index: var(--z-modal) !important;
-    background-color: hsl(var(--background)) !important;
-    border: 1px solid hsl(var(--border)) !important;
-  }
-
-  [data-radix-alert-dialog-content] {
-    z-index: var(--z-modal) !important;
-    background-color: hsl(var(--background)) !important;
-    border: 1px solid hsl(var(--border)) !important;
-  }
-
-  /* 掲示板ダイアログの背景色を明示的に設定（トークンで light/dark を自動切替） */
-  .board-dialog-content {
-    background-color: hsl(var(--popover)) !important;
-    color: hsl(var(--popover-foreground)) !important;
-    border-color: hsl(var(--border)) !important;
-  }
-
-  /* コメントの背景色設定（トークンで light/dark を自動切替） */
-  .comment-own {
-    background-color: hsl(var(--accent)) !important; /* 自分のコメント - 暖色アクセント */
-  }
-
-  .comment-other {
-    background-color: hsl(var(--muted)) !important; /* 他人のコメント - ミュート背景 */
-  }
-
-  /* テーマ切替ダイアログの文字色を統一 */
-  .theme-dropdown-item {
-    color: hsl(var(--popover-foreground)) !important;
-  }
-
-  .theme-dropdown-label {
-    color: hsl(var(--popover-foreground)) !important;
-  }
-
-  /* コメント内の文字色を明示的に指定 */
-  .comment-author {
-    color: hsl(var(--foreground)) !important;
-  }
-
-  .comment-content {
-    color: hsl(var(--foreground)) !important;
-  }
-
-  .comment-time {
-    color: hsl(var(--muted-foreground)) !important;
-  }
-
-  /* コメント入力欄の文字色を明示的に指定 */
-  .comment-textarea {
-    color: hsl(var(--foreground)) !important;
   }
 
   /* ヘッダー専用のコンテナクラス - 完全な右寄せ対応 */
@@ -330,6 +228,12 @@
   --color-expense: hsl(var(--expense));
   --color-expense-bg: hsl(var(--expense-bg));
   --color-expense-border: hsl(var(--expense-border));
+  --color-category-1: hsl(var(--category-1));
+  --color-category-2: hsl(var(--category-2));
+  --color-category-3: hsl(var(--category-3));
+  --color-category-4: hsl(var(--category-4));
+  --color-category-5: hsl(var(--category-5));
+  --color-category-6: hsl(var(--category-6));
   --color-border: hsl(var(--border));
   --color-input: hsl(var(--input));
   --color-ring: hsl(var(--ring));
