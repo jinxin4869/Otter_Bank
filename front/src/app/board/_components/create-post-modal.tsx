@@ -76,7 +76,7 @@ export default function CreatePostModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-[600px] board-dialog-content">
+      <DialogContent className="sm:max-w-[600px] bg-popover text-popover-foreground">
         <DialogHeader>
           <DialogTitle>新規投稿</DialogTitle>
           <DialogDescription>

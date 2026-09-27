@@ -54,7 +54,7 @@ function PostCard({ post, isLiked, isBookmarked, isOwner, onLike, onBookmark, on
                     <MoreVertical className="h-4 w-4" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="board-dialog-content">
+                <DropdownMenuContent align="end">
                   <DropdownMenuItem onClick={() => onEdit(post)}>
                     <Edit className="mr-2 h-4 w-4" />
                     編集

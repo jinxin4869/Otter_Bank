@@ -398,7 +398,7 @@ export default function BoardPage() {
             <SelectTrigger className="w-[130px]">
               <SelectValue placeholder="並び替え" />
             </SelectTrigger>
-            <SelectContent className="board-dialog-content">
+            <SelectContent>
               {SORT_OPTIONS.map((option) => (
                 <SelectItem key={option.value} value={option.value}>
                   {option.label}
@@ -514,7 +514,7 @@ export default function BoardPage() {
 
       {/* 削除確認ダイアログ */}
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <AlertDialogContent className="board-dialog-content">
+        <AlertDialogContent className="bg-popover text-popover-foreground">
           <AlertDialogHeader>
             <AlertDialogTitle>投稿を削除しますか？</AlertDialogTitle>
             <AlertDialogDescription>
@@ -532,7 +532,7 @@ export default function BoardPage() {
 
       {/* フィルターダイアログ */}
       <Dialog open={isFilterDialogOpen} onOpenChange={setIsFilterDialogOpen}>
-        <DialogContent className="sm:max-w-[500px] board-dialog-content">
+        <DialogContent className="sm:max-w-[500px] bg-popover text-popover-foreground">
           <DialogHeader>
             <DialogTitle>投稿のフィルター</DialogTitle>
           </DialogHeader>
