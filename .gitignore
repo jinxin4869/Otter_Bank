@@ -1,5 +1,12 @@
 node_modules/
 
-# ローカルの AI エージェント（Codex）用の設定・指示ファイル
+# ローカルの AI エージェント用の設定・指示ファイル
+# 個人開発のため、エージェントの設定・規約・タスクメモは追跡しない
 .codex/
 AGENTS.md
+.claude/
+CLAUDE.md
+copilot-instructions.md
+
+# 個人用の作業メモ・レビュー結果
+REVIEW.md
