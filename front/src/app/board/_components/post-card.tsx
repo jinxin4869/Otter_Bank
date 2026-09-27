@@ -111,11 +111,11 @@ function PostCard({ post, isLiked, isBookmarked, isOwner, onLike, onBookmark, on
         </div>
         {/* スマホ幅ではアイコンのみにして 1 行に収める（ラベルは aria-label で読み上げる） */}
         <div className="flex gap-1">
-          <Button variant="ghost" size="sm" onClick={() => onLike(post.id)} aria-label="いいね">
+          <Button variant="ghost" size="sm" onClick={() => onLike(post.id)} aria-label="いいね" aria-pressed={isLiked}>
             <Heart className={cn("h-4 w-4", isLiked && "fill-primary text-primary")} />
             <span className="hidden sm:inline">いいね</span>
           </Button>
-          <Button variant="ghost" size="sm" onClick={() => onBookmark(post.id)} aria-label="ブックマーク">
+          <Button variant="ghost" size="sm" onClick={() => onBookmark(post.id)} aria-label="ブックマーク" aria-pressed={isBookmarked}>
             {isBookmarked ? (
               <BookmarkCheck className="h-4 w-4 text-primary" />
             ) : (
