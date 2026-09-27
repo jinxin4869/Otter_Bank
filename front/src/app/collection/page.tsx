@@ -119,7 +119,7 @@ export default function CollectionPage() {
                   <p className="text-sm text-muted-foreground">総実績数</p>
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-green-600 dark:text-green-400">{achievementSummary.unlockedAchievements}</p>
+                  <p className="text-2xl font-bold text-primary">{achievementSummary.unlockedAchievements}</p>
                   <p className="text-sm text-muted-foreground">達成済み</p>
                 </div>
                 {Object.entries(achievementSummary.progressByCategory).map(([category, summary]) => (
@@ -222,14 +222,14 @@ export default function CollectionPage() {
                 key={ach.id}
                 className={cn(
                   "flex flex-col transition-all hover:shadow-lg bg-card border",
-                  ach.unlocked ? "border-green-500 dark:border-green-600" : "border-border"
+                  ach.unlocked ? "border-primary" : "border-border"
                 )}
               >
                 <CardHeader className="p-4">
                   <div className="relative w-full aspect-video mb-3">
                     <AchievementImage imageUrl={ach.imageUrl} title={ach.title} tier={ach.tier} unlocked={ach.unlocked} />
                     {ach.unlocked && (
-                      <Badge className="absolute top-2 right-2 bg-green-500 hover:bg-green-600 text-white text-xs px-2 py-1">
+                      <Badge className="absolute top-2 right-2 bg-primary hover:bg-primary/90 text-primary-foreground text-xs px-2 py-1">
                         <UnlockIcon className="h-3 w-3 mr-1" />達成済
                       </Badge>
                     )}

@@ -362,7 +362,7 @@ export default function BoardPage() {
   if (authIsLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-12 w-12 animate-spin text-blue-600" />
+        <Loader2 className="h-12 w-12 animate-spin text-primary" />
       </div>
     )
   }
@@ -523,7 +523,7 @@ export default function BoardPage() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>キャンセル</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeletePost} className="bg-red-600 hover:bg-red-700">
+            <AlertDialogAction onClick={handleDeletePost} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
               削除する
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -561,7 +561,7 @@ export default function BoardPage() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" className="text-red-300 hover:text-red-400" onClick={() => setSelectedCategories([])}>
+            <Button variant="outline" onClick={() => setSelectedCategories([])}>
               リセット
             </Button>
             <Button className="hover:bg-primary/90" onClick={() => setIsFilterDialogOpen(false)}>適用</Button>

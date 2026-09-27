@@ -31,7 +31,7 @@ function CommentSection({ comments, currentUserEmail, currentUserId, likedCommen
 
   return (
     <div className="border-t pt-4">
-      <h3 className="font-medium mb-4 text-gray-900 dark:text-gray-100">
+      <h3 className="font-medium mb-4 text-foreground">
         コメント ({comments.length})
       </h3>
 
@@ -72,7 +72,7 @@ function CommentSection({ comments, currentUserEmail, currentUserId, likedCommen
                   <div className="flex items-center justify-between mb-1">
                     <span className="font-medium text-sm text-foreground">
                       {comment.author}{" "}
-                      {isOwnComment && <span className="text-xs text-blue-500">(自分)</span>}
+                      {isOwnComment && <span className="text-xs text-primary">(自分)</span>}
                     </span>
                     <span className="text-xs text-muted-foreground">
                       {format(new Date(comment.createdAt), "MM月dd日 HH:mm", { locale: ja })}
@@ -85,9 +85,9 @@ function CommentSection({ comments, currentUserEmail, currentUserId, likedCommen
                     variant="ghost"
                     size="sm"
                     onClick={() => onLikeComment(comment.id)}
-                    className={`h-6 px-2 text-xs ${isCommentLiked ? "text-blue-600" : ""}`}
+                    className={`h-6 px-2 text-xs ${isCommentLiked ? "text-primary" : ""}`}
                   >
-                    <ThumbsUp className={`mr-1 h-3 w-3 ${isCommentLiked ? "fill-blue-600 text-blue-600" : ""}`} />
+                    <ThumbsUp className={`mr-1 h-3 w-3 ${isCommentLiked ? "fill-primary text-primary" : ""}`} />
                     {comment.likes}
                   </Button>
                 </div>
@@ -96,7 +96,7 @@ function CommentSection({ comments, currentUserEmail, currentUserId, likedCommen
           )
         })}
         {comments.length === 0 && (
-          <p className="text-sm text-gray-600 dark:text-gray-400">まだコメントはありません。</p>
+          <p className="text-sm text-muted-foreground">まだコメントはありません。</p>
         )}
       </div>
     </div>

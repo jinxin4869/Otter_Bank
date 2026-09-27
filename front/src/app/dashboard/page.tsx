@@ -367,7 +367,7 @@ export default function DashboardPage() {
   if (authIsLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-12 w-12 animate-spin text-blue-600" />
+        <Loader2 className="h-12 w-12 animate-spin text-primary" />
       </div>
     )
   }
@@ -449,8 +449,8 @@ export default function DashboardPage() {
           className={cn(
             "bg-linear-to-br",
             balance >= 0
-              ? "from-teal-50/80 to-teal-100/50 dark:from-teal-900/10 dark:to-teal-800/10 border-teal-200/70 dark:border-teal-800/30"
-              : "from-amber-50/80 to-amber-100/50 dark:from-amber-900/10 dark:to-amber-800/10 border-amber-200/70 dark:border-amber-800/30",
+              ? "from-income-bg to-income-bg/50 border-income-border"
+              : "from-expense-bg to-expense-bg/50 border-expense-border",
           )}
         >
           <CardHeader className="pb-2">
@@ -458,7 +458,7 @@ export default function DashboardPage() {
             <CardTitle
               className={cn(
                 "text-2xl flex items-center",
-                balance >= 0 ? "text-teal-500 dark:text-teal-300" : "text-amber-500 dark:text-amber-300",
+                balance >= 0 ? "text-income" : "text-expense",
               )}
             >
               <Wallet className="mr-2 h-5 w-5" />
@@ -477,7 +477,7 @@ export default function DashboardPage() {
             <div className="space-y-4">
               {isDataLoading ? (
                 <div className="flex justify-center py-8">
-                  <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
                 </div>
               ) : filteredTransactions.length === 0 ? (
                 <p className="text-center text-muted-foreground py-4">この期間の取引はありません</p>
@@ -575,9 +575,9 @@ export default function DashboardPage() {
                   value={amount}
                   onChange={handleAmountChange}
                   required
-                  className={amountError ? "border-red-500" : ""}
+                  className={amountError ? "border-destructive" : ""}
                 />
-                {amountError && <p className="text-sm text-red-500">{amountError}</p>}
+                {amountError && <p className="text-sm text-destructive">{amountError}</p>}
               </div>
 
               <div className="space-y-2">
@@ -611,7 +611,7 @@ export default function DashboardPage() {
               <div className="space-y-2">
                 <Label htmlFor="category">カテゴリー</Label>
                 <Select value={category} onValueChange={setCategory} required>
-                  <SelectTrigger className="w-full bg-orange-200">
+                  <SelectTrigger className="w-full">
                     <SelectValue placeholder="カテゴリーを選択" />
                   </SelectTrigger>
                   <SelectContent
@@ -675,7 +675,7 @@ export default function DashboardPage() {
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2">
-              <Trophy className="h-5 w-5 text-yellow-500" />
+              <Trophy className="h-5 w-5 text-primary" />
               最近解除した実績
             </CardTitle>
             <CardDescription>直近で達成した実績（最大3件）</CardDescription>
@@ -687,7 +687,7 @@ export default function DashboardPage() {
                   key={ach.id}
                   className="flex items-center gap-2 rounded-lg border bg-card px-4 py-2 shadow-sm"
                 >
-                  <Trophy className="h-4 w-4 shrink-0 text-yellow-500" />
+                  <Trophy className="h-4 w-4 shrink-0 text-primary" />
                   <div>
                     <p className="text-sm font-medium leading-none">{ach.title}</p>
                     <p className="mt-1 text-xs text-muted-foreground">{ach.description}</p>

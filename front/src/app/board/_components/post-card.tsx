@@ -61,8 +61,8 @@ function PostCard({ post, isLiked, isBookmarked, isOwner, onLike, onBookmark, on
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
+                    variant="destructive"
                     onClick={() => onDeleteRequest(post.id)}
-                    className="text-red-600"
                   >
                     <Trash2 className="mr-2 h-4 w-4" />
                     削除
@@ -73,7 +73,7 @@ function PostCard({ post, isLiked, isBookmarked, isOwner, onLike, onBookmark, on
           </div>
         </div>
         <CardTitle
-          className="text-xl cursor-pointer hover:text-blue-600"
+          className="text-xl cursor-pointer hover:text-primary"
           onClick={() => onView(post)}
         >
           {post.title}
@@ -110,12 +110,12 @@ function PostCard({ post, isLiked, isBookmarked, isOwner, onLike, onBookmark, on
         </div>
         <div className="flex space-x-2">
           <Button variant="ghost" size="sm" onClick={() => onLike(post.id)}>
-            <Heart className={`mr-1 h-4 w-4 ${isLiked ? "fill-red-500 text-red-500" : ""}`} />
+            <Heart className={`mr-1 h-4 w-4 ${isLiked ? "fill-primary text-primary" : ""}`} />
             いいね
           </Button>
           <Button variant="ghost" size="sm" onClick={() => onBookmark(post.id)}>
             {isBookmarked ? (
-              <BookmarkCheck className="mr-1 h-4 w-4 text-blue-600" />
+              <BookmarkCheck className="mr-1 h-4 w-4 text-primary" />
             ) : (
               <Bookmark className="mr-1 h-4 w-4" />
             )}
