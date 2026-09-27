@@ -17,14 +17,14 @@ export const SORT_OPTIONS = [
 
 export const getCategoryColor = (categoryValue: string): string => {
   switch (categoryValue) {
-    case "savings": return "bg-blue-50 text-blue-800 border-blue-200"
-    case "investment": return "bg-green-50 text-green-800 border-green-200"
-    case "budget": return "bg-purple-50 text-purple-800 border-purple-200"
-    case "debt": return "bg-red-50 text-red-800 border-red-200"
-    case "income": return "bg-yellow-50 text-yellow-800 border-yellow-200"
-    case "experience": return "bg-teal-50 text-teal-800 border-teal-200"
-    case "question": return "bg-orange-50 text-orange-800 border-orange-200"
-    default: return "bg-cyan-50 text-cyan-800 border-cyan-200"
+    case "savings": return "bg-category-1/10 text-category-1 border-category-1/30"
+    case "investment": return "bg-category-4/10 text-category-4 border-category-4/30"
+    case "budget": return "bg-category-2/10 text-category-2 border-category-2/30"
+    case "debt": return "bg-category-3/10 text-category-3 border-category-3/30"
+    case "income": return "bg-category-5/10 text-category-5 border-category-5/30"
+    case "experience": return "bg-category-6/10 text-category-6 border-category-6/30"
+    case "question": return "bg-secondary text-secondary-foreground border-border"
+    default: return "bg-muted text-foreground border-border"
   }
 }
 
