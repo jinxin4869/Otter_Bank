@@ -327,10 +327,10 @@ export default function DashboardPage() {
 
     if (categoryData) {
       const IconComponent = categoryData.icon.type
-      return <IconComponent className="h-4 w-4 transition-history-icon warm-bg-icon" />
+      return <IconComponent className="h-4 w-4 text-foreground" />
     }
 
-    return <HelpCircle className="h-4 w-4 transaction-history-icon warm-bg-icon" />
+    return <HelpCircle className="h-4 w-4 text-foreground" />
   }
 
   const getViewTitle = () => {
@@ -405,7 +405,7 @@ export default function DashboardPage() {
             <SelectTrigger className="w-[100px]">
               <SelectValue />
             </SelectTrigger>
-            <SelectContent className="board-dialog-content">
+            <SelectContent>
               <SelectItem value="day">日別</SelectItem>
               <SelectItem value="month">月別</SelectItem>
               <SelectItem value="year">年別</SelectItem>
@@ -615,7 +615,6 @@ export default function DashboardPage() {
                     <SelectValue placeholder="カテゴリーを選択" />
                   </SelectTrigger>
                   <SelectContent
-                    className="board-dialog-content"
                     position="item-aligned"
                     align="start"
                     side="bottom"
@@ -625,7 +624,7 @@ export default function DashboardPage() {
                       <SelectItem
                         key={cat.value}
                         value={cat.value}
-                        className={`select-item-custom ${type === "income" ? "income-category-item" : "expense-category-item"}`}
+                        className={cn("cursor-pointer", type === "income" ? "text-income" : "text-expense")}
                       >
                         <div className="flex items-center gap-2">
                           {cat.icon}
@@ -656,7 +655,7 @@ export default function DashboardPage() {
                       {format(date, "yyyy年MM月dd日", { locale: ja })}
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0 board-dialog-content">
+                  <PopoverContent className="w-auto p-0">
                     <Calendar mode="single" selected={date} onSelect={(date) => date && setDate(date)} initialFocus />
                   </PopoverContent>
                 </Popover>

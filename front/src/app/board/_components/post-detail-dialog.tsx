@@ -34,7 +34,7 @@ export default function PostDetailDialog({
 }: PostDetailDialogProps) {
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[800px] max-h-[80vh] overflow-y-auto board-dialog-content">
+      <DialogContent className="sm:max-w-[800px] max-h-[80vh] overflow-y-auto bg-popover text-popover-foreground">
         {post && (
           <>
             <DialogHeader>
