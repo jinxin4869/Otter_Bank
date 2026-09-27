@@ -94,7 +94,7 @@ function PostCard({ post, isLiked, isBookmarked, isOwner, onLike, onBookmark, on
       <CardContent>
         <p className="line-clamp-3">{post.content}</p>
       </CardContent>
-      <CardFooter className="flex justify-between pt-2">
+      <CardFooter className="flex flex-wrap items-center justify-between gap-2 pt-2">
         <div className="flex space-x-4 text-sm text-muted-foreground">
           <div className="flex items-center">
             <ThumbsUp className="mr-1 h-4 w-4" />
@@ -109,22 +109,23 @@ function PostCard({ post, isLiked, isBookmarked, isOwner, onLike, onBookmark, on
             <span>{post.views}</span>
           </div>
         </div>
-        <div className="flex space-x-2">
-          <Button variant="ghost" size="sm" onClick={() => onLike(post.id)}>
-            <Heart className={cn("mr-1 h-4 w-4", isLiked && "fill-primary text-primary")} />
-            いいね
+        {/* スマホ幅ではアイコンのみにして 1 行に収める（ラベルは aria-label で読み上げる） */}
+        <div className="flex gap-1">
+          <Button variant="ghost" size="sm" onClick={() => onLike(post.id)} aria-label="いいね">
+            <Heart className={cn("h-4 w-4", isLiked && "fill-primary text-primary")} />
+            <span className="hidden sm:inline">いいね</span>
           </Button>
-          <Button variant="ghost" size="sm" onClick={() => onBookmark(post.id)}>
+          <Button variant="ghost" size="sm" onClick={() => onBookmark(post.id)} aria-label="ブックマーク">
             {isBookmarked ? (
-              <BookmarkCheck className="mr-1 h-4 w-4 text-primary" />
+              <BookmarkCheck className="h-4 w-4 text-primary" />
             ) : (
-              <Bookmark className="mr-1 h-4 w-4" />
+              <Bookmark className="h-4 w-4" />
             )}
-            ブックマーク
+            <span className="hidden sm:inline">ブックマーク</span>
           </Button>
-          <Button variant="ghost" size="sm" onClick={() => onView(post)}>
-            <MessageSquare className="mr-1 h-4 w-4" />
-            詳細
+          <Button variant="ghost" size="sm" onClick={() => onView(post)} aria-label="詳細">
+            <MessageSquare className="h-4 w-4" />
+            <span className="hidden sm:inline">詳細</span>
           </Button>
         </div>
       </CardFooter>
