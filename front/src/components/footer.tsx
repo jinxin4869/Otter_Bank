@@ -18,7 +18,7 @@ export default function Footer() {
         <div className="flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="text-center md:text-left">
             <Link href="/" className="text-lg font-semibold hover:text-primary transition-colors">
-              水獭银行 (Otter Bank)
+              獺獺銀行 (Otter Bank)
             </Link>
             <p className="text-sm text-muted-foreground dark:text-slate-400 mt-1">
               &copy; {currentYear} Otter Bank. All rights reserved.
