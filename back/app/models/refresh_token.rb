@@ -35,6 +35,13 @@ class RefreshToken < ApplicationRecord
     OpenSSL::HMAC.hexdigest('SHA256', JsonWebToken.hmac_secret, plain_token.to_s)
   end
 
+  # 署名鍵のローテーション後に既存トークンを一括失効させる。
+  # 鍵が変わるとダイジェストが一致しなくなり実質使えなくなるが、
+  # 失効済みであることを明示的にレコードへ残すために使う。戻り値は件数
+  def self.revoke_all!
+    where(revoked: false).update_all(revoked: true, updated_at: Time.current)
+  end
+
   def active?
     !revoked && expires_at > Time.current
   end
