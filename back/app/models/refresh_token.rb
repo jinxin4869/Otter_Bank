@@ -29,9 +29,10 @@ class RefreshToken < ApplicationRecord
     record&.active? ? record : nil
   end
 
+  # 署名鍵は JsonWebToken と同一のものを使う（アクセストークンと出所を揃える）。
+  # 以前は credentials.secret_key_base を優先していたが、復号鍵が公開されたため参照をやめた
   def self.digest(plain_token)
-    secret = Rails.application.credentials.secret_key_base || ENV.fetch('JWT_SECRET', 'fallback')
-    OpenSSL::HMAC.hexdigest('SHA256', secret, plain_token.to_s)
+    OpenSSL::HMAC.hexdigest('SHA256', JsonWebToken.hmac_secret, plain_token.to_s)
   end
 
   def active?
