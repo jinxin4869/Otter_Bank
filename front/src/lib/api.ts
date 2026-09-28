@@ -74,9 +74,10 @@ export const api = {
         body: { token, password },
       }),
 
-    /** JWT トークンを検証してユーザー情報を取得する（形式は parseAuthUser で検証する） */
+    /** JWT トークンを検証してユーザー情報を取得する（形式は parseAuthUser で検証する）。
+     *  期限切れの扱いは useAuth 側で行うため、apiRequest の自動リフレッシュは使わない */
     verify: (token: string) =>
-      apiRequest<unknown>('/auth/verify', { token }),
+      apiRequest<unknown>('/auth/verify', { token, retryOnExpired: false }),
 
     /** リフレッシュトークンを使ってアクセストークンを更新する（Cookie 経由） */
     refresh: () =>

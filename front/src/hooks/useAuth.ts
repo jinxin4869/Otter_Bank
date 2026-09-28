@@ -5,10 +5,8 @@ import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
 import { ApiError } from "@/lib/api-error";
+import { AUTH_STATE_CHANGED_EVENT, AUTH_TOKEN_REFRESHED_EVENT, refreshAccessToken } from "@/lib/api-client";
 import { parseAuthUser, type AuthUser } from "@/types/user";
-
-// 認証状態が変わったことを、他の useAuth インスタンス（ヘッダー等）へ知らせるイベント名
-const AUTH_STATE_CHANGED_EVENT = "auth-state-changed";
 
 // 検証リクエストの完了までの間に、保存済みトークンが別のもの（ログアウト・再ログイン）に変わったか。
 // 変わっていれば古い検証結果は状態へ反映しない
@@ -18,26 +16,6 @@ const clearAuthStorage = () => {
   localStorage.removeItem("authToken");
   localStorage.removeItem("isLoggedIn");
   localStorage.removeItem("currentUserEmail");
-};
-
-// リフレッシュトークンは使うたびに作り直されるため、並行して呼ぶと片方が失敗する。
-// 複数のインスタンスが同時に期限切れを検知しても、リフレッシュは 1 回だけ行う
-let refreshInFlight: Promise<string | null> | null = null;
-
-const refreshAccessToken = (): Promise<string | null> => {
-  refreshInFlight ??= api.auth
-    .refresh()
-    .then((data) => {
-      const newToken = data?.token;
-      if (typeof newToken !== "string") return null;
-      localStorage.setItem("authToken", newToken);
-      return newToken;
-    })
-    .catch(() => null)
-    .finally(() => {
-      refreshInFlight = null;
-    });
-  return refreshInFlight;
 };
 
 type SessionResult =
@@ -133,8 +111,16 @@ export const useAuth = () => {
       if ((event as CustomEvent<{ source?: unknown }>).detail?.source === instanceRef.current) return;
       void checkAuth();
     };
+    // API 呼び出し中にトークンが更新されたときは、発火元に関係なく新しいトークンで取り直す
+    const handleTokenRefreshed = () => {
+      void checkAuth();
+    };
     window.addEventListener(AUTH_STATE_CHANGED_EVENT, handleAuthStateChanged);
-    return () => window.removeEventListener(AUTH_STATE_CHANGED_EVENT, handleAuthStateChanged);
+    window.addEventListener(AUTH_TOKEN_REFRESHED_EVENT, handleTokenRefreshed);
+    return () => {
+      window.removeEventListener(AUTH_STATE_CHANGED_EVENT, handleAuthStateChanged);
+      window.removeEventListener(AUTH_TOKEN_REFRESHED_EVENT, handleTokenRefreshed);
+    };
   }, [checkAuth]);
 
   const login = useCallback(async (accessToken: string, email?: string) => {
