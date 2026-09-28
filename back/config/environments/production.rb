@@ -73,13 +73,16 @@ Rails.application.configure do
   # JWT_SECRET と同じく起動時点で落として気づけるようにする（ENV.fetch がキーの無いとき例外を投げる）
   config.action_mailer.delivery_method = :smtp
   config.action_mailer.raise_delivery_errors = true
+  # 差出人とリンク先のフロント URL も同じ理由で必須にする（未設定だと送信先に拒否されたり localhost へのリンクになる）
+  config.action_mailer.default_options = { from: ENV.fetch('MAILER_FROM') }
+  config.action_mailer.default_url_options = { host: ENV.fetch('FRONTEND_URL') }
   config.action_mailer.smtp_settings = {
     address: ENV.fetch('SMTP_ADDRESS'),
     port: ENV.fetch('SMTP_PORT', '587').to_i,
     user_name: ENV.fetch('SMTP_USERNAME'),
     password: ENV.fetch('SMTP_PASSWORD'),
     authentication: :plain,
-    enable_starttls_auto: true
+    enable_starttls: true # STARTTLS を必須にする（auto だと非対応サーバーで平文にフォールバックする）
   }
 
   # Enable locale fallbacks for I18n (makes lookups for any locale fall back to
