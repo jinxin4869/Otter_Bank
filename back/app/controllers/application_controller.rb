@@ -71,7 +71,7 @@ class ApplicationController < ActionController::API
         Rails.logger.info "Current user set: #{Rails.env.development? ? @current_user.id : '[MASKED]'}"
       else
         Rails.logger.error 'Authorization token not provided' if Rails.env.development?
-        render json: { error: '認証トークンが指定されていません', code: 'missing_token' }, status: :unauthorized
+        render json: { error: '認証トークンが指定されていません', code: 'missing_header' }, status: :unauthorized
       end
     rescue ActiveRecord::RecordNotFound => e
       Rails.logger.error "User not found: #{Rails.env.development? ? e.message : '[MASKED]'}"

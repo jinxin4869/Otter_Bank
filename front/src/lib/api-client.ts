@@ -14,13 +14,28 @@ export function getApiUrl(): string {
   return url
 }
 
-// 認証状態が変わった（ログイン・ログアウト・更新失敗）ことを useAuth の各インスタンスへ知らせるイベント名
+// 認証状態が変わったことを useAuth へ知らせるイベント名。detail.expired が true なら「更新に失敗しセッション終了」
 export const AUTH_STATE_CHANGED_EVENT = 'auth-state-changed'
-// API 呼び出し中にアクセストークンを更新できたことを知らせるイベント名。useAuth はこれで新しいトークンを取り直す
+// API 呼び出し中にアクセストークンを更新できたことを知らせるイベント名。detail.token に新しいトークンを載せる
 export const AUTH_TOKEN_REFRESHED_EVENT = 'auth-token-refreshed'
 
+/**
+ * JWT の exp を読んで期限切れかを判定する（署名は検証しない。最終判断はサーバー）。
+ * 認証が任意のエンドポイント（投稿一覧など）は期限切れトークンを「未ログイン」として 200 を返すため、
+ * 401 を待たずに送信前に更新しておく必要がある
+ */
+export const isExpiredToken = (token: string): boolean => {
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/'))) as { exp?: unknown }
+    return typeof payload.exp === 'number' && payload.exp * 1000 <= Date.now()
+  } catch {
+    return false
+  }
+}
+
 // リフレッシュトークンは使うたびに作り直されるため、並行して呼ぶと片方が失敗する。
-// 複数の呼び出し元が同時に期限切れを検知しても、リフレッシュは 1 回だけ行う
+// 複数の呼び出し元が同時に期限切れを検知しても、リフレッシュは 1 回だけ行う。
+// URL と credentials は api.auth.refresh と重複するが、api.ts → api-client の循環 import を避けるためここで直接 fetch する
 let refreshInFlight: Promise<string | null> | null = null
 
 /**
@@ -34,6 +49,8 @@ export const refreshAccessToken = (): Promise<string | null> => {
       const data: unknown = await res.json()
       const token = data !== null && typeof data === 'object' ? (data as { token?: unknown }).token : undefined
       if (typeof token !== 'string') return null
+      // 応答を待つ間にログアウトされていたら（保存済みトークンが消えている）、再ログイン状態に戻さない
+      if (localStorage.getItem('authToken') === null) return null
       localStorage.setItem('authToken', token)
       window.dispatchEvent(new CustomEvent(AUTH_TOKEN_REFRESHED_EVENT, { detail: { token } }))
       return token
@@ -104,16 +121,24 @@ export async function apiRequest<T>(
     return { ok: true as const, data: data as T }
   }
 
-  const first = await send(token)
+  // 期限切れが分かっているトークンは送らずに先に更新する（認証任意のエンドポイントは 401 を返さないため）
+  let accessToken = token
+  let triedRefresh = false
+  if (accessToken && retryOnExpired && isExpiredToken(accessToken)) {
+    triedRefresh = true
+    accessToken = (await refreshAccessToken()) ?? accessToken
+  }
+
+  const first = await send(accessToken)
   if (first.ok) return first.data
 
-  const expired = first.error.code === 'token_expired' && !!token && retryOnExpired
+  const expired = first.error.code === 'token_expired' && !!accessToken && retryOnExpired
   if (!expired) throw first.error
 
-  const refreshed = await refreshAccessToken()
+  const refreshed = triedRefresh ? null : await refreshAccessToken()
   if (!refreshed) {
-    // 更新できない = セッション終了。useAuth に再確認させ、ログアウト表示と /login への誘導に任せる
-    window.dispatchEvent(new CustomEvent(AUTH_STATE_CHANGED_EVENT))
+    // 更新できない = セッション終了。useAuth に知らせ、トークン破棄・ログアウト表示・/login への誘導に任せる
+    window.dispatchEvent(new CustomEvent(AUTH_STATE_CHANGED_EVENT, { detail: { expired: true } }))
     throw first.error
   }
 
