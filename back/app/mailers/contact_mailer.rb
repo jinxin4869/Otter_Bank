@@ -9,4 +9,14 @@ class ContactMailer < ApplicationMailer
       subject: '【Otter Bank】お問い合わせを受け付けました'
     )
   end
+
+  # 運営（CONTACT_NOTIFY_TO）へ新着のお問い合わせを知らせる。reply_to を送信者にして、そのまま返信できるようにする
+  def notify_admin(contact)
+    @contact = contact
+    mail(
+      to: ENV.fetch('CONTACT_NOTIFY_TO'),
+      reply_to: contact.email,
+      subject: "【Otter Bank】新しいお問い合わせ ##{contact.id}（#{contact.subject}）"
+    )
+  end
 end

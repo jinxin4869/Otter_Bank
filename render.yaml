@@ -19,6 +19,9 @@ services:
         generateValue: true
       - key: WEB_CONCURRENCY
         value: 1
+      # お問い合わせの通知先（運営のメールアドレス）。未設定なら通知しない
+      - key: CONTACT_NOTIFY_TO
+        sync: false
 
 databases:
   - name: otter-bank-db
