@@ -130,6 +130,18 @@ FRONTEND_URL_PROD=https://your-production-frontend.vercel.app
 BACKEND_URL=http://localhost:3000
 ```
 
+本番（Render）では上記に加えてメール送信用の変数が必要。未設定だと起動に失敗する。
+
+```env
+SMTP_ADDRESS=smtp.example.com      # 例: smtp.gmail.com / smtp.resend.com / smtp.sendgrid.net
+SMTP_PORT=587
+SMTP_USERNAME=your_smtp_username
+SMTP_PASSWORD=your_smtp_password
+MAILER_FROM=noreply@your-domain.example
+```
+
+開発環境では `letter_opener` がブラウザでメールを開くため、SMTP の設定は不要。
+
 #### フロントエンド（`front/.env.local`）
 
 ```env
