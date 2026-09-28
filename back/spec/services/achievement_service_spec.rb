@@ -86,6 +86,14 @@ RSpec.describe AchievementService do
       expect(state('streak_3_days')).to eq([3, true, true])
       expect(state('streak_7_days')).to eq([1, false, false])
     end
+
+    it '連続日数 0（今日も昨日も記録なし）は進捗 0 として書き戻す' do
+      service.update_streak_achievements(5)
+      service.update_streak_achievements(0)
+
+      expect(state('streak_7_days')).to eq([0, false, false])
+      expect(state('streak_30_days')).to eq([0, false, false])
+    end
   end
 
   describe '#update_community_likes_received_achievements' do
