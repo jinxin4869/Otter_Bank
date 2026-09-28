@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback, useRef } from "react"
+import { useState, useEffect, useCallback, useMemo, useRef } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -13,8 +13,9 @@ import { Label } from "@/components/ui/label"
 import { Search, Filter, Plus, Loader2 } from "lucide-react"
 import { toast } from "sonner"
 import { useAuth } from "@/hooks/useAuth"
-import { api } from "@/lib/api"
-import { mapApiPost, mapApiPostsResponse, mapApiComment, type Post, type Comment } from "@/types/post"
+import { usePosts } from "@/hooks/usePosts"
+import { useComments } from "@/hooks/useComments"
+import { type Post } from "@/types/post"
 import { BOARD_CATEGORIES, SORT_OPTIONS, getCategoryColor } from "./_components/board-constants"
 import { TIER_CONFIG, isAchievementTier } from "@/lib/tier"
 import PostList from "./_components/post-list"
@@ -26,17 +27,24 @@ export default function BoardPage() {
   const router = useRouter()
   const { user, token, isLoading: authIsLoading, isAuthenticated } = useAuth()
   const searchParams = useSearchParams()
-
-  const [posts, setPosts] = useState<Post[]>([])
-  const [likedPostIds, setLikedPostIds] = useState<string[]>([])
-  const [likedCommentIds, setLikedCommentIds] = useState<string[]>([])
-  const [comments, setComments] = useState<Comment[]>([])
-  const [filteredPosts, setFilteredPosts] = useState<Post[]>([])
-  const [bookmarkedPosts, setBookmarkedPosts] = useState<string[]>([])
-  const [isPostsLoading, setIsPostsLoading] = useState(false)
-  const [isLoadingMore, setIsLoadingMore] = useState(false)
-  const [currentPage, setCurrentPage] = useState(1)
-  const [totalPages, setTotalPages] = useState(1)
+  const {
+    posts,
+    likedPostIds,
+    bookmarkedPostIds,
+    isLoading: isPostsLoading,
+    isLoadingMore,
+    currentPage,
+    totalPages,
+    loadMore,
+    toggleLike,
+    toggleBookmark,
+    createPost,
+    updatePost,
+    deletePost,
+    incrementViews,
+    incrementCommentCount,
+  } = usePosts(token, isAuthenticated)
+  const { likedCommentIds, fetchComments, addComment, toggleCommentLike, commentsFor } = useComments(token)
 
   // ダイアログの状態
   const [isNewPostDialogOpen, setIsNewPostDialogOpen] = useState(false)
@@ -86,80 +94,8 @@ export default function BoardPage() {
     setIsNewPostDialogOpen(true)
   }, [searchParams])
 
-  const fetchPosts = useCallback(async () => {
-    if (!token) return
-    setIsPostsLoading(true)
-    try {
-      const data = await api.posts.list(token, 1)
-      if (data) {
-        const { posts: fetched, meta } = mapApiPostsResponse(data)
-        setPosts(fetched)
-        setLikedPostIds(fetched.filter((p) => p.likedByMe).map((p) => p.id))
-        setBookmarkedPosts(fetched.filter((p) => p.bookmarkedByMe).map((p) => p.id))
-        setCurrentPage(1)
-        setTotalPages(meta.totalPages)
-      }
-    } catch (err) {
-      console.error("投稿取得エラー:", err)
-      toast.error("投稿の取得に失敗しました")
-    } finally {
-      setIsPostsLoading(false)
-    }
-  }, [token])
-
-  const handleLoadMore = async () => {
-    if (!token || isLoadingMore || currentPage >= totalPages) return
-    setIsLoadingMore(true)
-    const nextPage = currentPage + 1
-    try {
-      const data = await api.posts.list(token, nextPage)
-      if (data) {
-        const { posts: fetched, meta } = mapApiPostsResponse(data)
-        setPosts((prev) => [...prev, ...fetched])
-        setLikedPostIds((prev) => [...prev, ...fetched.filter((p) => p.likedByMe).map((p) => p.id)])
-        setBookmarkedPosts((prev) => [...prev, ...fetched.filter((p) => p.bookmarkedByMe).map((p) => p.id)])
-        setCurrentPage(nextPage)
-        setTotalPages(meta.totalPages)
-      }
-    } catch (err) {
-      console.error("追加読み込みエラー:", err)
-      toast.error("投稿の読み込みに失敗しました")
-    } finally {
-      setIsLoadingMore(false)
-    }
-  }
-
-  useEffect(() => {
-    if (isAuthenticated && token) {
-      fetchPosts()
-    }
-  }, [isAuthenticated, token, fetchPosts])
-
-  const handleLike = useCallback(async (postId: string) => {
-    if (!token) return
-    const isCurrentlyLiked = likedPostIds.includes(postId)
-    try {
-      if (isCurrentlyLiked) {
-        await api.posts.unlike(token, postId)
-        setLikedPostIds((prev) => prev.filter((id) => id !== postId))
-        setPosts((prev) =>
-          prev.map((post) => (post.id === postId ? { ...post, likes: Math.max(0, post.likes - 1) } : post))
-        )
-        toast.success("いいねを取り消しました")
-      } else {
-        await api.posts.like(token, postId)
-        setLikedPostIds((prev) => [...prev, postId])
-        setPosts((prev) =>
-          prev.map((post) => (post.id === postId ? { ...post, likes: post.likes + 1 } : post))
-        )
-        toast.success("いいねしました")
-      }
-    } catch {
-      toast.error("操作に失敗しました")
-    }
-  }, [token, likedPostIds])
-
-  const filterAndSortPosts = useCallback(() => {
+  // 検索・タブ・カテゴリ・並び替えを適用した表示用の一覧
+  const filteredPosts = useMemo(() => {
     let filtered = [...posts]
     if (searchTerm) {
       const term = searchTerm.toLowerCase()
@@ -192,48 +128,12 @@ export default function BoardPage() {
         filtered.sort((a, b) => b.comments - a.comments)
         break
     }
-    setFilteredPosts(filtered)
+    return filtered
   }, [posts, searchTerm, activeTab, selectedCategories, sortOption])
 
-  useEffect(() => {
-    filterAndSortPosts()
-  }, [filterAndSortPosts])
-
-  const toggleBookmark = useCallback(async (postId: string) => {
-    if (!token) return
-    const isBookmarked = bookmarkedPosts.includes(postId)
-    try {
-      if (isBookmarked) {
-        await api.posts.unbookmark(token, postId)
-        setBookmarkedPosts((prev) => prev.filter((id) => id !== postId))
-        toast.success("ブックマークを削除しました")
-      } else {
-        await api.posts.bookmark(token, postId)
-        setBookmarkedPosts((prev) => [...prev, postId])
-        toast.success("ブックマークに追加しました")
-      }
-    } catch {
-      toast.error("操作に失敗しました")
-    }
-  }, [token, bookmarkedPosts])
-
   const handleAddPost = useCallback(async (title: string, content: string, categories: string[]) => {
-    if (!token) return
-    try {
-      const newPost = await api.posts.create(token, {
-        title,
-        content,
-        category_names: categories,
-      })
-      if (newPost) {
-        setPosts((prev) => [mapApiPost(newPost), ...prev])
-      }
-      setIsNewPostDialogOpen(false)
-      toast.success("投稿が完了しました", { description: "あなたの投稿が掲示板に追加されました。" })
-    } catch {
-      toast.error("投稿の作成に失敗しました")
-    }
-  }, [token])
+    if (await createPost(title, content, categories)) setIsNewPostDialogOpen(false)
+  }, [createPost])
 
   const handleEditPost = useCallback((post: Post) => {
     setEditingPost(post)
@@ -241,107 +141,37 @@ export default function BoardPage() {
   }, [])
 
   const handleSaveEdit = useCallback(async (postId: string, title: string, content: string, categories: string[]) => {
-    if (!token) return
-    try {
-      const updated = await api.posts.update(token, postId, {
-        title,
-        content,
-        category_names: categories,
-      })
-      if (updated) {
-        setPosts((prev) => prev.map((p) => (p.id === postId ? mapApiPost(updated) : p)))
-      }
+    if (await updatePost(postId, title, content, categories)) {
       setEditingPost(null)
       setIsEditPostDialogOpen(false)
-      toast.success("投稿を更新しました")
-    } catch {
-      toast.error("投稿の更新に失敗しました")
     }
-  }, [token])
+  }, [updatePost])
 
   const handleViewPost = useCallback(async (post: Post) => {
     setSelectedPost(post)
     setIsPostDetailDialogOpen(true)
-    if (!token) return
-    try {
-      await api.posts.incrementViews(token, post.id)
-      setPosts((prev) => prev.map((p) => (p.id === post.id ? { ...p, views: p.views + 1 } : p)))
-    } catch { /* 閲覧数エラーは無視 */ }
-    try {
-      const data = await api.posts.comments.list(token, post.id)
-      if (data) {
-        const fetched = data.map(mapApiComment)
-        const fetchedIds = new Set(fetched.map((c) => c.id))
-        setComments((prev) => [...prev.filter((c) => c.postId !== post.id), ...fetched])
-        // 再読み込み後もいいね済みの表示を保つため、サーバーのいいね状態で置き換える
-        setLikedCommentIds((prev) => [
-          ...prev.filter((id) => !fetchedIds.has(id)),
-          ...fetched.filter((c) => c.likedByMe).map((c) => c.id),
-        ])
-      }
-    } catch (err) {
-      console.error("コメント取得エラー:", err)
-    }
-  }, [token])
+    await incrementViews(post.id)
+    await fetchComments(post.id)
+  }, [incrementViews, fetchComments])
 
   const handleAddComment = useCallback(async (content: string) => {
-    if (!selectedPost || !token) {
+    if (!selectedPost) {
       toast.error("コメント内容を入力してください")
       return
     }
-    try {
-      const newComment = await api.posts.comments.create(token, selectedPost.id, content)
-      if (newComment) {
-        setComments((prev) => [...prev, mapApiComment(newComment)])
-        setPosts((prev) =>
-          prev.map((p) => (p.id === selectedPost.id ? { ...p, comments: p.comments + 1 } : p))
-        )
-      }
-      toast.success("コメントを投稿しました")
-    } catch {
-      toast.error("コメントの投稿に失敗しました")
-    }
-  }, [selectedPost, token])
+    if (await addComment(selectedPost.id, content)) incrementCommentCount(selectedPost.id)
+  }, [selectedPost, addComment, incrementCommentCount])
 
-  const handleLikeComment = useCallback(async (commentId: string) => {
-    if (!selectedPost || !token) return
-    const isCurrentlyLiked = likedCommentIds.includes(commentId)
-    try {
-      if (isCurrentlyLiked) {
-        await api.posts.comments.unlike(token, selectedPost.id, commentId)
-        setLikedCommentIds((prev) => prev.filter((id) => id !== commentId))
-        setComments((prev) =>
-          prev.map((c) => (c.id === commentId ? { ...c, likes: Math.max(0, c.likes - 1) } : c))
-        )
-        toast.success("コメントのいいねを取り消しました")
-      } else {
-        await api.posts.comments.like(token, selectedPost.id, commentId)
-        setLikedCommentIds((prev) => [...prev, commentId])
-        setComments((prev) =>
-          prev.map((c) => (c.id === commentId ? { ...c, likes: c.likes + 1 } : c))
-        )
-        toast.success("コメントにいいねしました")
-      }
-    } catch {
-      toast.error("操作に失敗しました")
-    }
-  }, [selectedPost, token, likedCommentIds])
-
-  const getPostComments = (postId: string): Comment[] =>
-    comments
-      .filter((comment) => comment.postId === postId)
-      .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
+  const handleLikeComment = useCallback((commentId: string) => {
+    if (!selectedPost) return
+    void toggleCommentLike(selectedPost.id, commentId)
+  }, [selectedPost, toggleCommentLike])
 
   const handleDeletePost = async () => {
-    if (!deletingPostId || !token) return
-    try {
-      await api.posts.delete(token, deletingPostId)
-      setPosts((prev) => prev.filter((post) => post.id !== deletingPostId))
+    if (!deletingPostId) return
+    if (await deletePost(deletingPostId)) {
       setDeletingPostId(null)
       setIsDeleteDialogOpen(false)
-      toast.success("投稿を削除しました")
-    } catch {
-      toast.error("削除に失敗しました")
     }
   }
 
@@ -429,9 +259,9 @@ export default function BoardPage() {
             posts={filteredPosts}
             isLoading={isPostsLoading}
             likedPostIds={likedPostIds}
-            bookmarkedPostIds={bookmarkedPosts}
+            bookmarkedPostIds={bookmarkedPostIds}
             currentUserId={user?.id}
-            onLike={handleLike}
+            onLike={toggleLike}
             onBookmark={toggleBookmark}
             onView={handleViewPost}
             onEdit={handleEditPost}
@@ -446,9 +276,9 @@ export default function BoardPage() {
               posts={filteredPosts}
               isLoading={isPostsLoading}
               likedPostIds={likedPostIds}
-              bookmarkedPostIds={bookmarkedPosts}
+              bookmarkedPostIds={bookmarkedPostIds}
               currentUserId={user?.id}
-              onLike={handleLike}
+              onLike={toggleLike}
               onBookmark={toggleBookmark}
               onView={handleViewPost}
               onEdit={handleEditPost}
@@ -463,7 +293,7 @@ export default function BoardPage() {
           <div className="flex justify-center mt-6">
             <Button
               variant="outline"
-              onClick={handleLoadMore}
+              onClick={loadMore}
               disabled={isLoadingMore}
               className="min-w-32"
             >
@@ -499,7 +329,7 @@ export default function BoardPage() {
       <PostDetailDialog
         post={selectedPost}
         isOpen={isPostDetailDialogOpen}
-        comments={selectedPost ? getPostComments(selectedPost.id) : []}
+        comments={selectedPost ? commentsFor(selectedPost.id) : []}
         currentUserEmail={user?.email || ""}
         currentUserId={user?.id}
         likedCommentIds={likedCommentIds}
