@@ -77,6 +77,25 @@ RSpec.describe 'Api::V1::Transactions', type: :request do
       expect(response).to have_http_status(:unprocessable_content)
     end
 
+    # フロントは「詳細 (任意)」と表示しているため、空でも登録できる必要がある（issue #392）
+    it '詳細が空文字でも取引を作成できる' do
+      params = { transaction: { amount: 2000, transaction_type: 'expense', description: '', category: '交通',
+                                date: Date.current } }
+      expect do
+        post '/api/v1/transactions', params: params, headers: headers
+      end.to change(Transaction, :count).by(1)
+      expect(response).to have_http_status(:created)
+    end
+
+    it '詳細を送らなくても取引を作成できる' do
+      params = { transaction: { amount: 2000, transaction_type: 'expense', category: '交通',
+                                date: Date.current } }
+      expect do
+        post '/api/v1/transactions', params: params, headers: headers
+      end.to change(Transaction, :count).by(1)
+      expect(response).to have_http_status(:created)
+    end
+
     context '実績連携' do
       it '収入取引を作成すると初めての貯金実績が解除される' do
         post '/api/v1/transactions',
