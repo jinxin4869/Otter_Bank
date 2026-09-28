@@ -59,14 +59,45 @@ RSpec.describe 'Api::V1::Users', type: :request do
     end
 
     it 'バリデーションエラーは 422 を返す' do
-      other_user = create(:user)
-      patch '/api/v1/user', params: { user: { email: other_user.email } }, headers: headers
+      patch '/api/v1/user', params: { user: { username: 'ab' } }, headers: headers
       expect(response).to have_http_status(:unprocessable_content)
     end
 
     it '未認証では更新できない' do
       patch '/api/v1/user', params: { user: { username: '書き換え' } }
       expect(response).to have_http_status(:unauthorized)
+    end
+
+    context 'パスワード・メールアドレスの変更' do
+      let(:user) { create(:user, password: 'current-pass', password_confirmation: 'current-pass') }
+
+      it '現在のパスワード無しではパスワードを変更できない' do
+        patch '/api/v1/user', params: { user: { password: 'new-pass-123', password_confirmation: 'new-pass-123' } },
+                              headers: headers
+        expect(response).to have_http_status(:unauthorized)
+        expect(response.parsed_body['code']).to eq('invalid_current_password')
+        expect(user.reload.authenticate('current-pass')).to be_truthy
+      end
+
+      it '現在のパスワードが正しければパスワードを変更できる' do
+        patch '/api/v1/user',
+              params: { user: { current_password: 'current-pass', password: 'new-pass-123',
+                                password_confirmation: 'new-pass-123' } },
+              headers: headers
+        expect(response).to have_http_status(:ok)
+        expect(user.reload.authenticate('new-pass-123')).to be_truthy
+      end
+
+      it '現在のパスワード無しではメールアドレスを変更できない' do
+        patch '/api/v1/user', params: { user: { email: 'changed@example.com' } }, headers: headers
+        expect(response).to have_http_status(:unauthorized)
+      end
+
+      it '同じメールアドレスを送るだけなら現在のパスワードは不要' do
+        patch '/api/v1/user', params: { user: { email: user.email, name: '表示名' } }, headers: headers
+        expect(response).to have_http_status(:ok)
+        expect(user.reload.name).to eq('表示名')
+      end
     end
   end
 

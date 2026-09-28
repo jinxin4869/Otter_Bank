@@ -96,29 +96,11 @@ RSpec.describe 'Api::V1::Achievements', type: :request do
   end
 
   describe 'PATCH /api/v1/achievements/:id' do
-    let!(:achievement) { create(:achievement, user: user, progress: 0, unlocked: false) }
-
-    it '自分の実績の進捗を更新できる' do
-      patch "/api/v1/achievements/#{achievement.id}",
-            params: { achievement: { progress: 5 } },
-            headers: headers
-      expect(response).to have_http_status(:ok)
-      json = response.parsed_body
-      expect(json['progress']).to eq(5)
-      expect(achievement.reload.progress).to eq(5)
-    end
-
-    it '他ユーザーの実績は更新できない' do
-      other_achievement = create(:achievement, user: create(:user))
-      patch "/api/v1/achievements/#{other_achievement.id}",
-            params: { achievement: { progress: 5 } },
-            headers: headers
+    it 'ルートが無い（実績の進捗はサーバー側の判定でのみ変わる）' do
+      achievement = create(:achievement, user: user)
+      patch "/api/v1/achievements/#{achievement.id}", params: { achievement: { progress: 5 } }, headers: headers
       expect(response).to have_http_status(:not_found)
-    end
-
-    it '未認証では更新できない' do
-      patch "/api/v1/achievements/#{achievement.id}", params: { achievement: { progress: 5 } }
-      expect(response).to have_http_status(:unauthorized)
+      expect(achievement.reload.progress).to eq(0)
     end
   end
 end
