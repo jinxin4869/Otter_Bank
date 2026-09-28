@@ -25,11 +25,19 @@ module Api
       end
 
       def update
-        # パスワードやメールアドレスの変更は、盗まれたアクセストークンだけではできないよう現在のパスワードを求める
-        if changing_credentials? && !@current_user.authenticate(params.dig(:user, :current_password).to_s)
-          render json: { error: '現在のパスワードが正しくありません', code: 'invalid_current_password' },
-                 status: :unauthorized
-          return
+        # パスワードやメールアドレスの変更は、盗まれたアクセストークンだけではできないよう現在のパスワードを求める。
+        # 401 は「トークンが無効」の意味で使っているので、ここは検証エラーと同じ 422 で返す
+        if changing_credentials?
+          if @current_user.oauth_only?
+            render json: { errors: ['パスワードが未設定です。パスワードリセットから設定してください'], code: 'password_not_set' },
+                   status: :unprocessable_content
+            return
+          end
+          unless @current_user.authenticate(params.dig(:user, :current_password).to_s)
+            render json: { errors: ['現在のパスワードが正しくありません'], code: 'invalid_current_password' },
+                   status: :unprocessable_content
+            return
+          end
         end
 
         if @current_user.update(update_user_params)
@@ -55,10 +63,10 @@ module Api
       end
 
       def changing_credentials?
-        user_params = params[:user]
-        return false unless user_params.respond_to?(:key?)
+        attrs = params[:user]
+        return false unless attrs.respond_to?(:key?)
 
-        user_params.key?(:password) || (user_params.key?(:email) && user_params[:email] != @current_user.email)
+        attrs.key?(:password) || (attrs.key?(:email) && attrs[:email] != @current_user.email)
       end
     end
   end

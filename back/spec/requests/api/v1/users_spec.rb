@@ -74,7 +74,7 @@ RSpec.describe 'Api::V1::Users', type: :request do
       it '現在のパスワード無しではパスワードを変更できない' do
         patch '/api/v1/user', params: { user: { password: 'new-pass-123', password_confirmation: 'new-pass-123' } },
                               headers: headers
-        expect(response).to have_http_status(:unauthorized)
+        expect(response).to have_http_status(:unprocessable_content)
         expect(response.parsed_body['code']).to eq('invalid_current_password')
         expect(user.reload.authenticate('current-pass')).to be_truthy
       end
@@ -90,7 +90,19 @@ RSpec.describe 'Api::V1::Users', type: :request do
 
       it '現在のパスワード無しではメールアドレスを変更できない' do
         patch '/api/v1/user', params: { user: { email: 'changed@example.com' } }, headers: headers
-        expect(response).to have_http_status(:unauthorized)
+        expect(response).to have_http_status(:unprocessable_content)
+      end
+
+      it 'OAuth のみ（パスワード未設定）のユーザーには password_not_set を返す' do
+        # Google ログインで作られたユーザーは password_digest が無い（User.find_or_create_from_oauth と同じ状態）
+        oauth_user = create(:user)
+        oauth_user.oauth_providers.create!(provider: 'google_oauth2', uid: 'uid-1')
+        oauth_user.update_columns(password_digest: nil)
+        oauth_headers = { 'Authorization' => "Bearer #{JsonWebToken.encode(user_id: oauth_user.id)}" }
+        patch '/api/v1/user', params: { user: { password: 'new-pass-123', password_confirmation: 'new-pass-123' } },
+                              headers: oauth_headers
+        expect(response).to have_http_status(:unprocessable_content)
+        expect(response.parsed_body['code']).to eq('password_not_set')
       end
 
       it '同じメールアドレスを送るだけなら現在のパスワードは不要' do
