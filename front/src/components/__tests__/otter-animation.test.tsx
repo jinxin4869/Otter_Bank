@@ -69,7 +69,7 @@ describe("OtterAnimation", () => {
 
   it("mood に応じたカワウソ画像を表示する", () => {
     render(<OtterAnimation mood="neutral" />)
-    const image = screen.getByAltText("Otter feeling neutral")
+    const image = screen.getByAltText("落ち着いているカワウソ")
     expect(image).toBeInTheDocument()
   })
 
@@ -111,7 +111,7 @@ describe("OtterAnimation", () => {
 
     it("mood の表情画像はステージに関係なく同じものを使う", () => {
       render(<OtterAnimation mood="sad" growthStage="gold" />)
-      expect(screen.getByRole("img", { name: /Otter feeling sad/ })).toBeInTheDocument()
+      expect(screen.getByRole("img", { name: /心配しているカワウソ/ })).toBeInTheDocument()
     })
   })
 })

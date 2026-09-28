@@ -9,6 +9,7 @@ import { ja } from "date-fns/locale"
 import { ThumbsUp, Send } from "lucide-react"
 import { type Comment } from "@/types/post"
 import { getUserInitial } from "./board-constants"
+import { cn } from "@/lib/utils"
 
 type CommentSectionProps = {
   comments: Comment[]
@@ -30,7 +31,7 @@ function CommentSection({ comments, currentUserEmail, currentUserId, likedCommen
 
   return (
     <div className="border-t pt-4">
-      <h3 className="font-medium mb-4 text-gray-900 dark:text-gray-100">
+      <h3 className="font-medium mb-4 text-foreground">
         コメント ({comments.length})
       </h3>
 
@@ -45,7 +46,7 @@ function CommentSection({ comments, currentUserEmail, currentUserId, likedCommen
               onChange={(e) => setContent(e.target.value)}
               placeholder="コメントを入力..."
               rows={3}
-              className="comment-textarea"
+              className="text-foreground"
             />
             <div className="flex justify-end mt-2">
               <Button size="sm" onClick={handleSubmit} className="bg-primary hover:bg-primary/90 text-primary-foreground">
@@ -67,26 +68,26 @@ function CommentSection({ comments, currentUserEmail, currentUserId, likedCommen
                 <AvatarFallback>{getUserInitial(comment.author)}</AvatarFallback>
               </Avatar>
               <div className="flex-1">
-                <div className={`rounded-lg p-3 ${isOwnComment ? "comment-own" : "comment-other"}`}>
+                <div className={cn("rounded-lg p-3", isOwnComment ? "bg-accent" : "bg-muted")}>
                   <div className="flex items-center justify-between mb-1">
-                    <span className="font-medium text-sm comment-author">
+                    <span className="font-medium text-sm text-foreground">
                       {comment.author}{" "}
-                      {isOwnComment && <span className="text-xs text-blue-500">(自分)</span>}
+                      {isOwnComment && <span className="text-xs text-primary">(自分)</span>}
                     </span>
-                    <span className="text-xs comment-time">
+                    <span className="text-xs text-muted-foreground">
                       {format(new Date(comment.createdAt), "MM月dd日 HH:mm", { locale: ja })}
                     </span>
                   </div>
-                  <p className="text-sm comment-content">{comment.content}</p>
+                  <p className="text-sm text-foreground">{comment.content}</p>
                 </div>
                 <div className="flex items-center mt-1">
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => onLikeComment(comment.id)}
-                    className={`h-6 px-2 text-xs ${isCommentLiked ? "text-blue-600" : ""}`}
+                    className={cn("h-6 px-2 text-xs", isCommentLiked && "text-primary")}
                   >
-                    <ThumbsUp className={`mr-1 h-3 w-3 ${isCommentLiked ? "fill-blue-600 text-blue-600" : ""}`} />
+                    <ThumbsUp className={cn("mr-1 h-3 w-3", isCommentLiked && "fill-primary text-primary")} />
                     {comment.likes}
                   </Button>
                 </div>
@@ -95,7 +96,7 @@ function CommentSection({ comments, currentUserEmail, currentUserId, likedCommen
           )
         })}
         {comments.length === 0 && (
-          <p className="text-sm text-gray-600 dark:text-gray-400">まだコメントはありません。</p>
+          <p className="text-sm text-muted-foreground">まだコメントはありません。</p>
         )}
       </div>
     </div>

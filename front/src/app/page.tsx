@@ -26,7 +26,7 @@ export default function Home() {
             </p>
 
             <div className="flex flex-wrap gap-4 pt-4">
-              <Button size="lg" className="rounded-full px-8 bg-primary hover:bg-primary/90 text-primary-foreground">
+              <Button asChild size="lg" className="rounded-full px-8 bg-primary hover:bg-primary/90 text-primary-foreground">
                 <Link href="/register" className="flex items-center gap-2">
                   今すぐ始める <ArrowRight className="h-4 w-4" />
                 </Link>
@@ -44,11 +44,11 @@ export default function Home() {
           </div>
 
           <div className="relative h-[500px] hidden md:block">
-            <div className="absolute rounded-xl opacity-20 dark:opacity-60 dark:border dark:border-slate-600/50" />
+            <div className="absolute rounded-xl opacity-20 dark:opacity-60 dark:border" />
             <div className="absolute -left-12 bottom-0 w-96 h-80">
               <Image
                 src="/otter_bank.svg"
-                alt="Happy Otter with Money"
+                alt="コインと貯金箱を持つカワウソ"
                 fill
                 className="object-contain"
               />
@@ -56,17 +56,17 @@ export default function Home() {
             <div className="absolute right-0 top-20 w-80 h-80 rotate-6">
               <Image
                 src="/otter_umbrella.png"
-                alt="App Preview"
+                alt="傘をさすカワウソ"
                 fill
-                className="object-contain rounded-2xl shadow-2xl dark:shadow-slate-700/50 border dark:border-slate-600/30"
+                className="object-contain rounded-2xl shadow-2xl border"
               />
             </div>
             <div className="absolute right-20 bottom-10 w-64 h-64 -rotate-3">
               <Image
                 src="/otter_mathtest.svg"
-                alt="Savings Chart"
+                alt="計算するカワウソ"
                 fill
-                className="object-contain rounded-2xl shadow-xl dark:shadow-slate-700/50 border dark:border-slate-600/30"
+                className="object-contain rounded-2xl shadow-xl border"
               />
             </div>
           </div>
@@ -80,7 +80,7 @@ export default function Home() {
           <div>
             <h2 className="text-3xl font-bold mb-4">楽しく貯金、賢く管理</h2>
             <p className="text-lg mb-6">
-              水獭银行は単なる家計簿アプリではありません。かわいいカワウソと一緒にお金の管理を楽しく続けられるアプリです。
+              獺獺銀行は単なる家計簿アプリではありません。かわいいカワウソと一緒にお金の管理を楽しく続けられるアプリです。
             </p>
             <ul className="space-y-4">
               <li className="flex items-start gap-3">
@@ -144,25 +144,25 @@ export default function Home() {
                 icon: <PiggyBank className="h-12 w-12" />,
                 title: "楽しく貯金",
                 description: "貯金するほどカワウソが喜び、環境が豊かになります",
-                color: "from-blue-500/20 to-indigo-500/10",
+                color: "from-category-1/20 to-category-1/5",
               },
               {
                 icon: <BadgeCheck className="h-12 w-12" />,
                 title: "実績システム",
                 description: "目標を達成して特別なバッジやアイテムを獲得しよう",
-                color: "from-green-500/20 to-emerald-500/10",
+                color: "from-category-2/20 to-category-2/5",
               },
               {
                 icon: <TrendingUp className="h-12 w-12" />,
                 title: "わかりやすい分析",
                 description: "グラフやチャートで支出パターンを可視化",
-                color: "from-orange-500/20 to-amber-500/10",
+                color: "from-category-4/20 to-category-4/5",
               },
               {
                 icon: <Sparkles className="h-12 w-12" />,
                 title: "豊富なカスタマイズ",
                 description: "カワウソの環境や見た目を自分好みにアレンジ",
-                color: "from-pink-500/20 to-rose-500/10",
+                color: "from-category-3/20 to-category-3/5",
               }
             ].map((feature) => (
               <div
@@ -239,9 +239,9 @@ export default function Home() {
                     <div className="absolute inset-0 rounded-t-lg shadow-2xl overflow-hidden bg-background border border-border">
                       <div className="h-10 bg-muted border-b border-border flex items-center px-3">
                         <div className="flex space-x-1.5 mr-3">
-                          <div className="w-3 h-3 rounded-full bg-red-500"></div>
-                          <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
-                          <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                          <div className="w-3 h-3 rounded-full bg-muted-foreground/40"></div>
+                          <div className="w-3 h-3 rounded-full bg-muted-foreground/40"></div>
+                          <div className="w-3 h-3 rounded-full bg-muted-foreground/40"></div>
                         </div>
                         <div className="flex-1 mx-2">
                           <div className="bg-background border border-border rounded-full px-4 py-1 text-xs text-muted-foreground flex items-center">
@@ -269,14 +269,14 @@ export default function Home() {
                           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
                         </button>
                         <button className="absolute right-2 top-1/2 transform -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-background/80 shadow-md flex items-center justify-center border border-border">
-                          <svg xmlns="http://www.w3.orghttps://httpd.cloudflare.com/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
                         </button>
                         <div className="shrink-0 w-full h-full relative">
                           <Image
                             src="/app-top.png"
-                            alt="Otter Bank Dashboard"
+                            alt="Otter Bank のダッシュボード画面"
                             fill
-                            className="object-cover rounded-lg border dark:border-slate-600/30"
+                            className="object-cover rounded-lg border"
                           />
                           <div className="absolute bottom-12 right-4 bg-card/90 p-3 rounded-lg shadow-md border border-border">
                             <div className="flex items-center gap-2">
@@ -296,14 +296,14 @@ export default function Home() {
                   <div className="absolute -bottom-20 right-20 w-40 h-40 z-10">
                     <Image
                       src="/otter_logo.svg"
-                      alt="Happy Otter"
+                      alt="笑顔のカワウソ"
                       fill
                       className="object-contain animate-bounce dark:drop-shadow-lg"
                     />
                   </div>
-                  <div className="absolute bottom-48 right-28 bg-card p-3 rounded-xl shadow-lg z-10 max-w-[200px] transform rotate-3 border border-border dark:border-slate-600/50 dark:bg-slate-800">
-                    <p className="text-sm text-card-foreground dark:text-slate-200">楽しく貯金できるね！今月も頑張ろう！</p>
-                    <div className="absolute -bottom-2 right-6 w-4 h-4 bg-card dark:bg-slate-800 border-l border-b border-border dark:border-slate-600/50 transform rotate-45"></div>
+                  <div className="absolute bottom-48 right-28 bg-card p-3 rounded-xl shadow-lg z-10 max-w-[200px] transform rotate-3 border border-border">
+                    <p className="text-sm text-card-foreground">楽しく貯金できるね！今月も頑張ろう！</p>
+                    <div className="absolute -bottom-2 right-6 w-4 h-4 bg-card border-l border-b border-border transform rotate-45"></div>
                   </div>
                 </div>
               </div>
@@ -337,7 +337,7 @@ export default function Home() {
                   "ベーシックな実績システム",
                   "初期ユーザーテスト"
                 ],
-                color: "bg-green-500/10 border-green-500/20",
+                color: "bg-category-4/10 border-category-4/20",
               },
               {
                 emoji: "🌿",
@@ -349,7 +349,7 @@ export default function Home() {
                   "カスタマイズオプションの追加",
                   "ユーザーフィードバックの反映"
                 ],
-                color: "bg-teal-500/10 border-teal-500/20",
+                color: "bg-category-2/10 border-category-2/20",
               },
               {
                 emoji: "🌳",
@@ -361,7 +361,7 @@ export default function Home() {
                   "コミュニティ機能の強化",
                   "季節イベントの導入"
                 ],
-                color: "bg-blue-500/10 border-blue-500/20",
+                color: "bg-category-1/10 border-category-1/20",
               },
               {
                 emoji: "🌟",
@@ -373,7 +373,7 @@ export default function Home() {
                   "追加コンテンツの定期配信",
                   "ユーザーとの共創の場の提供"
                 ],
-                color: "bg-indigo-500/10 border-indigo-500/20",
+                color: "bg-category-3/10 border-category-3/20",
               }
             ].map((phase) => (
               <div
@@ -459,7 +459,7 @@ export default function Home() {
                         href={process.env.NEXT_PUBLIC_CONTACT_FORM_URL}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center gap-2 bg-black-500 hover:bg-blue-600"
+                        className="flex items-center gap-2"
                       >
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-message-square">
                           <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
@@ -469,11 +469,11 @@ export default function Home() {
                     </Button>
                   </div>
                 </div>
-                <div className="relative rounded-xl overflow-hidden h-64 md:h-auto bg-linear-to-br from-primary/10 to-primary/5 border dark:border-slate-600/30">
+                <div className="relative rounded-xl overflow-hidden h-64 md:h-auto bg-linear-to-br from-primary/10 to-primary/5 border">
                   <div className="absolute inset-0 flex items-center justify-center">
                     <Image
                       src="/otter_glasses.svg"
-                      alt="Happy Otter"
+                      alt="笑顔のカワウソ"
                       width={300}
                       height={300}
                       className="object-contain dark:drop-shadow-lg"

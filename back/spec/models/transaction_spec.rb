@@ -8,7 +8,18 @@ RSpec.describe Transaction, type: :model do
 
   # バリデーション
   it { should validate_presence_of(:amount) }
-  it { should validate_presence_of(:description) }
+  # description は任意項目（フロントも「詳細 (任意)」と表示している。issue #392）
+  it { should_not validate_presence_of(:description) }
+
+  describe 'description（任意項目）' do
+    it 'nil でも有効' do
+      expect(build(:transaction, description: nil)).to be_valid
+    end
+
+    it '空文字でも有効' do
+      expect(build(:transaction, description: '')).to be_valid
+    end
+  end
   it { should validate_presence_of(:transaction_type) }
   it { should validate_presence_of(:date) }
   it { should validate_numericality_of(:amount).is_greater_than(0) }

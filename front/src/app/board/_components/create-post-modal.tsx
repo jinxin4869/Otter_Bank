@@ -76,7 +76,7 @@ export default function CreatePostModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-[600px] board-dialog-content">
+      <DialogContent className="sm:max-w-[600px] bg-popover text-popover-foreground">
         <DialogHeader>
           <DialogTitle>新規投稿</DialogTitle>
           <DialogDescription>
@@ -93,7 +93,7 @@ export default function CreatePostModal({
               placeholder="投稿のタイトルを入力"
               maxLength={100}
             />
-            {titleError && <p className="text-sm text-red-500">{titleError}</p>}
+            {titleError && <p className="text-sm text-destructive">{titleError}</p>}
           </div>
         </div>
         <div className="grid gap-2">
@@ -111,7 +111,7 @@ export default function CreatePostModal({
               </Badge>
             ))}
           </div>
-          {categoryError && <p className="text-sm text-red-500 mt-1">{categoryError}</p>}
+          {categoryError && <p className="text-sm text-destructive mt-1">{categoryError}</p>}
           <div className="grid gap-2 mt-4">
             <Label htmlFor="content">内容</Label>
             <Textarea
@@ -121,7 +121,7 @@ export default function CreatePostModal({
               placeholder="投稿の内容を入力"
               rows={8}
             />
-            {contentError && <p className="text-sm text-red-500">{contentError}</p>}
+            {contentError && <p className="text-sm text-destructive">{contentError}</p>}
           </div>
         </div>
         <DialogFooter>

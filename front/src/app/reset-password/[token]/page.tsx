@@ -65,7 +65,7 @@ export default function ResetPasswordPage() {
             </Alert>
           )}
           {successMessage && (
-            <Alert className="mb-4 border-green-500 text-green-700">
+            <Alert className="mb-4 border-primary/30 bg-accent text-accent-foreground">
               <CheckCircle2 className="h-4 w-4" />
               <AlertDescription>{successMessage}</AlertDescription>
             </Alert>

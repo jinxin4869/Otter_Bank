@@ -159,18 +159,18 @@ export default function RegisterPage() {
         <CardFooter className="flex flex-col space-y-2">
           <div className="text-sm text-center text-muted-foreground">
             登録することで、
-            <Link href="/terms" className="text-blue-500 hover:text-blue-700 underline underline-offset-4">
+            <Link href="/terms" className="text-primary hover:text-primary/80 underline underline-offset-4">
               利用規約
             </Link>
             と
-            <Link href="/privacy" className="text-blue-500 hover:text-blue-700 underline underline-offset-4">
+            <Link href="/privacy" className="text-primary hover:text-primary/80 underline underline-offset-4">
               プライバシーポリシー
             </Link>
             に同意したことになります。
           </div>
           <div className="text-sm text-center">
             すでにアカウントをお持ちですか？{" "}
-            <Link href="/login" className="text-red-400 hover:text-primary underline underline-offset-4">
+            <Link href="/login" className="text-primary hover:text-primary/80 underline underline-offset-4">
               ログイン
             </Link>
           </div>

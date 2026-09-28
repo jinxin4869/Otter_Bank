@@ -83,4 +83,34 @@ RSpec.describe RefreshToken, type: :model do
       expect(described_class.active).to contain_exactly(active)
     end
   end
+
+  describe '.revoke_all!' do
+    it '未失効のトークンをすべて失効させる' do
+      active_tokens = create_list(:refresh_token, 3)
+
+      expect { described_class.revoke_all! }
+        .to change { described_class.where(revoked: false).count }.from(3).to(0)
+      expect(active_tokens.map { |t| t.reload.revoked }).to all(be true)
+    end
+
+    it '失効させた件数を返す' do
+      create_list(:refresh_token, 2)
+
+      expect(described_class.revoke_all!).to eq(2)
+    end
+
+    it 'すでに失効済みのトークンは数えない' do
+      create(:refresh_token, revoked: true)
+
+      expect(described_class.revoke_all!).to eq(0)
+    end
+
+    it '失効後は find_active_by_token で取得できない' do
+      token = described_class.generate_for(create(:user))
+      plain = token.token
+      described_class.revoke_all!
+
+      expect(described_class.find_active_by_token(plain)).to be_nil
+    end
+  end
 end

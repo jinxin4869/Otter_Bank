@@ -46,7 +46,7 @@ export default function EditPostModal({ isOpen, post, onOpenChange, onSubmit }: 
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px] board-dialog-content">
+      <DialogContent className="sm:max-w-[600px] bg-popover text-popover-foreground">
         <DialogHeader>
           <DialogTitle>投稿を編集</DialogTitle>
           <DialogDescription>投稿の内容を編集できます。</DialogDescription>

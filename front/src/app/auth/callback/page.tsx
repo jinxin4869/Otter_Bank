@@ -41,27 +41,27 @@ export default function CallbackPage() {
   }, [router, login])
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+    <div className="min-h-screen flex items-center justify-center bg-background">
       <div className="max-w-md w-full space-y-8 text-center">
         {status === 'loading' && (
           <div>
-            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-indigo-600 mx-auto"></div>
+            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary mx-auto"></div>
             <p className="mt-4 text-lg">認証処理中...</p>
           </div>
         )}
         {status === 'success' && (
           <div>
-            <div className="text-green-600 text-6xl mb-4">✓</div>
-            <p className="text-lg text-green-600">{message}</p>
+            <div className="text-primary text-6xl mb-4">✓</div>
+            <p className="text-lg text-primary">{message}</p>
           </div>
         )}
         {status === 'error' && (
           <div>
-            <div className="text-red-600 text-6xl mb-4">✗</div>
-            <p className="text-lg text-red-600">{message}</p>
+            <div className="text-destructive text-6xl mb-4">✗</div>
+            <p className="text-lg text-destructive">{message}</p>
             <button
               onClick={() => router.push('/login')}
-              className="mt-4 px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
+              className="mt-4 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
             >
               ログインページに戻る
             </button>

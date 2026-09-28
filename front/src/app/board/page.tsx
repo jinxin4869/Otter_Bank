@@ -362,7 +362,7 @@ export default function BoardPage() {
   if (authIsLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-12 w-12 animate-spin text-blue-600" />
+        <Loader2 className="h-12 w-12 animate-spin text-primary" />
       </div>
     )
   }
@@ -398,7 +398,7 @@ export default function BoardPage() {
             <SelectTrigger className="w-[130px]">
               <SelectValue placeholder="並び替え" />
             </SelectTrigger>
-            <SelectContent className="board-dialog-content">
+            <SelectContent>
               {SORT_OPTIONS.map((option) => (
                 <SelectItem key={option.value} value={option.value}>
                   {option.label}
@@ -415,7 +415,7 @@ export default function BoardPage() {
 
       {/* カテゴリータブ */}
       <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="w-full flex flex-wrap justify-center">
+        <TabsList className="w-full justify-start overflow-x-auto scrollbar-none">
           <TabsTrigger value="all">すべて</TabsTrigger>
           {BOARD_CATEGORIES.map((category) => (
             <TabsTrigger
@@ -514,7 +514,7 @@ export default function BoardPage() {
 
       {/* 削除確認ダイアログ */}
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <AlertDialogContent className="board-dialog-content">
+        <AlertDialogContent className="bg-popover text-popover-foreground">
           <AlertDialogHeader>
             <AlertDialogTitle>投稿を削除しますか？</AlertDialogTitle>
             <AlertDialogDescription>
@@ -523,7 +523,7 @@ export default function BoardPage() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>キャンセル</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeletePost} className="bg-red-600 hover:bg-red-700">
+            <AlertDialogAction onClick={handleDeletePost} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
               削除する
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -532,7 +532,7 @@ export default function BoardPage() {
 
       {/* フィルターダイアログ */}
       <Dialog open={isFilterDialogOpen} onOpenChange={setIsFilterDialogOpen}>
-        <DialogContent className="sm:max-w-[500px] board-dialog-content">
+        <DialogContent className="sm:max-w-[500px] bg-popover text-popover-foreground">
           <DialogHeader>
             <DialogTitle>投稿のフィルター</DialogTitle>
           </DialogHeader>
@@ -561,7 +561,7 @@ export default function BoardPage() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" className="text-red-300 hover:text-red-400" onClick={() => setSelectedCategories([])}>
+            <Button variant="outline" onClick={() => setSelectedCategories([])}>
               リセット
             </Button>
             <Button className="hover:bg-primary/90" onClick={() => setIsFilterDialogOpen(false)}>適用</Button>
