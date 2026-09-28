@@ -119,23 +119,12 @@ npm run dev   # http://localhost:3000（バックとポートが被る場合は 
 
 ### 環境変数
 
-#### バックエンド（`back/.env`）
+テンプレートをコピーして値を埋める。各変数の説明はテンプレート内のコメントを参照。
 
-```env
-JWT_SECRET=your_jwt_secret_here
-GOOGLE_CLIENT_ID=your_google_client_id
-GOOGLE_CLIENT_SECRET=your_google_client_secret
-FRONTEND_URL=http://localhost:4000
-FRONTEND_URL_PROD=https://your-production-frontend.vercel.app
-BACKEND_URL=http://localhost:3000
-```
-
-#### フロントエンド（`front/.env.local`）
-
-```env
-NEXT_PUBLIC_DEV_URL=http://localhost:3000
-NEXT_PUBLIC_API_URL=https://your-production-backend.onrender.com
-```
+| ファイル | 作り方 | 主な変数 |
+| --- | --- | --- |
+| `back/.env` | `cp back/.env.example back/.env` | `JWT_SECRET`（本番必須）, `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`, `FRONTEND_URL`, `FRONTEND_URL_PROD` |
+| `front/.env.local` | `cp front/.env.example front/.env.local` | `NEXT_PUBLIC_DEV_URL`, `NEXT_PUBLIC_API_URL` |
 
 ## プロジェクト構造
 
