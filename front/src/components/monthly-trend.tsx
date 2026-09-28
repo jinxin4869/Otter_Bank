@@ -15,14 +15,7 @@ import {
   Legend,
 } from "recharts"
 
-type Transaction = {
-  id: string
-  amount: number
-  type: "income" | "expense"
-  category: string
-  description: string
-  date: string
-}
+import type { Transaction } from "@/types/transaction"
 
 type MonthlyTrendProps = {
   transactions: Transaction[]

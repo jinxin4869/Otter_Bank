@@ -42,6 +42,8 @@ export const TIER_CONFIG: Record<AchievementTier, TierStyle> = {
   },
 }
 
+export const isAchievementTier = (value: string): value is AchievementTier => value in TIER_CONFIG
+
 export function TierIcon({ tier, className }: { tier: AchievementTier; className?: string }) {
   const iconClassName = cn("h-12 w-12", className)
   if (tier === "platinum") return <Gem className={iconClassName} aria-hidden="true" />

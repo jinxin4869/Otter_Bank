@@ -12,6 +12,7 @@ import { LockIcon, UnlockIcon, AlertTriangle, Trophy, Clock, History } from 'luc
 import { useAuth } from "@/hooks/useAuth"
 import { useAchievements } from "@/hooks/useAchievements"
 import OtterAnimation from "@/components/otter-animation"
+import { TIER_CONFIG } from "@/lib/tier"
 
 // カテゴリ表示用の日本語マッピング
 const categoryLabels: Record<string, string> = {
@@ -35,13 +36,6 @@ const formatUnlockedAt = (dateStr: string): string => {
   }).format(new Date(dateStr));
 };
 
-// ティア表示用の日本語マッピング
-const tierLabels: Record<string, string> = {
-  bronze: 'ブロンズ',
-  silver: 'シルバー',
-  gold: 'ゴールド',
-  platinum: 'プラチナ'
-};
 
 export default function CollectionPage() {
   const router = useRouter();
@@ -206,7 +200,7 @@ export default function CollectionPage() {
                     <p className="text-xs text-muted-foreground">{formatUnlockedAt(ach.unlockedAt!)}</p>
                   </div>
                   <Badge variant="secondary" className="text-xs shrink-0 bg-secondary text-secondary-foreground">
-                    {tierLabels[ach.tier] ?? ach.tier}
+                    {TIER_CONFIG[ach.tier].label}
                   </Badge>
                 </div>
               ))}
@@ -249,7 +243,7 @@ export default function CollectionPage() {
                   <CardDescription className="text-xs h-10 overflow-hidden text-ellipsis text-muted-foreground">{ach.description}</CardDescription>
                 </CardHeader>
                 <CardContent className="grow p-4 pt-0">
-                  {ach.tier && <Badge variant="secondary" className="mb-2 text-xs bg-secondary text-secondary-foreground">{tierLabels[ach.tier] ?? ach.tier}</Badge>}
+                  {ach.tier && <Badge variant="secondary" className="mb-2 text-xs bg-secondary text-secondary-foreground">{TIER_CONFIG[ach.tier].label}</Badge>}
                   <Progress value={ach.progressPercentage} className="w-full h-2 my-1" />
                   <p className="text-xs text-muted-foreground mt-1">
                     {ach.progressPercentage}% 完了 ({ach.progress} / {ach.progressTarget})

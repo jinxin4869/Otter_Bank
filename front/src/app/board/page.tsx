@@ -16,6 +16,7 @@ import { useAuth } from "@/hooks/useAuth"
 import { api } from "@/lib/api"
 import { mapApiPost, mapApiPostsResponse, mapApiComment, type Post, type Comment } from "@/types/post"
 import { BOARD_CATEGORIES, SORT_OPTIONS, getCategoryColor } from "./_components/board-constants"
+import { TIER_CONFIG, isAchievementTier } from "@/lib/tier"
 import PostList from "./_components/post-list"
 import PostDetailDialog from "./_components/post-detail-dialog"
 import CreatePostModal from "./_components/create-post-modal"
@@ -75,13 +76,8 @@ export default function BoardPage() {
     if (!shareTitle || hasProcessedShareParams.current) return
 
     hasProcessedShareParams.current = true
-    const tierLabel: Record<string, string> = {
-      bronze: "ブロンズ",
-      silver: "シルバー",
-      gold: "ゴールド",
-      platinum: "プラチナ",
-    }
-    const tier = shareTier ? (tierLabel[shareTier] ?? shareTier) : null
+    // URL の値は未検証の文字列なので、ティアの定義に無ければそのまま使う
+    const tier = shareTier ? (isAchievementTier(shareTier) ? TIER_CONFIG[shareTier].label : shareTier) : null
     const tierTag = tier ? ` #${tier}` : ""
 
     setShareInitialTitle(`「${shareTitle}」を達成しました！`)

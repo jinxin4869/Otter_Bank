@@ -12,29 +12,7 @@ import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { format } from "date-fns"
 import { ja } from "date-fns/locale"
-import {
-  CalendarIcon,
-  PlusCircle,
-  Wallet,
-  ArrowUpCircle,
-  ArrowDownCircle,
-  Coffee,
-  ShoppingBag,
-  Bus,
-  Film,
-  Lightbulb,
-  Home,
-  Stethoscope,
-  GraduationCap,
-  ShoppingCart,
-  HelpCircle,
-  Briefcase,
-  Gift,
-  TrendingUp,
-  DollarSign,
-  Loader2,
-  Trophy,
-} from "lucide-react"
+import { CalendarIcon, PlusCircle, Wallet, ArrowUpCircle, ArrowDownCircle, HelpCircle, Loader2, Trophy } from "lucide-react"
 import dynamic from "next/dynamic"
 import OtterAnimation, { type OtterMood } from "@/components/otter-animation"
 
@@ -76,28 +54,9 @@ import { AchievementUnlockModal } from "@/components/achievement-unlock-modal"
 import { mapApiNewlyUnlockedAchievement, type NewlyUnlockedAchievement } from "@/types/achievement"
 import { Badge } from "@/components/ui/badge"
 import { useAchievements } from "@/hooks/useAchievements"
+import { categoriesFor, findCategory, getCategoryLabel } from "@/lib/transaction-categories"
+import { TIER_CONFIG } from "@/lib/tier"
 import { toast } from "sonner"
-
-const EXPENSE_CATEGORIES = [
-  { value: "food", label: "食費", icon: <Coffee className="h-4 w-4" /> },
-  { value: "groceries", label: "日用品", icon: <ShoppingBag className="h-4 w-4" /> },
-  { value: "transportation", label: "交通費", icon: <Bus className="h-4 w-4" /> },
-  { value: "entertainment", label: "娯楽", icon: <Film className="h-4 w-4" /> },
-  { value: "utilities", label: "光熱費", icon: <Lightbulb className="h-4 w-4" /> },
-  { value: "rent", label: "家賃", icon: <Home className="h-4 w-4" /> },
-  { value: "medical", label: "医療費", icon: <Stethoscope className="h-4 w-4" /> },
-  { value: "education", label: "教育費", icon: <GraduationCap className="h-4 w-4" /> },
-  { value: "shopping", label: "買い物", icon: <ShoppingCart className="h-4 w-4" /> },
-  { value: "other", label: "その他", icon: <HelpCircle className="h-4 w-4" /> },
-]
-
-const INCOME_CATEGORIES = [
-  { value: "salary", label: "給料", icon: <Briefcase className="h-4 w-4" /> },
-  { value: "bonus", label: "ボーナス", icon: <Gift className="h-4 w-4" /> },
-  { value: "investment", label: "投資", icon: <TrendingUp className="h-4 w-4" /> },
-  { value: "gift", label: "贈与", icon: <Gift className="h-4 w-4" /> },
-  { value: "other", label: "その他", icon: <DollarSign className="h-4 w-4" /> },
-]
 
 export default function DashboardPage() {
   const [transactions, setTransactions] = useState<Transaction[]>([])
@@ -326,21 +285,9 @@ export default function DashboardPage() {
     return filtered.filter((t) => t.type === "expense").reduce((sum, t) => sum + t.amount, 0)
   }
 
-  const getCategoryLabel = (categoryValue: string, type: "income" | "expense") => {
-    const categories = type === "income" ? INCOME_CATEGORIES : EXPENSE_CATEGORIES
-    return categories.find((c) => c.value === categoryValue)?.label || categoryValue
-  }
-
   const getCategoryIcon = (categoryValue: string, type: "income" | "expense") => {
-    const categories = type === "income" ? INCOME_CATEGORIES : EXPENSE_CATEGORIES
-    const categoryData = categories.find((c) => c.value === categoryValue)
-
-    if (categoryData) {
-      const IconComponent = categoryData.icon.type
-      return <IconComponent className="h-4 w-4 text-foreground" />
-    }
-
-    return <HelpCircle className="h-4 w-4 text-foreground" />
+    const Icon = findCategory(categoryValue, type)?.icon ?? HelpCircle
+    return <Icon className="h-4 w-4 text-foreground" />
   }
 
   const getViewTitle = () => {
@@ -632,14 +579,14 @@ export default function DashboardPage() {
                     side="bottom"
                     sideOffset={5}
                   >
-                    {(type === "income" ? INCOME_CATEGORIES : EXPENSE_CATEGORIES).map((cat) => (
+                    {categoriesFor(type).map((cat) => (
                       <SelectItem
                         key={cat.value}
                         value={cat.value}
                         className={cn("cursor-pointer", type === "income" ? "text-income" : "text-expense")}
                       >
                         <div className="flex items-center gap-2">
-                          {cat.icon}
+                          <cat.icon className="h-4 w-4" />
                           <span>{cat.label}</span>
                         </div>
                       </SelectItem>
@@ -705,10 +652,7 @@ export default function DashboardPage() {
                     <p className="mt-1 text-xs text-muted-foreground">{ach.description}</p>
                   </div>
                   <Badge variant="secondary" className="ml-2 shrink-0 text-xs">
-                    {ach.tier === "platinum" ? "プラチナ"
-                      : ach.tier === "gold" ? "ゴールド"
-                      : ach.tier === "silver" ? "シルバー"
-                      : "ブロンズ"}
+                    {TIER_CONFIG[ach.tier].label}
                   </Badge>
                 </div>
               ))}
