@@ -14,9 +14,9 @@ class ContactMailer < ApplicationMailer
   def notify_admin(contact)
     @contact = contact
     mail(
-      to: ENV.fetch('CONTACT_NOTIFY_TO'),
+      to: ENV.fetch('CONTACT_NOTIFY_TO', nil),
       reply_to: contact.email,
-      subject: "【Otter Bank】新しいお問い合わせ ##{contact.id}（#{contact.subject}）"
+      subject: "【Otter Bank】新しいお問い合わせ ##{contact.id}（#{Contact::SUBJECT_LABELS.fetch(contact.subject)}）"
     )
   end
 end

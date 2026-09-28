@@ -27,7 +27,7 @@ RSpec.describe ContactMailer, type: :mailer do
 
     before do
       allow(ENV).to receive(:fetch).and_call_original
-      allow(ENV).to receive(:fetch).with('CONTACT_NOTIFY_TO').and_return('admin@example.com')
+      allow(ENV).to receive(:fetch).with('CONTACT_NOTIFY_TO', nil).and_return('admin@example.com')
     end
 
     it '宛先が CONTACT_NOTIFY_TO で、返信先がお問い合わせ者である' do
@@ -35,8 +35,8 @@ RSpec.describe ContactMailer, type: :mailer do
       expect(mail.reply_to).to eq([contact.email])
     end
 
-    it '件名に ID と件名種別を含む' do
-      expect(mail.subject).to eq("【Otter Bank】新しいお問い合わせ ##{contact.id}（bug）")
+    it '件名に ID と種別の表示名を含む' do
+      expect(mail.subject).to eq("【Otter Bank】新しいお問い合わせ ##{contact.id}（不具合の報告）")
     end
 
     it '本文に名前・メールアドレス・内容が含まれる' do

@@ -5,7 +5,7 @@ ID: <%= @contact.id %>
 受付日時: <%= I18n.l(@contact.created_at, format: :long) %>
 お名前: <%= @contact.name %>
 メールアドレス: <%= @contact.email %>
-件名: <%= @contact.subject %>
+件名: <%= Contact::SUBJECT_LABELS.fetch(@contact.subject) %>
 お問い合わせ内容:
 <%= @contact.message %>
 ------------------------------------------------------------
