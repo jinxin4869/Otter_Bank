@@ -211,6 +211,7 @@ npm run build         # 本番ビルド
 
 - [画面遷移図（Figma）](https://www.figma.com/board/336gqg7QemlRBOyX6Hyjk9/Untitled?node-id=0-1&p=f&t=pWqT6LtmUdhXr6q1-0)
 - [ER 図](docs/)
+- [構成マップ（全体像・認証フロー・データモデルのスライド PDF、2026-09-28 時点）](docs/otter-bank-structure-map.pdf)
 
 ## 開発者
 
