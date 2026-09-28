@@ -11,7 +11,6 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
 import { Search, Filter, Plus, Loader2 } from "lucide-react"
-import { toast } from "sonner"
 import { useAuth } from "@/hooks/useAuth"
 import { usePosts } from "@/hooks/usePosts"
 import { useComments } from "@/hooks/useComments"
@@ -155,10 +154,7 @@ export default function BoardPage() {
   }, [incrementViews, fetchComments])
 
   const handleAddComment = useCallback(async (content: string) => {
-    if (!selectedPost) {
-      toast.error("コメント内容を入力してください")
-      return
-    }
+    if (!selectedPost) return
     if (await addComment(selectedPost.id, content)) incrementCommentCount(selectedPost.id)
   }, [selectedPost, addComment, incrementCommentCount])
 

@@ -36,7 +36,7 @@ export function useComments(token: string | null) {
         setComments((prev) => [...prev, mapApiComment(newComment)])
       }
       toast.success("コメントを投稿しました")
-      return true
+      return Boolean(newComment)
     } catch {
       toast.error("コメントの投稿に失敗しました")
       return false
