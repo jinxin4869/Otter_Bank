@@ -1,5 +1,5 @@
-import { renderHook, waitFor, act } from "@testing-library/react"
-import { useAuth } from "@/hooks/useAuth"
+import { renderHook, waitFor, act, render, screen } from "@testing-library/react"
+import { useAuth, AuthProvider } from "@/hooks/useAuth"
 
 // API のベース URL（getApiUrl は NODE_ENV=test では NEXT_PUBLIC_API_URL を読む）
 process.env.NEXT_PUBLIC_API_URL = "http://localhost:3000"
@@ -8,6 +8,7 @@ process.env.NEXT_PUBLIC_API_URL = "http://localhost:3000"
 const pushMock = jest.fn()
 jest.mock("next/navigation", () => ({
   useRouter: () => ({ push: pushMock }),
+  usePathname: () => "/",
 }))
 
 // toast の副作用を無効化する
@@ -26,7 +27,7 @@ describe("useAuth", () => {
   })
 
   it("トークンが無い場合は未認証状態になる", async () => {
-    const { result } = renderHook(() => useAuth())
+    const { result } = renderHook(() => useAuth(), { wrapper: AuthProvider })
 
     await waitFor(() => expect(result.current.isLoading).toBe(false))
 
@@ -40,7 +41,7 @@ describe("useAuth", () => {
     const user = { id: 1, email: "otter@example.com", username: "otter" }
     mockFetch({ ok: true, json: async () => ({ user }) })
 
-    const { result } = renderHook(() => useAuth())
+    const { result } = renderHook(() => useAuth(), { wrapper: AuthProvider })
 
     await waitFor(() => expect(result.current.isLoading).toBe(false))
 
@@ -55,7 +56,7 @@ describe("useAuth", () => {
     localStorage.setItem("authToken", "invalid-token")
     mockFetch({ ok: false, json: async () => ({ error: "Token verification failed" }) })
 
-    const { result } = renderHook(() => useAuth())
+    const { result } = renderHook(() => useAuth(), { wrapper: AuthProvider })
 
     await waitFor(() => expect(result.current.isLoading).toBe(false))
 
@@ -69,7 +70,7 @@ describe("useAuth", () => {
     localStorage.setItem("isLoggedIn", "true")
     mockFetch({ ok: true, json: async () => ({ user: { id: 1, email: "a@b.c", username: "a" } }) })
 
-    const { result } = renderHook(() => useAuth())
+    const { result } = renderHook(() => useAuth(), { wrapper: AuthProvider })
     await waitFor(() => expect(result.current.isAuthenticated).toBe(true))
 
     await act(async () => {
@@ -83,7 +84,7 @@ describe("useAuth", () => {
   })
 })
 
-describe("useAuth（複数インスタンス間の認証状態の共有）", () => {
+describe("useAuth（AuthProvider による状態の共有）", () => {
   const verifiedUser = { id: 1, email: "dev@example.com", username: "devuser" }
   const originalFetch = global.fetch
 
@@ -105,46 +106,66 @@ describe("useAuth（複数インスタンス間の認証状態の共有）", () 
   const verifyCalls = () =>
     (global.fetch as jest.Mock).mock.calls.filter(([url]) => String(url).endsWith("/auth/verify")).length
 
-  it("別インスタンスでログインしたら、ヘッダー相当のインスタンスも認証済みになる", async () => {
-    const header = renderHook(() => useAuth())
-    const loginPage = renderHook(() => useAuth())
-    await waitFor(() => expect(header.result.current.isLoading).toBe(false))
-    expect(header.result.current.isAuthenticated).toBe(false)
+  // ヘッダーとページのように、同じ Provider の下で useAuth を呼ぶ 2 つの利用者
+  let actions: { login: (t: string, e?: string) => Promise<void>; logout: () => Promise<void> } | null = null
+  const Consumer = ({ label }: { label: string }) => {
+    const auth = useAuth()
+    actions = auth
+    return <p data-testid={label}>{auth.isLoading ? "loading" : auth.isAuthenticated ? "in" : "out"}</p>
+  }
+  const renderApp = () =>
+    render(
+      <AuthProvider>
+        <Consumer label="header" />
+        <Consumer label="page" />
+      </AuthProvider>
+    )
 
-    await act(async () => {
-      await loginPage.result.current.login("access-token", "dev@example.com")
-    })
-
-    expect(loginPage.result.current.isAuthenticated).toBe(true)
-    await waitFor(() => expect(header.result.current.isAuthenticated).toBe(true))
-  })
-
-  it("ログインした発火元自身は再検証しない（検証は発火元 1 回と他インスタンス 1 回ずつ）", async () => {
-    const header = renderHook(() => useAuth())
-    const loginPage = renderHook(() => useAuth())
-    await waitFor(() => expect(header.result.current.isLoading).toBe(false))
-    await waitFor(() => expect(loginPage.result.current.isLoading).toBe(false))
-
-    await act(async () => {
-      await loginPage.result.current.login("access-token", "dev@example.com")
-    })
-    await waitFor(() => expect(header.result.current.isAuthenticated).toBe(true))
-
-    expect(verifyCalls()).toBe(2)
-  })
-
-  it("別インスタンスでログアウトしたら、もう一方も未認証になる", async () => {
+  it("マウント時の検証は利用者の数によらず 1 回だけ", async () => {
     localStorage.setItem("authToken", "access-token")
-    const header = renderHook(() => useAuth())
-    const dashboard = renderHook(() => useAuth())
-    await waitFor(() => expect(header.result.current.isAuthenticated).toBe(true))
-    await waitFor(() => expect(dashboard.result.current.isAuthenticated).toBe(true))
+    renderApp()
+    await waitFor(() => expect(screen.getByTestId("header")).toHaveTextContent("in"))
+    expect(screen.getByTestId("page")).toHaveTextContent("in")
+    expect(verifyCalls()).toBe(1)
+  })
+
+  it("ページ側で login したら、ヘッダー側も認証済みになる", async () => {
+    renderApp()
+    await waitFor(() => expect(screen.getByTestId("header")).toHaveTextContent("out"))
 
     await act(async () => {
-      await dashboard.result.current.logout()
+      await actions!.login("access-token", "dev@example.com")
     })
 
-    await waitFor(() => expect(header.result.current.isAuthenticated).toBe(false))
+    expect(screen.getByTestId("header")).toHaveTextContent("in")
+    expect(screen.getByTestId("page")).toHaveTextContent("in")
+    expect(verifyCalls()).toBe(1)
+  })
+
+  it("ページ側で logout したら、ヘッダー側も未認証になる", async () => {
+    localStorage.setItem("authToken", "access-token")
+    renderApp()
+    await waitFor(() => expect(screen.getByTestId("header")).toHaveTextContent("in"))
+
+    await act(async () => {
+      await actions!.logout()
+    })
+
+    expect(screen.getByTestId("header")).toHaveTextContent("out")
+    expect(localStorage.getItem("authToken")).toBeNull()
+  })
+
+  it("API 呼び出し中にトークンが更新されたら、新しいトークンを取り直す", async () => {
+    localStorage.setItem("authToken", "access-token")
+    const { result } = renderHook(() => useAuth(), { wrapper: AuthProvider })
+    await waitFor(() => expect(result.current.isAuthenticated).toBe(true))
+
+    localStorage.setItem("authToken", "refreshed-token")
+    await act(async () => {
+      window.dispatchEvent(new CustomEvent("auth-token-refreshed", { detail: { token: "refreshed-token" } }))
+    })
+
+    await waitFor(() => expect(result.current.token).toBe("refreshed-token"))
   })
 
   it("検証中にログアウトされたら、遅れて返った検証結果で認証済みに戻らない", async () => {
@@ -157,7 +178,7 @@ describe("useAuth（複数インスタンス間の認証状態の共有）", () 
       })
     }) as unknown as typeof fetch
 
-    const { result } = renderHook(() => useAuth())
+    const { result } = renderHook(() => useAuth(), { wrapper: AuthProvider })
     await act(async () => {
       await result.current.logout()
     })
@@ -170,20 +191,23 @@ describe("useAuth（複数インスタンス間の認証状態の共有）", () 
     expect(localStorage.getItem("authToken")).toBeNull()
   })
 
-  it("アンマウント後はイベントを購読しない", async () => {
-    const other = renderHook(() => useAuth())
-    const target = renderHook(() => useAuth())
-    await waitFor(() => expect(target.result.current.isLoading).toBe(false))
-    target.unmount()
+  it("API 呼び出し中の更新失敗（expired）を受けたら、再検証せずにログアウト状態にする", async () => {
+    localStorage.setItem("authToken", "access-token")
+    const { result } = renderHook(() => useAuth(), { wrapper: AuthProvider })
+    await waitFor(() => expect(result.current.isAuthenticated).toBe(true))
     const before = verifyCalls()
 
-    localStorage.setItem("authToken", "access-token")
     await act(async () => {
-      await other.result.current.login("access-token", "dev@example.com")
+      window.dispatchEvent(new CustomEvent("auth-state-changed", { detail: { expired: true } }))
     })
 
-    // 発火元の検証 1 回のみ（アンマウント済みのインスタンスは検証しない）
-    expect(verifyCalls() - before).toBe(1)
+    expect(result.current.isAuthenticated).toBe(false)
+    expect(localStorage.getItem("authToken")).toBeNull()
+    expect(verifyCalls()).toBe(before)
+  })
+
+  it("AuthProvider の外で useAuth を呼ぶと分かるエラーになる", () => {
+    expect(() => renderHook(() => useAuth())).toThrow(/AuthProvider/)
   })
 })
 
@@ -212,7 +236,7 @@ describe("useAuth（トークンの期限切れ・一時的な失敗）", () => 
     localStorage.setItem("authToken", "valid-token")
     global.fetch = jest.fn().mockRejectedValue(new TypeError("Failed to fetch")) as unknown as typeof fetch
 
-    const { result } = renderHook(() => useAuth())
+    const { result } = renderHook(() => useAuth(), { wrapper: AuthProvider })
     await waitFor(() => expect(result.current.isLoading).toBe(false))
 
     expect(result.current.isAuthenticated).toBe(false)
@@ -229,14 +253,14 @@ describe("useAuth（トークンの期限切れ・一時的な失敗）", () => 
         : jsonResponse(401, { error: "トークンの有効期限が切れています", code: "token_expired" })
     }) as unknown as typeof fetch
 
-    const { result } = renderHook(() => useAuth())
+    const { result } = renderHook(() => useAuth(), { wrapper: AuthProvider })
     await waitFor(() => expect(result.current.isAuthenticated).toBe(true))
 
     expect(result.current.token).toBe("new-token")
     expect(localStorage.getItem("authToken")).toBe("new-token")
   })
 
-  it("複数のインスタンスが同時に期限切れを検知しても、リフレッシュは 1 回だけ呼ぶ", async () => {
+  it("同一タブ内で Provider が並行して期限切れを検知しても、リフレッシュは 1 回だけ呼ぶ", async () => {
     localStorage.setItem("authToken", "expired-token")
     global.fetch = jest.fn(async (url: string, init?: RequestInit) => {
       if (String(url).endsWith("/auth/refresh")) return jsonResponse(200, { token: "new-token" })
@@ -246,8 +270,8 @@ describe("useAuth（トークンの期限切れ・一時的な失敗）", () => 
         : jsonResponse(401, { error: "期限切れ", code: "token_expired" })
     }) as unknown as typeof fetch
 
-    const header = renderHook(() => useAuth())
-    const dashboard = renderHook(() => useAuth())
+    const header = renderHook(() => useAuth(), { wrapper: AuthProvider })
+    const dashboard = renderHook(() => useAuth(), { wrapper: AuthProvider })
     await waitFor(() => expect(header.result.current.isAuthenticated).toBe(true))
     await waitFor(() => expect(dashboard.result.current.isAuthenticated).toBe(true))
 
@@ -263,7 +287,7 @@ describe("useAuth（トークンの期限切れ・一時的な失敗）", () => 
         : jsonResponse(401, { error: "期限切れ", code: "token_expired" })
     ) as unknown as typeof fetch
 
-    const { result } = renderHook(() => useAuth())
+    const { result } = renderHook(() => useAuth(), { wrapper: AuthProvider })
     await waitFor(() => expect(result.current.isLoading).toBe(false))
 
     expect(result.current.isAuthenticated).toBe(false)
