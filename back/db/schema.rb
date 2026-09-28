@@ -10,7 +10,10 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_07_11_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_28_010000) do
+  # These are extensions that must be enabled in order to support this database
+  enable_extension "pg_catalog.plpgsql"
+
   create_table "achievements", force: :cascade do |t|
     t.integer "category", default: 0, null: false
     t.datetime "created_at", null: false
@@ -164,19 +167,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_11_120000) do
     t.index ["user_id"], name: "index_transactions_on_user_id"
   end
 
-  create_table "user_actions", force: :cascade do |t|
-    t.string "action_type", null: false
-    t.decimal "amount", precision: 10, scale: 2
-    t.datetime "created_at", null: false
-    t.text "description"
-    t.datetime "updated_at", null: false
-    t.integer "user_id", null: false
-    t.index ["action_type"], name: "index_user_actions_on_action_type"
-    t.index ["created_at"], name: "index_user_actions_on_created_at"
-    t.index ["user_id", "created_at"], name: "index_user_actions_on_user_id_and_created_at"
-    t.index ["user_id"], name: "index_user_actions_on_user_id"
-  end
-
   create_table "users", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.datetime "current_sign_in_at"
@@ -207,5 +197,4 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_11_120000) do
   add_foreign_key "refresh_tokens", "users"
   add_foreign_key "savings_goals", "users"
   add_foreign_key "transactions", "users"
-  add_foreign_key "user_actions", "users"
 end

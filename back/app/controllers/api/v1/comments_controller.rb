@@ -8,9 +8,7 @@ module Api
       before_action :set_post
       before_action :set_comment, only: %i[update destroy]
 
-      def skip_authorization?
-        action_name == 'index'
-      end
+      skip_before_action :authorize_request, only: %i[index]
 
       def index
         @comments = @post.comments.includes(:user).order(created_at: :desc)

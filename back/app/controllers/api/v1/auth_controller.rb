@@ -3,9 +3,7 @@
 module Api
   module V1
     class AuthController < ApplicationController
-      def skip_authorization?
-        action_name.in?(%w[google google_callback verify refresh])
-      end
+      skip_before_action :authorize_request, only: %i[google google_callback verify refresh]
 
       # Googleログインへのリダイレクト
       def google

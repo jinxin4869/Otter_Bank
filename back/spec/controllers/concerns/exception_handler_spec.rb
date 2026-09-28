@@ -5,9 +5,7 @@ require 'rails_helper'
 # 各コントローラーが捕捉し損ねた例外が、ExceptionHandler で内部情報を出さずに返ることを検証する
 RSpec.describe ExceptionHandler, type: :controller do
   controller(ApplicationController) do
-    def skip_authorization?
-      true
-    end
+    skip_before_action :authorize_request
 
     def not_found
       Post.find(0)

@@ -8,9 +8,7 @@ module Api
       before_action :set_post_with_associations, only: %i[show update]
       before_action :set_post, only: %i[destroy increment_views]
 
-      def skip_authorization?
-        action_name.in?(%w[index show increment_views])
-      end
+      skip_before_action :authorize_request, only: %i[index show increment_views]
 
       PER_PAGE = 20
 
