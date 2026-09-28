@@ -13,7 +13,6 @@ class Transaction < ApplicationRecord
   scope :expense_in_month, ->(date) { expense.where(date: date.all_month) }
 
   validates :amount, presence: true, numericality: { greater_than: 0 }
-  validates :description, presence: true
   validates :transaction_type, presence: true
   validates :date, presence: true
 end

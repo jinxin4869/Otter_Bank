@@ -164,6 +164,9 @@ export default function DashboardPage() {
         }
       } catch (err) {
         console.error("取引データ取得エラー:", err)
+        toast.error("取引データを読み込めませんでした", {
+          description: err instanceof Error ? err.message : "時間をおいて再度お試しください",
+        })
       } finally {
         setIsDataLoading(false)
       }
@@ -261,6 +264,10 @@ export default function DashboardPage() {
       setDate(new Date())
     } catch (err) {
       console.error("取引登録エラー:", err)
+      // 失敗を画面に出さないと、ユーザーには何も起きていないように見える（issue #392）
+      toast.error("取引を登録できませんでした", {
+        description: err instanceof Error ? err.message : "時間をおいて再度お試しください",
+      })
     }
   }
 
@@ -271,6 +278,9 @@ export default function DashboardPage() {
       setTransactions((prev) => prev.filter((t) => t.id !== id))
     } catch (err) {
       console.error("取引削除エラー:", err)
+      toast.error("取引を削除できませんでした", {
+        description: err instanceof Error ? err.message : "時間をおいて再度お試しください",
+      })
     }
   }
 
