@@ -100,7 +100,7 @@ Rack::Attack（レート制限）→ Rack::Cors → ApplicationController#author
 | リフレッシュトークン | ランダム値のダイジェストを `refresh_tokens` に保存、14 日、HttpOnly Cookie。使用時に行ロック → 失効 → 再発行（ローテーション） |
 | Google ログイン | OmniAuth → `/auth/google/callback` → `oauth_providers(provider, uid)` でユーザーと紐付け |
 | ゲスト | `POST /guest_sessions` で共有ゲストユーザーのトークンを発行 |
-| 公開エンドポイント | `skip_authorization?` で明示（GET 系と登録・ログインのみ） |
+| 公開エンドポイント | 各コントローラーの `skip_before_action :authorize_request, only: [...]` で明示（GET 系と登録・ログインのみ） |
 
 ### 4.3 主要エンドポイント
 
@@ -127,8 +127,7 @@ users ─┬─< transactions        (transaction_type: 'income' | 'expense' の
        ├─< posts ─┬─< comments
        │          ├─< post_categories >── categories
        │          └─< bookmarks
-       ├─< likes               (likeable: Post | Comment のポリモーフィック)
-       └─< user_actions        (※現状未使用。§6 参照)
+       └─< likes               (likeable: Post | Comment のポリモーフィック)
 contacts                       (ユーザーと非連携)
 ```
 
@@ -195,7 +194,6 @@ contacts                       (ユーザーと非連携)
 |---|---|---|
 | `require 'rails/all'` | Action Cable / Active Storage / Action Text / Action Mailbox も読み込む（いずれも未使用） | 必要なフレームワークだけを個別 `require` する（active_record / action_controller / action_mailer / active_job）。`app/channels/` と active_storage 設定を削除 |
 | Active Job | アダプタ未指定（プロセス内 `:async`）。再起動でメール送信ジョブが消える | `solid_queue` を入れるか、送信件数が少ない今は `deliver_now` にする |
-| `user_actions` テーブル | モデルと関連のみで書き込み箇所なし | 使う予定がなければ削除 |
 | `oauth_providers.access_token / refresh_token / expires_at` | 保存していない（保存すべきでもない） | 列を削除 |
 | ルートの `Gemfile.lock` | Rails 8.0.1 時代の残骸（`back/Gemfile.lock` が本物） | 削除 |
 | ~~`front/tailwind.config.ts` と `tailwindcss-animate`~~ | 対応済み（2026-09-27）: container 設定を `globals.css` に移して削除 | — |
