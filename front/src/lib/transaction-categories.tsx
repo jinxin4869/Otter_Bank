@@ -21,7 +21,7 @@ export type TransactionCategory = {
   value: string
   label: string
   icon: LucideIcon
-  color: string
+  color?: string // 円グラフの色（支出のみ）
 }
 
 export const EXPENSE_CATEGORIES: TransactionCategory[] = [
@@ -38,11 +38,11 @@ export const EXPENSE_CATEGORIES: TransactionCategory[] = [
 ]
 
 export const INCOME_CATEGORIES: TransactionCategory[] = [
-  { value: "salary", label: "給料", icon: Briefcase, color: "#4BC0C0" },
-  { value: "bonus", label: "ボーナス", icon: Gift, color: "#36A2EB" },
-  { value: "investment", label: "投資", icon: TrendingUp, color: "#9966FF" },
-  { value: "gift", label: "贈与", icon: Gift, color: "#FF9F40" },
-  { value: "other", label: "その他", icon: DollarSign, color: "#8B8B8B" },
+  { value: "salary", label: "給料", icon: Briefcase },
+  { value: "bonus", label: "ボーナス", icon: Gift },
+  { value: "investment", label: "投資", icon: TrendingUp },
+  { value: "gift", label: "贈与", icon: Gift },
+  { value: "other", label: "その他", icon: DollarSign },
 ]
 
 export const categoriesFor = (type: "income" | "expense"): TransactionCategory[] =>

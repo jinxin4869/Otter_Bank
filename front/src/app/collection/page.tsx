@@ -243,7 +243,7 @@ export default function CollectionPage() {
                   <CardDescription className="text-xs h-10 overflow-hidden text-ellipsis text-muted-foreground">{ach.description}</CardDescription>
                 </CardHeader>
                 <CardContent className="grow p-4 pt-0">
-                  {ach.tier && <Badge variant="secondary" className="mb-2 text-xs bg-secondary text-secondary-foreground">{TIER_CONFIG[ach.tier].label}</Badge>}
+                  <Badge variant="secondary" className="mb-2 text-xs bg-secondary text-secondary-foreground">{TIER_CONFIG[ach.tier].label}</Badge>
                   <Progress value={ach.progressPercentage} className="w-full h-2 my-1" />
                   <p className="text-xs text-muted-foreground mt-1">
                     {ach.progressPercentage}% 完了 ({ach.progress} / {ach.progressTarget})
