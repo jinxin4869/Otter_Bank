@@ -195,15 +195,13 @@ npm run build         # 本番ビルド
 
 ## CI/CD
 
-`main` / `feature/*` へのプッシュおよびプルリクエスト時に GitHub Actions が実行される。
+`main` へのプッシュおよび `main` 向けプルリクエスト時に GitHub Actions が実行される。`back/` / `front/` の変更があるジョブだけ動く。
 
 | ジョブ | 内容 |
 | --- | --- |
-| `scan_ruby` | Brakeman セキュリティスキャン |
-| `lint_ruby` | RuboCop |
-| `lint_frontend` | ESLint + TypeScript 型チェック |
+| `check_ruby` | Brakeman セキュリティスキャン + RuboCop |
 | `test_backend` | RSpec（PostgreSQL 使用） |
-| `test_frontend` | `npm run test` |
+| `lint_frontend` | ESLint + TypeScript 型チェック + Jest + `next build` |
 
 フロントエンドは Vercel、バックエンドは Render に自動デプロイ。
 

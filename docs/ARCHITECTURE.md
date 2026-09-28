@@ -1,7 +1,7 @@
 # Architecture — Otter Bank
 
 > システム構成・データの流れ・技術選定の理由をまとめる。
-> 「何を作るか」は [PRD.md](./PRD.md)、コーディング規約は `.claude/rules/*.md` を参照。
+> 「何を作るか」は [PRD.md](./PRD.md)、見た目のルールは [DESIGN-SYSTEM.md](./DESIGN-SYSTEM.md) を参照。
 
 最終更新: 2026-09-26
 
@@ -57,8 +57,6 @@ Otter_Bank/
 │   ├── app/mailers/           パスワードリセット・問い合わせ確認
 │   └── spec/                  RSpec（request / model / concern）
 ├── docs/                      PRD・アーキテクチャ・デザインシステム・ER 図
-├── .claude/                   Claude Code 用ルール・エージェント・タスク
-├── .codex/                    Codex 用エージェント
 └── .github/workflows/ci.yml   CI
 ```
 
@@ -170,7 +168,7 @@ contacts                       (ユーザーと非連携)
 
 | 選択肢 | 良い点 | 悪い点 |
 |---|---|---|
-| **A. Rails API を維持**（採用） | 動いていてテストもある。認証・レート制限・メール・マイグレーションが揃っている。規約（`.claude/rules`）も Rails 前提で蓄積済み | 言語が 2 つ。フロントと型を共有できない。Render 無料プランのコールドスタート |
+| **A. Rails API を維持**（採用） | 動いていてテストもある。認証・レート制限・メール・マイグレーションが揃っている。RuboCop・RSpec の運用も Rails 前提で整っている | 言語が 2 つ。フロントと型を共有できない。Render 無料プランのコールドスタート |
 | B. Next.js に統合（Route Handlers + Prisma/Drizzle + Auth.js） | 1 言語・1 デプロイ・型共有。CORS 不要 | 認証・リフレッシュ・レート制限・実績・メール・全テストの作り直し。Vercel の関数実行時間や DB 接続数の考慮が必要 |
 | C. TS の独立 API（Hono / NestJS） | 1 言語で型共有しつつ API を分離できる | B と同じく全面書き直し。Rails より「自分で組む」部分が多い |
 | D. Go / Python 等 | 性能・学習目的 | このアプリの規模では性能は課題でなく、得るものが少ない |
