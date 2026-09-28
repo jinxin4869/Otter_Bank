@@ -46,11 +46,14 @@ type ContactParams = {
 export const api = {
   /** 認証 */
   auth: {
+    // ログイン・登録の応答はリフレッシュトークンを Set-Cookie で返す。API は別オリジンなので、
+    // credentials: 'include' が無いとブラウザが Cookie を捨て、30 分後の更新（refresh）が必ず失敗する
     /** ログイン */
     login: (email: string, password: string) =>
       publicApiRequest<LoginResponse>('/sessions', {
         method: 'POST',
         body: { email, password },
+        credentials: 'include',
       }),
 
     /** ユーザー登録 */
@@ -58,6 +61,7 @@ export const api = {
       publicApiRequest<LoginResponse>('/users', {
         method: 'POST',
         body: { user: params },
+        credentials: 'include',
       }),
 
     /** パスワードリセットメール送信 */
