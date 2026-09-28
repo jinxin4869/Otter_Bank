@@ -76,6 +76,7 @@ import { AchievementUnlockModal } from "@/components/achievement-unlock-modal"
 import { mapApiNewlyUnlockedAchievement, type NewlyUnlockedAchievement } from "@/types/achievement"
 import { Badge } from "@/components/ui/badge"
 import { useAchievements } from "@/hooks/useAchievements"
+import { getFinancialMood, type FinancialMood } from "@/lib/otter-mood"
 import { toast } from "sonner"
 
 const EXPENSE_CATEGORIES = [
@@ -109,7 +110,7 @@ export default function DashboardPage() {
   const [date, setDate] = useState<Date>(new Date())
   const [currentView, setCurrentView] = useState<"day" | "month" | "year">("month")
   const [currentDate, setCurrentDate] = useState<Date>(new Date())
-  const [otterMood, setOtterMood] = useState<"happy" | "neutral" | "sad">("neutral")
+  const [otterMood, setOtterMood] = useState<FinancialMood>("neutral")
   const [celebratingSignal, setCelebratingSignal] = useState(0)
   const [isDataLoading, setIsDataLoading] = useState(false)
   const [achievementQueue, setAchievementQueue] = useState<NewlyUnlockedAchievement[]>([])
@@ -175,10 +176,8 @@ export default function DashboardPage() {
     fetchTransactions()
   }, [isAuthenticated, token])
 
-  // Update otter mood based on financial health
+  // 今月の収支でカワウソの気分を決める（判定は lib/otter-mood.ts）
   useEffect(() => {
-    if (transactions.length === 0) return
-
     const thisMonth = new Date().getMonth()
     const thisYear = new Date().getFullYear()
 
@@ -189,15 +188,7 @@ export default function DashboardPage() {
 
     const income = monthlyTransactions.filter((t) => t.type === "income").reduce((sum, t) => sum + t.amount, 0)
     const expense = monthlyTransactions.filter((t) => t.type === "expense").reduce((sum, t) => sum + t.amount, 0)
-    const savingsRate = income > 0 ? (income - expense) / income : 0
-
-    if (savingsRate > 0.2) {
-      setOtterMood("happy")
-    } else if (savingsRate < 0) {
-      setOtterMood("sad")
-    } else {
-      setOtterMood("neutral")
-    }
+    setOtterMood(getFinancialMood(income, expense))
   }, [transactions])
 
   // 実績解除の高揚状態は一定時間で解除し、通常の mood に戻す
