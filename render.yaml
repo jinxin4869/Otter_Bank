@@ -19,6 +19,9 @@ services:
         generateValue: true
       - key: WEB_CONCURRENCY
         value: 1
+      # 本番 DB（Neon）の直接接続 URL（?sslmode=require 付き）。パスワードを含むため値はダッシュボードで設定する
+      - key: DATABASE_URL
+        sync: false
       # メール送信（パスワードリセット・問い合わせ確認）。値は Render のダッシュボードで設定する。
       # 未設定だと起動に失敗する（production.rb の smtp_settings が ENV.fetch で読むため）
       - key: SMTP_ADDRESS
@@ -37,10 +40,3 @@ services:
       # お問い合わせの通知先（運営のメールアドレス）。未設定なら通知しない
       - key: CONTACT_NOTIFY_TO
         sync: false
-
-databases:
-  - name: otter-bank-db
-    databaseName: otter_bank_production
-    user: otter_bank_user
-    region: oregon
-    plan: free
