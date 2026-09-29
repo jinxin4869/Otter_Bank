@@ -64,23 +64,24 @@ class ApplicationController < ActionController::API
     token = bearer_token
     Rails.logger.info "Token: #{token.present? ? 'present' : 'missing'}" if Rails.env.development?
 
+    # 401 の code はフロントが「期限切れなら更新して再試行」を判断するために使う（auth#verify と同じ値）
     begin
       if token
         @current_user = user_from_token!(token)
         Rails.logger.info "Current user set: #{Rails.env.development? ? @current_user.id : '[MASKED]'}"
       else
         Rails.logger.error 'Authorization token not provided' if Rails.env.development?
-        render json: { error: '認証トークンが指定されていません' }, status: :unauthorized
+        render json: { error: '認証トークンが指定されていません', code: 'missing_header' }, status: :unauthorized
       end
     rescue ActiveRecord::RecordNotFound => e
       Rails.logger.error "User not found: #{Rails.env.development? ? e.message : '[MASKED]'}"
-      render json: { error: 'ユーザーが見つかりません' }, status: :unauthorized
+      render json: { error: 'ユーザーが見つかりません', code: 'user_not_found' }, status: :unauthorized
     rescue JWT::ExpiredSignature => e
       Rails.logger.error "Token has expired: #{Rails.env.development? ? e.message : '[MASKED]'}"
-      render json: { error: 'トークンの有効期限が切れています' }, status: :unauthorized
+      render json: { error: 'トークンの有効期限が切れています', code: 'token_expired' }, status: :unauthorized
     rescue JWT::DecodeError => e
       Rails.logger.error "Invalid token: #{Rails.env.development? ? e.message : '[MASKED]'}"
-      render json: { error: '無効なトークンです' }, status: :unauthorized
+      render json: { error: '無効なトークンです', code: 'invalid_token' }, status: :unauthorized
     end
   end
 
