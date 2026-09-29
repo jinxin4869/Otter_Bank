@@ -126,6 +126,10 @@ npm run dev   # http://localhost:3000（バックとポートが被る場合は 
 | `back/.env` | `cp back/.env.example back/.env` | `JWT_SECRET`（本番必須）, `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`, `FRONTEND_URL`, `FRONTEND_URL_PROD` |
 | `front/.env.local` | `cp front/.env.example front/.env.local` | `NEXT_PUBLIC_DEV_URL`, `NEXT_PUBLIC_API_URL` |
 
+本番（Render）では上記に加えてメール送信用の変数（`SMTP_ADDRESS`, `SMTP_PORT`, `SMTP_USERNAME`, `SMTP_PASSWORD`, `MAILER_FROM`）が必要。未設定だと起動に失敗する。値は Render のダッシュボードで設定する（`render.yaml` 参照）。
+
+開発環境では `letter_opener` がブラウザでメールを開くため、SMTP の設定は不要。
+
 ## プロジェクト構造
 
 ```
@@ -184,15 +188,13 @@ npm run build         # 本番ビルド
 
 ## CI/CD
 
-`main` / `feature/*` へのプッシュおよびプルリクエスト時に GitHub Actions が実行される。
+`main` へのプッシュおよび `main` 向けプルリクエスト時に GitHub Actions が実行される。`back/` / `front/` の変更があるジョブだけ動く。
 
 | ジョブ | 内容 |
 | --- | --- |
-| `scan_ruby` | Brakeman セキュリティスキャン |
-| `lint_ruby` | RuboCop |
-| `lint_frontend` | ESLint + TypeScript 型チェック |
+| `check_ruby` | Brakeman セキュリティスキャン + RuboCop |
 | `test_backend` | RSpec（PostgreSQL 使用） |
-| `test_frontend` | `npm run test` |
+| `lint_frontend` | ESLint + TypeScript 型チェック + Jest + `next build` |
 
 フロントエンドは Vercel、バックエンドは Render に自動デプロイ。
 
@@ -200,6 +202,7 @@ npm run build         # 本番ビルド
 
 - [画面遷移図（Figma）](https://www.figma.com/board/336gqg7QemlRBOyX6Hyjk9/Untitled?node-id=0-1&p=f&t=pWqT6LtmUdhXr6q1-0)
 - [ER 図](docs/)
+- [構成マップ（全体像・認証フロー・データモデルのスライド PDF、2026-09-28 時点）](docs/otter-bank-structure-map.pdf)
 
 ## 開発者
 

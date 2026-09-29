@@ -19,7 +19,7 @@ Rails.application.routes.draw do
       # 家計簿管理
       resources :transactions, only: %i[index create update destroy] # 取引関連
       resources :savings_goals, only: %i[index create update destroy] # 貯金目標関連
-      resources :achievements, only: %i[index show update] # 実績関連
+      resources :achievements, only: %i[index show] # 実績関連（進捗はサーバー側の判定でのみ変わる）
       resources :budgets, only: %i[index create update] do # 予算関連（削除不可・update で上書き運用）
         collection do
           get :current
