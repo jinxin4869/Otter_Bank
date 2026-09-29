@@ -38,26 +38,7 @@ module Api
         render json: { error: '実績が見つかりません' }, status: :not_found
       end
 
-      def update
-        achievement = @current_user.achievements.find_by(id: params[:id])
-
-        if achievement
-          if achievement.update(achievement_params)
-            render json: achievement_json(achievement), status: :ok
-          else
-            render json: { errors: achievement.errors.full_messages }, status: :unprocessable_content
-          end
-        else
-          render json: { error: '実績が見つかりません' }, status: :not_found
-        end
-      end
-
       private
-
-      def achievement_params
-        # progress, unlocked など、更新可能なパラメータを指定
-        params.expect(achievement: %i[progress unlocked])
-      end
 
       def related_achievements(achievement)
         @current_user.achievements

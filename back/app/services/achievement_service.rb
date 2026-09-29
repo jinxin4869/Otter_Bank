@@ -283,20 +283,10 @@ class AchievementService
     update_milestone_achievements
   end
 
-  # 連続記録の実績を更新
+  # 連続記録の実績を、現在の連続日数で更新する。
+  # 閾値に届く前も進捗（2/3 など）を記録し、届いたものは解除する（マイルストーンと同じ扱い）
   def update_streak_achievements(days)
-    streak_achievements = @user.achievements.where(category: :streak, unlocked: false)
-
-    streak_achievements.each do |achievement|
-      case achievement.original_achievement_id
-      when 'streak_3_days'
-        achievement.update_progress(days) if days >= 3
-      when 'streak_7_days'
-        achievement.update_progress(days) if days >= 7
-      when 'streak_30_days'
-        achievement.update_progress(days) if days >= 30
-      end
-    end
+    apply_progress(@user.achievements.where(category: :streak, unlocked: false), days)
   end
 
   # マイルストーンの実績を、現在の貯金額で更新する（収入の削除後の再計算にも使う）

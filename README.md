@@ -130,6 +130,18 @@ FRONTEND_URL_PROD=https://your-production-frontend.vercel.app
 BACKEND_URL=http://localhost:3000
 ```
 
+本番（Render）では上記に加えてメール送信用の変数が必要。未設定だと起動に失敗する。
+
+```env
+SMTP_ADDRESS=smtp.example.com      # 例: smtp.gmail.com / smtp.resend.com / smtp.sendgrid.net
+SMTP_PORT=587
+SMTP_USERNAME=your_smtp_username
+SMTP_PASSWORD=your_smtp_password
+MAILER_FROM=noreply@your-domain.example
+```
+
+開発環境では `letter_opener` がブラウザでメールを開くため、SMTP の設定は不要。
+
 #### フロントエンド（`front/.env.local`）
 
 ```env
@@ -195,15 +207,13 @@ npm run build         # 本番ビルド
 
 ## CI/CD
 
-`main` / `feature/*` へのプッシュおよびプルリクエスト時に GitHub Actions が実行される。
+`main` へのプッシュおよび `main` 向けプルリクエスト時に GitHub Actions が実行される。`back/` / `front/` の変更があるジョブだけ動く。
 
 | ジョブ | 内容 |
 | --- | --- |
-| `scan_ruby` | Brakeman セキュリティスキャン |
-| `lint_ruby` | RuboCop |
-| `lint_frontend` | ESLint + TypeScript 型チェック |
+| `check_ruby` | Brakeman セキュリティスキャン + RuboCop |
 | `test_backend` | RSpec（PostgreSQL 使用） |
-| `test_frontend` | `npm run test` |
+| `lint_frontend` | ESLint + TypeScript 型チェック + Jest + `next build` |
 
 フロントエンドは Vercel、バックエンドは Render に自動デプロイ。
 
@@ -211,6 +221,7 @@ npm run build         # 本番ビルド
 
 - [画面遷移図（Figma）](https://www.figma.com/board/336gqg7QemlRBOyX6Hyjk9/Untitled?node-id=0-1&p=f&t=pWqT6LtmUdhXr6q1-0)
 - [ER 図](docs/)
+- [構成マップ（全体像・認証フロー・データモデルのスライド PDF、2026-09-28 時点）](docs/otter-bank-structure-map.pdf)
 
 ## 開発者
 

@@ -18,6 +18,7 @@ import { useAuth } from "@/hooks/useAuth"
 import { useAchievements } from "@/hooks/useAchievements"
 import { useTransactions } from "@/hooks/useTransactions"
 import { cn } from "@/lib/utils"
+import { getFinancialMood, type FinancialMood } from "@/lib/otter-mood"
 import { TIER_CONFIG } from "@/lib/tier"
 import { filterByPeriod, summarize, shiftPeriod, type PeriodView } from "@/lib/transaction-period"
 import type { CreateTransactionParams } from "@/lib/api"
@@ -52,7 +53,7 @@ const VIEW_TITLE_FORMAT: Record<PeriodView, string> = {
 export default function DashboardPage() {
   const [currentView, setCurrentView] = useState<PeriodView>("month")
   const [currentDate, setCurrentDate] = useState<Date>(new Date())
-  const [otterMood, setOtterMood] = useState<"happy" | "neutral" | "sad">("neutral")
+  const [otterMood, setOtterMood] = useState<FinancialMood>("neutral")
   const [celebratingSignal, setCelebratingSignal] = useState(0)
   const [achievementQueue, setAchievementQueue] = useState<NewlyUnlockedAchievement[]>([])
   const router = useRouter()
@@ -97,20 +98,10 @@ export default function DashboardPage() {
     }
   }, [authIsLoading, isAuthenticated, router])
 
-  // Update otter mood based on financial health
+  // 今月の収支でカワウソの気分を決める（判定は lib/otter-mood.ts）
   useEffect(() => {
-    if (transactions.length === 0) return
-
     const { income, expense } = summarize(filterByPeriod(transactions, "month", new Date()))
-    const savingsRate = income > 0 ? (income - expense) / income : 0
-
-    if (savingsRate > 0.2) {
-      setOtterMood("happy")
-    } else if (savingsRate < 0) {
-      setOtterMood("sad")
-    } else {
-      setOtterMood("neutral")
-    }
+    setOtterMood(getFinancialMood(income, expense))
   }, [transactions])
 
   // 実績解除の高揚状態は一定時間で解除し、通常の mood に戻す
