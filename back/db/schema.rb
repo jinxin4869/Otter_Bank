@@ -157,7 +157,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_28_010000) do
     t.decimal "amount"
     t.string "category"
     t.datetime "created_at", null: false
-    t.datetime "date"
+    t.date "date"
     t.text "description"
     t.string "transaction_type"
     t.datetime "updated_at", null: false

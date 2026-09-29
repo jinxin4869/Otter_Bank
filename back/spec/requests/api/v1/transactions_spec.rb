@@ -17,6 +17,13 @@ RSpec.describe 'Api::V1::Transactions', type: :request do
                            date: 1.month.ago)
     end
 
+    it '期限切れトークンでは token_expired コード付きの 401 を返す（フロントの自動更新の判断に使う）' do
+      expired_token = JsonWebToken.encode({ user_id: user.id }, 1.second.ago)
+      get '/api/v1/transactions', headers: { 'Authorization' => "Bearer #{expired_token}" }
+      expect(response).to have_http_status(:unauthorized)
+      expect(response.parsed_body['code']).to eq('token_expired')
+    end
+
     it '認証済みユーザーの取引一覧を返す' do
       get '/api/v1/transactions', headers: headers
       expect(response).to have_http_status(:ok)

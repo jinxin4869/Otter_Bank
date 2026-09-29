@@ -213,18 +213,18 @@ class User < ApplicationRecord
     {
       current_streak: current_streak,
       longest_streak: longest_streak,
-      last_record_date: transactions.where(transaction_type: 'income').maximum(:date)&.to_date
+      last_record_date: transactions.where(transaction_type: 'income').maximum(:date)
     }
   end
 
   private
 
   def income_transaction_dates
+    # date 列は date 型なので、そのまま Date として扱える
     transactions
       .where(transaction_type: 'income')
       .pluck(:date)
       .compact
-      .map(&:to_date)
       .uniq
       .sort
   end

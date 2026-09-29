@@ -128,6 +128,15 @@ RSpec.describe User, type: :model do
       create(:transaction, user: user, transaction_type: :expense, date: Date.current)
       expect(user.current_streak).to eq(0)
     end
+
+    it '日本時間の早朝（UTC ではまだ前日）でも、その日の記録を今日として数える' do
+      # 2026-09-01 23:00 UTC = 2026-09-02 08:00 JST。time_zone が UTC だと「今日」が 9/1 になり 1 を返す
+      travel_to Time.utc(2026, 9, 1, 23, 0) do
+        create(:transaction, user: user, transaction_type: :income, date: Date.new(2026, 9, 2))
+        create(:transaction, user: user, transaction_type: :income, date: Date.new(2026, 9, 1))
+        expect(user.current_streak).to eq(2)
+      end
+    end
   end
 
   describe '#longest_streak' do
