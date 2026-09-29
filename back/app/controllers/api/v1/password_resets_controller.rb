@@ -3,9 +3,7 @@
 module Api
   module V1
     class PasswordResetsController < ApplicationController
-      def skip_authorization?
-        true
-      end
+      skip_before_action :authorize_request, only: %i[request_reset confirm_reset]
 
       # POST /api/v1/auth/reset-password
       # メールアドレスを受け取り、リセットリンクを送信する

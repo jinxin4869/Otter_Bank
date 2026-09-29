@@ -3,9 +3,7 @@
 module Api
   module V1
     class ContactsController < ApplicationController
-      def skip_authorization?
-        true
-      end
+      skip_before_action :authorize_request, only: %i[create]
 
       def create
         @contact = Contact.new(contact_params)
