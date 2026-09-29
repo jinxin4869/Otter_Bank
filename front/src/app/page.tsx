@@ -2,7 +2,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import Image from "next/image"
-import { ArrowRight, PiggyBank, TrendingUp, BadgeCheck, Sparkles, HelpCircle } from "lucide-react"
+import { ArrowRight, PiggyBank, TrendingUp, BadgeCheck, Sparkles, HelpCircle, MessageSquare } from "lucide-react"
 
 export default function Home() {
   return (
@@ -455,17 +455,10 @@ export default function Home() {
                       </Link>
                     </Button>
                     <Button asChild variant="outline">
-                      <a
-                        href={process.env.NEXT_PUBLIC_CONTACT_FORM_URL}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-2"
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-message-square">
-                          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-                        </svg>
+                      <Link href="/contact" className="flex items-center gap-2">
+                        <MessageSquare className="h-4 w-4" />
                         お問い合わせフォーム
-                      </a>
+                      </Link>
                     </Button>
                   </div>
                 </div>
