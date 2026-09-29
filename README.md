@@ -128,6 +128,7 @@ GOOGLE_CLIENT_SECRET=your_google_client_secret
 FRONTEND_URL=http://localhost:4000
 FRONTEND_URL_PROD=https://your-production-frontend.vercel.app
 BACKEND_URL=http://localhost:3000
+CONTACT_NOTIFY_TO=you@example.com   # お問い合わせの通知先（未設定なら通知しない）
 ```
 
 本番（Render）では上記に加えてメール送信用の変数が必要。未設定だと起動に失敗する。

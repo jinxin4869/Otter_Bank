@@ -7,6 +7,7 @@ RSpec.describe Contact, type: :model do
   it { should validate_presence_of(:name) }
   it { should validate_presence_of(:email) }
   it { should validate_presence_of(:subject) }
+  it { should validate_inclusion_of(:subject).in_array(Contact::SUBJECT_LABELS.keys) }
   it { should validate_presence_of(:message) }
 
   describe 'メールアドレスのバリデーション' do

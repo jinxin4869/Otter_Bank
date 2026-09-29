@@ -26,6 +26,27 @@ RSpec.describe 'Api::V1::Contacts', type: :request do
         expect(json['message']).to eq('お問い合わせを受け付けました。')
       end
 
+      it 'CONTACT_NOTIFY_TO が設定されていれば運営への通知メールも送る' do
+        allow(ENV).to receive(:fetch).and_call_original
+        allow(ENV).to receive(:fetch).with('CONTACT_NOTIFY_TO', nil).and_return('admin@example.com')
+
+        expect do
+          post '/api/v1/contacts', params: valid_params
+        end.to have_enqueued_mail(ContactMailer, :confirmation).and have_enqueued_mail(ContactMailer, :notify_admin)
+      end
+
+      it 'CONTACT_NOTIFY_TO が未設定なら運営への通知は送らない（自動返信は送る）' do
+        allow(ENV).to receive(:fetch).and_call_original
+        allow(ENV).to receive(:fetch).with('CONTACT_NOTIFY_TO', nil).and_return(nil)
+
+        expect do
+          post '/api/v1/contacts', params: valid_params
+        end.to have_enqueued_mail(ContactMailer, :confirmation)
+        expect do
+          post '/api/v1/contacts', params: valid_params
+        end.not_to have_enqueued_mail(ContactMailer, :notify_admin)
+      end
+
       it '不正なAuthorizationヘッダーが付与されていても送信できる' do
         post '/api/v1/contacts', params: valid_params, headers: { 'Authorization' => 'Bearer invalid-token' }
         expect(response).to have_http_status(:created)
@@ -47,6 +68,11 @@ RSpec.describe 'Api::V1::Contacts', type: :request do
 
       it 'メッセージが空の場合は422を返す' do
         post '/api/v1/contacts', params: { contact: valid_params[:contact].merge(message: '') }
+        expect(response).to have_http_status(:unprocessable_content)
+      end
+
+      it 'subjectが選択肢に無い値の場合は422を返す' do
+        post '/api/v1/contacts', params: { contact: valid_params[:contact].merge(subject: '自由入力') }
         expect(response).to have_http_status(:unprocessable_content)
       end
 
