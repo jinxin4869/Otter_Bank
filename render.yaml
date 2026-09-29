@@ -2,12 +2,14 @@
 services:
   - type: web # Webサービスの定義
     name: otter-bank-api # サービス名
-    env: ruby # 使用する環境
+    runtime: docker # back/Dockerfile でビルドする（起動時に bin/docker-entrypoint が db:prepare を実行する）
     region: oregon # デプロイ先のリージョン
     plan: free # プランの指定
-    rootDir: back                    # バックエンドのディレクトリを指定
-    buildCommand: bundle install && bundle exec rails db:migrate
-    startCommand: bundle exec rails server -b 0.0.0.0 -p $PORT
+    dockerfilePath: ./back/Dockerfile # パスはリポジトリのルートから書く
+    dockerContext: ./back
+    buildFilter: # back/ 配下が変わったときだけ自動デプロイする
+      paths:
+        - back/**
     envVars:
       - key: RAILS_ENV
         value: production
