@@ -3,38 +3,15 @@
 import React from "react"
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 
-type Transaction = {
-  id: string
-  amount: number
-  type: "income" | "expense"
-  category: string
-  description: string
-  date: string
-}
+import type { Transaction } from "@/types/transaction"
+import { EXPENSE_CATEGORIES, getCategoryLabel } from "@/lib/transaction-categories"
 
 interface ExpensePieChartProps {
   transactions: Transaction[];
 }
 
-const EXPENSE_CATEGORIES = [
-  { value: "food", label: "食費", color: "#FF6384" },
-  { value: "groceries", label: "日用品", color: "#36A2EB" },
-  { value: "transportation", label: "交通費", color: "#FFCE56" },
-  { value: "entertainment", label: "娯楽", color: "#4BC0C0" },
-  { value: "utilities", label: "光熱費", color: "#9966FF" },
-  { value: "rent", label: "家賃", color: "#FF9F40" },
-  { value: "medical", label: "医療費", color: "#C9CBCF" },
-  { value: "education", label: "教育費", color: "#7FD8BE" },
-  { value: "shopping", label: "買い物", color: "#A78BFA" },
-  { value: "other", label: "その他", color: "#8B8B8B" },
-]
-
-const COLORS = EXPENSE_CATEGORIES.map(cat => cat.color); // カテゴリの色をそのまま使用
-
-const getCategoryLabel = (categoryValue: string) => {
-  const category = EXPENSE_CATEGORIES.find(c => c.value === categoryValue);
-  return category ? category.label : categoryValue;
-};
+const colorFor = (label: string) =>
+  EXPENSE_CATEGORIES.find((c) => c.label === label)?.color ?? "#8B8B8B"
 
 function ExpensePieChart({ transactions }: ExpensePieChartProps) {
   const expenseData = transactions
@@ -48,7 +25,7 @@ function ExpensePieChart({ transactions }: ExpensePieChartProps) {
       }
       return acc;
     }, [] as { name: string; value: number }[])
-    .map(item => ({ ...item, name: getCategoryLabel(item.name) }));
+    .map(item => ({ ...item, name: getCategoryLabel(item.name, "expense") }));
 
   if (expenseData.length === 0) {
     return <div className="flex items-center justify-center h-full text-muted-foreground">支出データがありません</div>;
@@ -68,7 +45,7 @@ function ExpensePieChart({ transactions }: ExpensePieChartProps) {
           label={({ name, percent, value }) => `${name} ${value.toLocaleString()}円 (${percent !== undefined ? (percent * 100).toFixed(0) : '0'}%)`} // ラベル表示を調整
         >
           {expenseData.map((entry, index) => (
-            <Cell key={`cell-${index}`} fill={COLORS[EXPENSE_CATEGORIES.findIndex(cat => cat.label === entry.name) % COLORS.length]} />
+            <Cell key={`cell-${index}`} fill={colorFor(entry.name)} />
           ))}
         </Pie>
         <Tooltip formatter={(value, _name, entry) => [`${typeof value === 'number' ? value.toLocaleString() : String(value ?? '')} 円`, entry.payload.name]} />
