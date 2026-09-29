@@ -40,9 +40,9 @@
 | フレームワーク | Ruby on Rails 8.1（API モード） |
 | 言語 | Ruby 3.4.10 |
 | DB（開発・テスト） | PostgreSQL 16（Docker Compose の db サービス） |
-| DB（本番） | PostgreSQL 16 |
+| DB（本番） | PostgreSQL 16（Neon） |
 | 認証 | JWT + bcrypt, Google OAuth2（OmniAuth） |
-| デプロイ | Render |
+| デプロイ | Render（DB は Neon） |
 
 ### インフラ・CI
 | 項目 | 技術 |
@@ -126,7 +126,7 @@ npm run dev   # http://localhost:3000（バックとポートが被る場合は 
 | `back/.env` | `cp back/.env.example back/.env` | `JWT_SECRET`（本番必須）, `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`, `FRONTEND_URL`, `FRONTEND_URL_PROD`, `CONTACT_NOTIFY_TO`（任意。お問い合わせの通知先、未設定なら通知しない） |
 | `front/.env.local` | `cp front/.env.example front/.env.local` | `NEXT_PUBLIC_DEV_URL`, `NEXT_PUBLIC_API_URL` |
 
-本番（Render）では上記に加えてメール送信用の変数（`SMTP_ADDRESS`, `SMTP_PORT`, `SMTP_USERNAME`, `SMTP_PASSWORD`, `MAILER_FROM`）が必要。未設定だと起動に失敗する。値は Render のダッシュボードで設定する（`render.yaml` 参照）。
+本番（Render）では上記に加えて DB の接続先 `DATABASE_URL`（Neon の直接接続 URL）と、メール送信用の変数（`SMTP_ADDRESS`, `SMTP_PORT`, `SMTP_USERNAME`, `SMTP_PASSWORD`, `MAILER_FROM`）が必要。未設定だと起動に失敗する。値は Render のダッシュボードで設定する（`render.yaml` 参照）。
 
 開発環境では `letter_opener` がブラウザでメールを開くため、SMTP の設定は不要。
 
@@ -196,7 +196,7 @@ npm run build         # 本番ビルド
 | `test_backend` | RSpec（PostgreSQL 使用） |
 | `lint_frontend` | ESLint + TypeScript 型チェック + Jest + `next build` |
 
-フロントエンドは Vercel、バックエンドは Render に自動デプロイ。
+フロントエンドは Vercel、バックエンドは Render に自動デプロイ。DB は Neon（構成の理由は [ARCHITECTURE.md §7](docs/ARCHITECTURE.md)）。
 
 ## ER 図・画面遷移図
 
