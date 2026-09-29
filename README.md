@@ -119,36 +119,16 @@ npm run dev   # http://localhost:3000（バックとポートが被る場合は 
 
 ### 環境変数
 
-#### バックエンド（`back/.env`）
+テンプレートをコピーして値を埋める。各変数の説明はテンプレート内のコメントを参照。
 
-```env
-JWT_SECRET=your_jwt_secret_here
-GOOGLE_CLIENT_ID=your_google_client_id
-GOOGLE_CLIENT_SECRET=your_google_client_secret
-FRONTEND_URL=http://localhost:4000
-FRONTEND_URL_PROD=https://your-production-frontend.vercel.app
-BACKEND_URL=http://localhost:3000
-CONTACT_NOTIFY_TO=you@example.com   # お問い合わせの通知先（未設定なら通知しない）
-```
+| ファイル | 作り方 | 主な変数 |
+| --- | --- | --- |
+| `back/.env` | `cp back/.env.example back/.env` | `JWT_SECRET`（本番必須）, `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`, `FRONTEND_URL`, `FRONTEND_URL_PROD`, `CONTACT_NOTIFY_TO`（任意。お問い合わせの通知先、未設定なら通知しない） |
+| `front/.env.local` | `cp front/.env.example front/.env.local` | `NEXT_PUBLIC_DEV_URL`, `NEXT_PUBLIC_API_URL` |
 
-本番（Render）では上記に加えてメール送信用の変数が必要。未設定だと起動に失敗する。
-
-```env
-SMTP_ADDRESS=smtp.example.com      # 例: smtp.gmail.com / smtp.resend.com / smtp.sendgrid.net
-SMTP_PORT=587
-SMTP_USERNAME=your_smtp_username
-SMTP_PASSWORD=your_smtp_password
-MAILER_FROM=noreply@your-domain.example
-```
+本番（Render）では上記に加えてメール送信用の変数（`SMTP_ADDRESS`, `SMTP_PORT`, `SMTP_USERNAME`, `SMTP_PASSWORD`, `MAILER_FROM`）が必要。未設定だと起動に失敗する。値は Render のダッシュボードで設定する（`render.yaml` 参照）。
 
 開発環境では `letter_opener` がブラウザでメールを開くため、SMTP の設定は不要。
-
-#### フロントエンド（`front/.env.local`）
-
-```env
-NEXT_PUBLIC_DEV_URL=http://localhost:3000
-NEXT_PUBLIC_API_URL=https://your-production-backend.onrender.com
-```
 
 ## プロジェクト構造
 
