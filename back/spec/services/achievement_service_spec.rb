@@ -62,6 +62,40 @@ RSpec.describe AchievementService do
     end
   end
 
+  describe '#update_streak_achievements' do
+    it '閾値に届く前でも連続日数を進捗として記録する' do
+      service.update_streak_achievements(2)
+
+      expect(state('streak_3_days')).to eq([2, false, false])
+      expect(state('streak_7_days')).to eq([2, false, false])
+      expect(state('streak_30_days')).to eq([2, false, false])
+    end
+
+    it '閾値に届いた実績は解除し、届いていない実績は進捗だけ進める' do
+      service.update_streak_achievements(7)
+
+      expect(state('streak_3_days')).to eq([3, true, true])
+      expect(state('streak_7_days')).to eq([7, true, true])
+      expect(state('streak_30_days')).to eq([7, false, false])
+    end
+
+    it '連続が途切れたら未解除の実績の進捗は下がり、解除済みはそのまま' do
+      service.update_streak_achievements(5)
+      service.update_streak_achievements(1)
+
+      expect(state('streak_3_days')).to eq([3, true, true])
+      expect(state('streak_7_days')).to eq([1, false, false])
+    end
+
+    it '連続日数 0（今日も昨日も記録なし）は進捗 0 として書き戻す' do
+      service.update_streak_achievements(5)
+      service.update_streak_achievements(0)
+
+      expect(state('streak_7_days')).to eq([0, false, false])
+      expect(state('streak_30_days')).to eq([0, false, false])
+    end
+  end
+
   describe '#update_community_likes_received_achievements' do
     let(:post_record) { create(:post, user: user, likes_count: 5) }
 
