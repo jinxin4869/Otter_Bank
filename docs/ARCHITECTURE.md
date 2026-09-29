@@ -3,7 +3,7 @@
 > システム構成・データの流れ・技術選定の理由をまとめる。
 > 「何を作るか」は [PRD.md](./PRD.md)、見た目のルールは [DESIGN-SYSTEM.md](./DESIGN-SYSTEM.md) を参照。
 
-最終更新: 2026-09-28
+最終更新: 2026-09-29
 
 ---
 
@@ -19,10 +19,13 @@ flowchart LR
   end
   subgraph Render
     API[Rails 8.1 API<br/>Puma]
+  end
+  subgraph Neon
     DB[(PostgreSQL 16)]
   end
   Google[Google OAuth2]
   SMTP[メール送信]
+  Uptime[UptimeRobot]
 
   UI -- HTML/JS --> NX
   UI -- "REST JSON /api/v1<br/>Authorization: Bearer" --> API
@@ -30,11 +33,12 @@ flowchart LR
   API --> DB
   API <--> Google
   API --> SMTP
+  Uptime -- "GET /up（5 分ごと）" --> API
 ```
 
 - **モノレポ**: `front/`（Next.js）と `back/`（Rails API）の 2 アプリ。ルートの `package.json` は husky + lint-staged のみ
 - **通信**: ブラウザから Rails API へ直接 `fetch`（CORS 許可）。URL は `getApiUrl()`（`front/src/lib/api-client.ts`）が環境変数から決定
-- **デプロイ**: フロント = Vercel / バック + DB = Render（`render.yaml`）
+- **デプロイ**: フロント = Vercel / バック = Render（`render.yaml`）/ DB = Neon（接続先は `DATABASE_URL`）。いずれも無料プラン。構成の理由は §7（※ #428 の移行が終わるまで、DB は Render Postgres のまま）
 - **ローカル**: `compose.yml` で front(4000) / back(3000) / db(5433) を起動
 
 ## 2. ディレクトリ構成
@@ -151,7 +155,7 @@ contacts                       (ユーザーと非連携)
 | pre-commit | husky + lint-staged（RuboCop・ESLint --fix） |
 | 依存更新 | Dependabot |
 | レート制限 | `login/ip` 5回/分、`signup/ip` 10回/時、`password_reset/ip` 5回/時、`contact/ip` 3回/時、`OAuth/ip` 10回/分 |
-| 監視 | `GET /api/v1/health`、`GET /up` のみ（エラートラッキングなし） |
+| 監視 | UptimeRobot が `GET /up` を 5 分ごとに叩く（Render のスリープ防止。落ちたときはメールで通知）。ほかに `GET /api/v1/health`。エラートラッキングなし |
 
 ---
 
@@ -201,8 +205,47 @@ contacts                       (ユーザーと非連携)
 
 ### 優先度の高い改善（言語変更より効果が大きいもの）
 
-1. **コールドスタート対策**: Render の有料プラン化、または Fly.io 等スリープしない環境へ移す。最低限、フロントで「サーバー起動中」の表示を出す
+1. **コールドスタート対策**: 対応中（#428）。UptimeRobot の定期アクセスで Render を起こしておき、スリープを軽減する（§7）
 2. **巨大ページの分割**: `dashboard` / `board` を `_components/` に分割し、データ取得をカスタムフックへ
 3. **API の型共有**: `rswag` 等で OpenAPI を出力し `openapi-typescript` で `front/src/types` を生成
 4. **エラートラッキング**: Sentry 等（無料枠）を front/back に導入
 5. **ゲストの個別化**: PRD §9 参照
+
+---
+
+## 7. ホスティング構成（ADR-002: DB だけ Neon に移し、API は Render の無料プランに残す）
+
+**ステータス**: 採用（2026-09-29）/ 移行作業は #428
+
+### 問い
+
+Render の無料プランで API と DB を動かしているが、無料プランのまま続けられるか。
+
+Render の無料プランは、**Web サービスには期限がない**（15 分アクセスがないとスリープし、次のアクセスで起動に数十秒かかる）一方、**Postgres は作成から 30 日で期限切れ**になる。困っているのは DB の期限切れだけ。
+
+### 検討した選択肢
+
+| 対象 | 選択肢 | 評価 |
+|---|---|---|
+| API | **Render 無料のまま**（採用） | 期限なし。`render.yaml` がそのまま使える。月 750 時間の枠で 1 サービスを常時起動できる。0.1 CPU / 512MB |
+| API | Google Cloud Run | `back/Dockerfile` が使えるが、クレジットカード登録と予算管理が必要 |
+| API | Oracle Cloud Always Free + Kamal | OS 更新・バックアップ・SSL をすべて自前で管理する |
+| DB | **Neon**（採用） | 素の Postgres。5 分アクセスがなければ自動停止し、次のアクセスで自動復帰。期限なし。ストレージ 0.5GB、計算時間 月 100 CU 時間 |
+| DB | Supabase | 認証などの付属機能は不要（認証は Rails で自前）。7 日アクセスがないと一時停止し、手動で再開が必要 |
+
+Fly.io・Railway・Koyeb・Heroku は、新規向けの常時無料プランがないため外した（2026-09 時点）。
+
+### 判断理由と運用上の注意
+
+- **移すのは DB だけ**。production の `database.yml` は `url: ENV['DATABASE_URL']` だけを参照するので、変更は環境変数の差し替えで済む。`DATABASE_URL` はパスワードを含むため、Render のダッシュボードだけで管理する
+- **DB のリージョンは Render と同じオレゴン（AWS us-west-2）**。応答速度に効くのはユーザーと DB の距離ではなく、Rails と DB の距離
+- **Neon の直接接続 URL（`?sslmode=require`）を使う**。pooled（PgBouncer の transaction モード）だと `prepared_statements: false` 等の設定変更が必要になる。Puma は単一プロセス（`puma.rb` で `workers` を有効にしていない）で、接続数は `RAILS_MAX_THREADS`（既定 5）までなので、プールは不要
+- **スリープ対策は UptimeRobot で、DB に触れない `/up` を叩く**。Render は起きたまま、Neon はアクセスがなければ停止できる。DB に触れるエンドポイントを叩き続けると、Neon は最小構成（0.25 CU）でも月約 180 CU 時間になり、無料枠を超える。GitHub Actions の cron は実行が大きく遅れることがあり、15 分以内のアクセスを保証できないので使わない
+- UptimeRobot が止まると API はスリープに戻り、最初のアクセスだけ数十秒かかる
+- メモリは 512MB。`puma.rb` で `workers` を有効にする場合は、メモリに収まるか確認する
+
+### 見直す条件
+
+- アクセスが増えて 0.1 CPU では応答が遅くなったとき → Render の有料プランか Cloud Run へ
+- DB が 0.5GB に近づいた、または計算時間が 100 CU 時間を超えそうなとき → Neon の有料プランへ
+- 各サービスの無料枠の条件が変わったとき
