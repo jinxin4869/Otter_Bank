@@ -1,42 +1,30 @@
 "use client"
 
-import type React from "react"
-
 import { useState, useEffect, useCallback, useMemo } from "react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Calendar } from "@/components/ui/calendar"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Badge } from "@/components/ui/badge"
 import { format } from "date-fns"
 import { ja } from "date-fns/locale"
-import {
-  CalendarIcon,
-  PlusCircle,
-  Wallet,
-  ArrowUpCircle,
-  ArrowDownCircle,
-  Coffee,
-  ShoppingBag,
-  Bus,
-  Film,
-  Lightbulb,
-  Home,
-  Stethoscope,
-  GraduationCap,
-  ShoppingCart,
-  HelpCircle,
-  Briefcase,
-  Gift,
-  TrendingUp,
-  DollarSign,
-  Loader2,
-  Trophy,
-} from "lucide-react"
+import { Wallet, ArrowUpCircle, ArrowDownCircle, Loader2, Trophy } from "lucide-react"
 import dynamic from "next/dynamic"
+import { useRouter } from "next/navigation"
+import { toast } from "sonner"
 import OtterAnimation, { type OtterMood } from "@/components/otter-animation"
+import { Tutorial } from "@/components/tutorial"
+import { AchievementUnlockModal } from "@/components/achievement-unlock-modal"
+import { useAuth } from "@/hooks/useAuth"
+import { useAchievements } from "@/hooks/useAchievements"
+import { useTransactions } from "@/hooks/useTransactions"
+import { cn } from "@/lib/utils"
+import { getFinancialMood, type FinancialMood } from "@/lib/otter-mood"
+import { TIER_CONFIG } from "@/lib/tier"
+import { filterByPeriod, summarize, shiftPeriod, type PeriodView } from "@/lib/transaction-period"
+import type { CreateTransactionParams } from "@/lib/api"
+import type { NewlyUnlockedAchievement } from "@/types/achievement"
+import TransactionForm from "./_components/transaction-form"
+import TransactionList from "./_components/transaction-list"
 
 const ExpensePieChart = dynamic(() => import("@/components/expense-pie-chart"), {
   ssr: false,
@@ -55,68 +43,26 @@ const MonthlyTrend = dynamic(() => import("@/components/monthly-trend"), {
     </div>
   ),
 })
-import { Tutorial } from "@/components/tutorial"
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
-import { cn } from "@/lib/utils"
-import { useRouter } from "next/navigation"
-import { useAuth } from "@/hooks/useAuth"
-import { api } from "@/lib/api"
-import { type Transaction, mapApiTransaction } from "@/types/transaction"
-import { AchievementUnlockModal } from "@/components/achievement-unlock-modal"
-import { mapApiNewlyUnlockedAchievement, type NewlyUnlockedAchievement } from "@/types/achievement"
-import { Badge } from "@/components/ui/badge"
-import { useAchievements } from "@/hooks/useAchievements"
-import { getFinancialMood, type FinancialMood } from "@/lib/otter-mood"
-import { toast } from "sonner"
 
-const EXPENSE_CATEGORIES = [
-  { value: "food", label: "食費", icon: <Coffee className="h-4 w-4" /> },
-  { value: "groceries", label: "日用品", icon: <ShoppingBag className="h-4 w-4" /> },
-  { value: "transportation", label: "交通費", icon: <Bus className="h-4 w-4" /> },
-  { value: "entertainment", label: "娯楽", icon: <Film className="h-4 w-4" /> },
-  { value: "utilities", label: "光熱費", icon: <Lightbulb className="h-4 w-4" /> },
-  { value: "rent", label: "家賃", icon: <Home className="h-4 w-4" /> },
-  { value: "medical", label: "医療費", icon: <Stethoscope className="h-4 w-4" /> },
-  { value: "education", label: "教育費", icon: <GraduationCap className="h-4 w-4" /> },
-  { value: "shopping", label: "買い物", icon: <ShoppingCart className="h-4 w-4" /> },
-  { value: "other", label: "その他", icon: <HelpCircle className="h-4 w-4" /> },
-]
-
-const INCOME_CATEGORIES = [
-  { value: "salary", label: "給料", icon: <Briefcase className="h-4 w-4" /> },
-  { value: "bonus", label: "ボーナス", icon: <Gift className="h-4 w-4" /> },
-  { value: "investment", label: "投資", icon: <TrendingUp className="h-4 w-4" /> },
-  { value: "gift", label: "贈与", icon: <Gift className="h-4 w-4" /> },
-  { value: "other", label: "その他", icon: <DollarSign className="h-4 w-4" /> },
-]
+const VIEW_TITLE_FORMAT: Record<PeriodView, string> = {
+  day: "yyyy年MM月dd日",
+  month: "yyyy年MM月",
+  year: "yyyy年",
+}
 
 export default function DashboardPage() {
-  const [transactions, setTransactions] = useState<Transaction[]>([])
-  const [amount, setAmount] = useState("")
-  const [amountError, setAmountError] = useState<string | null>(null)
-  const [type, setType] = useState<"income" | "expense">("expense")
-  const [category, setCategory] = useState("")
-  const [description, setDescription] = useState("")
-  const [date, setDate] = useState<Date>(new Date())
-  const [currentView, setCurrentView] = useState<"day" | "month" | "year">("month")
+  const [currentView, setCurrentView] = useState<PeriodView>("month")
   const [currentDate, setCurrentDate] = useState<Date>(new Date())
   const [otterMood, setOtterMood] = useState<FinancialMood>("neutral")
   const [celebratingSignal, setCelebratingSignal] = useState(0)
-  const [isDataLoading, setIsDataLoading] = useState(false)
   const [achievementQueue, setAchievementQueue] = useState<NewlyUnlockedAchievement[]>([])
   const router = useRouter()
   const { user, token, isLoading: authIsLoading, isAuthenticated } = useAuth()
   const { achievements, achievementSummary, refetch: refetchAchievements } = useAchievements()
+  const { transactions, isLoading: isDataLoading, addTransaction, deleteTransaction } = useTransactions(
+    token,
+    isAuthenticated
+  )
 
   const currentAchievement = achievementQueue[0] ?? null
 
@@ -152,42 +98,9 @@ export default function DashboardPage() {
     }
   }, [authIsLoading, isAuthenticated, router])
 
-  // API から取引データを取得
-  useEffect(() => {
-    if (!isAuthenticated || !token) return
-
-    const fetchTransactions = async () => {
-      setIsDataLoading(true)
-      try {
-        const data = await api.transactions.list(token)
-        if (data) {
-          setTransactions(data.transactions.map(mapApiTransaction))
-        }
-      } catch (err) {
-        console.error("取引データ取得エラー:", err)
-        toast.error("取引データを読み込めませんでした", {
-          description: err instanceof Error ? err.message : "時間をおいて再度お試しください",
-        })
-      } finally {
-        setIsDataLoading(false)
-      }
-    }
-
-    fetchTransactions()
-  }, [isAuthenticated, token])
-
   // 今月の収支でカワウソの気分を決める（判定は lib/otter-mood.ts）
   useEffect(() => {
-    const thisMonth = new Date().getMonth()
-    const thisYear = new Date().getFullYear()
-
-    const monthlyTransactions = transactions.filter((t) => {
-      const tDate = new Date(t.date)
-      return tDate.getMonth() === thisMonth && tDate.getFullYear() === thisYear
-    })
-
-    const income = monthlyTransactions.filter((t) => t.type === "income").reduce((sum, t) => sum + t.amount, 0)
-    const expense = monthlyTransactions.filter((t) => t.type === "expense").reduce((sum, t) => sum + t.amount, 0)
+    const { income, expense } = summarize(filterByPeriod(transactions, "month", new Date()))
     setOtterMood(getFinancialMood(income, expense))
   }, [transactions])
 
@@ -199,171 +112,30 @@ export default function DashboardPage() {
     return () => clearTimeout(timer)
   }, [celebratingSignal])
 
-  const validateAmount = (value: string) => {
-    if (!value) {
-      setAmountError(null)
-      return true
-    }
+  const handleSubmit = useCallback(
+    async (params: CreateTransactionParams) => {
+      const newlyUnlocked = await addTransaction(params)
+      if (newlyUnlocked === null) return false
 
-    const numericValue = value.replace(/,/g, "")
-    if (!/^\d+(\.\d{0,2})?$/.test(numericValue)) {
-      setAmountError("数字を入力してください。例：1000")
-      return false
-    }
-
-    setAmountError(null)
-    return true
-  }
-
-  const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value
-    setAmount(value)
-    validateAmount(value)
-  }
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!amount || !category || !validateAmount(amount) || !token) return
-
-    const numericAmount = Number.parseFloat(amount.replace(/,/g, ""))
-
-    try {
-      const result = await api.transactions.create(token, {
-        amount: numericAmount,
-        transaction_type: type,
-        category,
-        description,
-        date: format(date, "yyyy-MM-dd"),
-      })
-      if (result) {
-        setTransactions((prev) => [...prev, mapApiTransaction(result.transaction)])
-
-        const newlyUnlocked = result.newly_unlocked_achievements.map(mapApiNewlyUnlockedAchievement)
-        if (newlyUnlocked.length > 0) {
-          newlyUnlocked.forEach((ach) => {
-            toast.success(`実績解除: ${ach.title}`, { description: ach.description })
-          })
-          setAchievementQueue((prev) => [...prev, ...newlyUnlocked])
-          setCelebratingSignal((n) => n + 1)
-          // 解除で成長ステージが変わる可能性があるため、表示を変えずに再取得する
-          void refetchAchievements({ silent: true })
-        }
+      if (newlyUnlocked.length > 0) {
+        newlyUnlocked.forEach((ach) => {
+          toast.success(`実績解除: ${ach.title}`, { description: ach.description })
+        })
+        setAchievementQueue((prev) => [...prev, ...newlyUnlocked])
+        setCelebratingSignal((n) => n + 1)
+        // 解除で成長ステージが変わる可能性があるため、表示を変えずに再取得する
+        void refetchAchievements({ silent: true })
       }
-      setAmount("")
-      setAmountError(null)
-      setDescription("")
-      setDate(new Date())
-    } catch (err) {
-      console.error("取引登録エラー:", err)
-      // 失敗を画面に出さないと、ユーザーには何も起きていないように見える（issue #392）
-      toast.error("取引を登録できませんでした", {
-        description: err instanceof Error ? err.message : "時間をおいて再度お試しください",
-      })
-    }
-  }
+      return true
+    },
+    [addTransaction, refetchAchievements]
+  )
 
-  const deleteTransaction = async (id: string) => {
-    if (!token) return
-    try {
-      await api.transactions.delete(token, id)
-      setTransactions((prev) => prev.filter((t) => t.id !== id))
-    } catch (err) {
-      console.error("取引削除エラー:", err)
-      toast.error("取引を削除できませんでした", {
-        description: err instanceof Error ? err.message : "時間をおいて再度お試しください",
-      })
-    }
-  }
-
-  const getFilteredTransactions = () => {
-    let filtered = [...transactions]
-
-    if (currentView === "day") {
-      filtered = filtered.filter((t) => {
-        return t.date === format(currentDate, "yyyy-MM-dd")
-      })
-    } else if (currentView === "month") {
-      const month = currentDate.getMonth()
-      const year = currentDate.getFullYear()
-      filtered = filtered.filter((t) => {
-        const tDate = new Date(t.date)
-        return tDate.getMonth() === month && tDate.getFullYear() === year
-      })
-    } else if (currentView === "year") {
-      const year = currentDate.getFullYear()
-      filtered = filtered.filter((t) => {
-        const tDate = new Date(t.date)
-        return tDate.getFullYear() === year
-      })
-    }
-
-    return filtered.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-  }
-
-  const calculateBalance = () => {
-    const filtered = getFilteredTransactions()
-    const income = filtered.filter((t) => t.type === "income").reduce((sum, t) => sum + t.amount, 0)
-    const expense = filtered.filter((t) => t.type === "expense").reduce((sum, t) => sum + t.amount, 0)
-    return income - expense
-  }
-
-  const calculateTotalIncome = () => {
-    const filtered = getFilteredTransactions()
-    return filtered.filter((t) => t.type === "income").reduce((sum, t) => sum + t.amount, 0)
-  }
-
-  const calculateTotalExpense = () => {
-    const filtered = getFilteredTransactions()
-    return filtered.filter((t) => t.type === "expense").reduce((sum, t) => sum + t.amount, 0)
-  }
-
-  const getCategoryLabel = (categoryValue: string, type: "income" | "expense") => {
-    const categories = type === "income" ? INCOME_CATEGORIES : EXPENSE_CATEGORIES
-    return categories.find((c) => c.value === categoryValue)?.label || categoryValue
-  }
-
-  const getCategoryIcon = (categoryValue: string, type: "income" | "expense") => {
-    const categories = type === "income" ? INCOME_CATEGORIES : EXPENSE_CATEGORIES
-    const categoryData = categories.find((c) => c.value === categoryValue)
-
-    if (categoryData) {
-      const IconComponent = categoryData.icon.type
-      return <IconComponent className="h-4 w-4 text-foreground" />
-    }
-
-    return <HelpCircle className="h-4 w-4 text-foreground" />
-  }
-
-  const getViewTitle = () => {
-    if (currentView === "day") {
-      return format(currentDate, "yyyy年MM月dd日", { locale: ja })
-    } else if (currentView === "month") {
-      return format(currentDate, "yyyy年MM月", { locale: ja })
-    } else {
-      return format(currentDate, "yyyy年", { locale: ja })
-    }
-  }
-
-  const navigateDate = (direction: "prev" | "next") => {
-    if (currentView === "day") {
-      const newDate = new Date(currentDate)
-      newDate.setDate(newDate.getDate() + (direction === "next" ? 1 : -1))
-      setCurrentDate(newDate)
-    } else if (currentView === "month") {
-      const newDate = new Date(currentDate)
-      newDate.setMonth(newDate.getMonth() + (direction === "next" ? 1 : -1))
-      setCurrentDate(newDate)
-    } else {
-      const newDate = new Date(currentDate)
-      newDate.setFullYear(newDate.getFullYear() + (direction === "next" ? 1 : -1))
-      setCurrentDate(newDate)
-    }
-  }
-
-  const filteredTransactions = getFilteredTransactions()
-  const balance = calculateBalance()
-  const totalIncome = calculateTotalIncome()
-  const totalExpense = calculateTotalExpense()
+  const filteredTransactions = useMemo(
+    () => filterByPeriod(transactions, currentView, currentDate),
+    [transactions, currentView, currentDate]
+  )
+  const { income: totalIncome, expense: totalExpense, balance } = summarize(filteredTransactions)
 
   if (authIsLoading) {
     return (
@@ -390,19 +162,17 @@ export default function DashboardPage() {
         </h1>
 
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={() => navigateDate("prev")}>
+          <Button variant="outline" size="sm" onClick={() => setCurrentDate(shiftPeriod(currentDate, currentView, "prev"))}>
             前へ
           </Button>
 
-          <div className="font-medium">{getViewTitle()}</div>
+          <div className="font-medium">{format(currentDate, VIEW_TITLE_FORMAT[currentView], { locale: ja })}</div>
 
-          <Button variant="outline" size="sm" onClick={() => navigateDate("next")}>
+          <Button variant="outline" size="sm" onClick={() => setCurrentDate(shiftPeriod(currentDate, currentView, "next"))}>
             次へ
           </Button>
 
-          <Select
-            value={currentView}
-            onValueChange={(value: string) => setCurrentView(value as "day" | "month" | "year")}>
+          <Select value={currentView} onValueChange={(value: string) => setCurrentView(value as PeriodView)}>
             <SelectTrigger className="w-[100px]">
               <SelectValue />
             </SelectTrigger>
@@ -458,12 +228,7 @@ export default function DashboardPage() {
         >
           <CardHeader className="pb-2">
             <CardDescription>収支バランス</CardDescription>
-            <CardTitle
-              className={cn(
-                "text-2xl flex items-center",
-                balance >= 0 ? "text-income" : "text-expense",
-              )}
-            >
+            <CardTitle className={cn("text-2xl flex items-center", balance >= 0 ? "text-income" : "text-expense")}>
               <Wallet className="mr-2 h-5 w-5" />
               {balance.toLocaleString()} 円
             </CardTitle>
@@ -477,89 +242,7 @@ export default function DashboardPage() {
             <CardTitle>取引履歴</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {isDataLoading ? (
-                <div className="flex justify-center py-8">
-                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                </div>
-              ) : filteredTransactions.length === 0 ? (
-                <p className="text-center text-muted-foreground py-4">この期間の取引はありません</p>
-              ) : (
-                <div className="space-y-2 max-h-[400px] overflow-y-auto pr-2">
-                  {filteredTransactions.map((transaction) => (
-                    <div
-                      key={transaction.id}
-                      className="flex justify-between items-center p-3 border rounded hover:bg-accent/50 transition-colors"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div
-                          className={cn(
-                            "w-10 h-10 rounded-full flex items-center justify-center",
-                            transaction.type === "income"
-                              ? "bg-income-bg text-income"
-                              : "bg-expense-bg text-expense",
-                          )}
-                        >
-                          {getCategoryIcon(transaction.category, transaction.type)}
-                        </div>
-                        <div>
-                          <div className="font-medium">{getCategoryLabel(transaction.category, transaction.type)}</div>
-                          {transaction.description && (
-                            <div className="text-sm text-muted-foreground">{transaction.description}</div>
-                          )}
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-4">
-                        <div className="text-right">
-                          <div
-                            className={cn(
-                              "font-medium",
-                              transaction.type === "income"
-                                ? "text-income"
-                                : "text-expense",
-                            )}
-                          >
-                            {transaction.type === "income" ? "+" : "-"}
-                            {transaction.amount.toLocaleString()} 円
-                          </div>
-                          <div className="text-sm text-muted-foreground">
-                            {format(new Date(transaction.date), "yyyy/MM/dd")}
-                          </div>
-                        </div>
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="text-muted-foreground hover:text-destructive"
-                            >
-                              削除
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>取引を削除しますか？</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                この操作は取り消せません。取引履歴から完全に削除されます。
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>キャンセル</AlertDialogCancel>
-                              <AlertDialogAction
-                                onClick={() => deleteTransaction(transaction.id)}
-                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                              >
-                                削除する
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+            <TransactionList transactions={filteredTransactions} isLoading={isDataLoading} onDelete={deleteTransaction} />
           </CardContent>
         </Card>
 
@@ -568,107 +251,7 @@ export default function DashboardPage() {
             <CardTitle>新規取引</CardTitle>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="amount">金額</Label>
-                <Input
-                  id="amount"
-                  type="text"
-                  placeholder="1000"
-                  value={amount}
-                  onChange={handleAmountChange}
-                  required
-                  className={amountError ? "border-destructive" : ""}
-                />
-                {amountError && <p className="text-sm text-destructive">{amountError}</p>}
-              </div>
-
-              <div className="space-y-2">
-                <Label>タイプ</Label>
-                <div className="flex gap-2">
-                  <Button
-                    type="button"
-                    variant={type === "expense" ? "default" : "outline"}
-                    className={cn("flex-1", type === "expense" && "bg-expense hover:bg-expense/90 text-white")}
-                    onClick={() => {
-                      setType("expense")
-                      setCategory("")
-                    }}
-                  >
-                    支出
-                  </Button>
-                  <Button
-                    type="button"
-                    variant={type === "income" ? "default" : "outline"}
-                    className={cn("flex-1", type === "income" && "bg-income hover:bg-income/90 text-white")}
-                    onClick={() => {
-                      setType("income")
-                      setCategory("")
-                    }}
-                  >
-                    収入
-                  </Button>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="category">カテゴリー</Label>
-                <Select value={category} onValueChange={setCategory} required>
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="カテゴリーを選択" />
-                  </SelectTrigger>
-                  <SelectContent
-                    position="item-aligned"
-                    align="start"
-                    side="bottom"
-                    sideOffset={5}
-                  >
-                    {(type === "income" ? INCOME_CATEGORIES : EXPENSE_CATEGORIES).map((cat) => (
-                      <SelectItem
-                        key={cat.value}
-                        value={cat.value}
-                        className={cn("cursor-pointer", type === "income" ? "text-income" : "text-expense")}
-                      >
-                        <div className="flex items-center gap-2">
-                          {cat.icon}
-                          <span>{cat.label}</span>
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="description">詳細 (任意)</Label>
-                <Input
-                  id="description"
-                  placeholder="取引の詳細"
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label>日付</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button variant="outline" className="w-full justify-start text-left font-normal">
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {format(date, "yyyy年MM月dd日", { locale: ja })}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0">
-                    <Calendar mode="single" selected={date} onSelect={(date) => date && setDate(date)} initialFocus />
-                  </PopoverContent>
-                </Popover>
-              </div>
-
-              <Button type="submit" className="w-full" disabled={!!amountError}>
-                <PlusCircle className="mr-2 h-4 w-4" />
-                追加
-              </Button>
-            </form>
+            <TransactionForm onSubmit={handleSubmit} />
           </CardContent>
         </Card>
       </div>
@@ -686,20 +269,14 @@ export default function DashboardPage() {
           <CardContent>
             <div className="flex flex-wrap gap-3">
               {recentAchievements.map((ach) => (
-                <div
-                  key={ach.id}
-                  className="flex items-center gap-2 rounded-lg border bg-card px-4 py-2 shadow-sm"
-                >
+                <div key={ach.id} className="flex items-center gap-2 rounded-lg border bg-card px-4 py-2 shadow-sm">
                   <Trophy className="h-4 w-4 shrink-0 text-primary" />
                   <div>
                     <p className="text-sm font-medium leading-none">{ach.title}</p>
                     <p className="mt-1 text-xs text-muted-foreground">{ach.description}</p>
                   </div>
                   <Badge variant="secondary" className="ml-2 shrink-0 text-xs">
-                    {ach.tier === "platinum" ? "プラチナ"
-                      : ach.tier === "gold" ? "ゴールド"
-                      : ach.tier === "silver" ? "シルバー"
-                      : "ブロンズ"}
+                    {TIER_CONFIG[ach.tier].label}
                   </Badge>
                 </div>
               ))}

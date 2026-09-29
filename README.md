@@ -123,7 +123,7 @@ npm run dev   # http://localhost:3000（バックとポートが被る場合は 
 
 | ファイル | 作り方 | 主な変数 |
 | --- | --- | --- |
-| `back/.env` | `cp back/.env.example back/.env` | `JWT_SECRET`（本番必須）, `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`, `FRONTEND_URL`, `FRONTEND_URL_PROD` |
+| `back/.env` | `cp back/.env.example back/.env` | `JWT_SECRET`（本番必須）, `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`, `FRONTEND_URL`, `FRONTEND_URL_PROD`, `CONTACT_NOTIFY_TO`（任意。お問い合わせの通知先、未設定なら通知しない） |
 | `front/.env.local` | `cp front/.env.example front/.env.local` | `NEXT_PUBLIC_DEV_URL`, `NEXT_PUBLIC_API_URL` |
 
 本番（Render）では上記に加えてメール送信用の変数（`SMTP_ADDRESS`, `SMTP_PORT`, `SMTP_USERNAME`, `SMTP_PASSWORD`, `MAILER_FROM`）が必要。未設定だと起動に失敗する。値は Render のダッシュボードで設定する（`render.yaml` 参照）。

@@ -34,6 +34,9 @@ services:
       # リセットメールのリンク先・CORS・OAuth の戻り先に使うフロントの URL
       - key: FRONTEND_URL
         sync: false
+      # お問い合わせの通知先（運営のメールアドレス）。未設定なら通知しない
+      - key: CONTACT_NOTIFY_TO
+        sync: false
 
 databases:
   - name: otter-bank-db

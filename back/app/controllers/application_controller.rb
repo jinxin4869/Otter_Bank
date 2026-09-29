@@ -57,10 +57,8 @@ class ApplicationController < ActionController::API
     }
   end
 
+  # 認証不要のアクションは各コントローラーで skip_before_action :authorize_request, only: [...] を指定する
   def authorize_request
-    # 特定のエンドポイントではスキップ
-    return if skip_authorization?
-
     token = bearer_token
     Rails.logger.info "Token: #{token.present? ? 'present' : 'missing'}" if Rails.env.development?
 
@@ -83,10 +81,5 @@ class ApplicationController < ActionController::API
       Rails.logger.error "Invalid token: #{Rails.env.development? ? e.message : '[MASKED]'}"
       render json: { error: '無効なトークンです', code: 'invalid_token' }, status: :unauthorized
     end
-  end
-
-  def skip_authorization?
-    # 認証をスキップするアクションを定義
-    false
   end
 end

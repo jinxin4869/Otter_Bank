@@ -42,6 +42,9 @@ export const TIER_CONFIG: Record<AchievementTier, TierStyle> = {
   },
 }
 
+// `in` はプロトタイプのキー（constructor など）にも true を返すので Object.hasOwn を使う
+export const isAchievementTier = (value: string): value is AchievementTier => Object.hasOwn(TIER_CONFIG, value)
+
 export function TierIcon({ tier, className }: { tier: AchievementTier; className?: string }) {
   const iconClassName = cn("h-12 w-12", className)
   if (tier === "platinum") return <Gem className={iconClassName} aria-hidden="true" />
