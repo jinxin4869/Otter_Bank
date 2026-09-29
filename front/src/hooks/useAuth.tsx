@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { createContext, useContext, useState, useEffect, useCallback, useRef, type ReactNode } from "react";
 import { toast } from "sonner";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { api } from "@/lib/api";
 import { ApiError } from "@/lib/api-error";
 import { AUTH_STATE_CHANGED_EVENT, AUTH_TOKEN_REFRESHED_EVENT, refreshAccessToken } from "@/lib/api-client";
@@ -51,17 +51,23 @@ const resolveSession = async (accessToken: string): Promise<SessionResult> => {
   }
 };
 
-export const useAuth = () => {
+type AuthContextValue = {
+  user: AuthUser | null;
+  token: string | null;
+  isLoading: boolean;
+  isAuthenticated: boolean;
+  login: (accessToken: string, email?: string) => Promise<void>;
+  logout: () => Promise<void>;
+};
+
+const AuthContext = createContext<AuthContextValue | null>(null);
+
+// 認証状態の実体。アプリで 1 つだけ（AuthProvider）持ち、/auth/verify もマウント時に 1 回だけ呼ぶ
+const useAuthState = (): AuthContextValue => {
   const router = useRouter();
-  // イベントの発火元を識別し、発火元自身が再検証しないようにする
-  const instanceRef = useRef({});
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [token, setToken] = useState<string | null>(null);
-
-  const notifyAuthStateChanged = useCallback(() => {
-    window.dispatchEvent(new CustomEvent(AUTH_STATE_CHANGED_EVENT, { detail: { source: instanceRef.current } }));
-  }, []);
 
   const applySession = useCallback((result: SessionResult) => {
     switch (result.kind) {
@@ -81,7 +87,6 @@ export const useAuth = () => {
         setUser(null);
         setToken(null);
         if (result.expired) {
-          // 複数インスタンスが同時に失敗しても 1 件だけ表示する
           toast.error("認証期限切れ", {
             id: "auth-expired",
             description: "認証期限が切れました。再度ログインしてください。",
@@ -105,19 +110,17 @@ export const useAuth = () => {
   useEffect(() => {
     void checkAuth();
 
-    // useAuth は呼び出しごとに状態を持つため、他のインスタンス（ログイン画面など）の
-    // ログイン・ログアウトをヘッダー等へ反映するためにイベントで再検証する
+    // API 呼び出し中の更新結果は api-client がイベントで知らせる
     const handleAuthStateChanged = (event: Event) => {
-      const detail = (event as CustomEvent<{ source?: unknown; expired?: boolean }>).detail;
-      if (detail?.source === instanceRef.current) return;
-      // API 呼び出し中の更新失敗。再検証しても同じ結果なので、そのままセッション終了として扱う
+      const detail = (event as CustomEvent<{ expired?: boolean }>).detail;
+      // 更新失敗。再検証しても同じ結果なので、そのままセッション終了として扱う
       if (detail?.expired) {
         applySession({ kind: "rejected", expired: true });
         return;
       }
       void checkAuth();
     };
-    // API 呼び出し中にトークンが更新された。ユーザーは変わらないので、再検証せずトークンだけ差し替える
+    // 更新成功。ユーザーは変わらないので、再検証せずトークンだけ差し替える
     const handleTokenRefreshed = (event: Event) => {
       const token = (event as CustomEvent<{ token?: unknown }>).detail?.token;
       if (typeof token === "string") setToken(token);
@@ -130,17 +133,29 @@ export const useAuth = () => {
     };
   }, [checkAuth, applySession]);
 
-  const login = useCallback(async (accessToken: string, email?: string) => {
-    localStorage.setItem("authToken", accessToken);
-    localStorage.setItem("isLoggedIn", "true");
-    if (email) {
-      localStorage.setItem("currentUserEmail", email);
-    }
-    setToken(accessToken);
-    // トークン情報をもとに検証・セッション状態構築
-    applySession(await resolveSession(accessToken));
-    notifyAuthStateChanged();
-  }, [applySession, notifyAuthStateChanged]);
+  // Provider はルートにあり遷移では再マウントされない。起動時に一時的な障害で確認できなかった
+  // （保存済みトークンはあるのに未認証）場合は、ページ遷移のタイミングでやり直す
+  const pathname = usePathname();
+  const lastPathname = useRef(pathname);
+  useEffect(() => {
+    if (lastPathname.current === pathname) return;
+    lastPathname.current = pathname;
+    if (user === null && localStorage.getItem("authToken")) void checkAuth();
+  }, [pathname, user, checkAuth]);
+
+  const login = useCallback(
+    async (accessToken: string, email?: string) => {
+      localStorage.setItem("authToken", accessToken);
+      localStorage.setItem("isLoggedIn", "true");
+      if (email) {
+        localStorage.setItem("currentUserEmail", email);
+      }
+      setToken(accessToken);
+      // トークン情報をもとに検証・セッション状態構築
+      applySession(await resolveSession(accessToken));
+    },
+    [applySession]
+  );
 
   const logout = useCallback(async () => {
     try {
@@ -151,10 +166,9 @@ export const useAuth = () => {
       clearAuthStorage();
       setUser(null);
       setToken(null);
-      notifyAuthStateChanged();
       router.push("/login");
     }
-  }, [notifyAuthStateChanged, router]);
+  }, [router]);
 
   return {
     user,
@@ -164,4 +178,18 @@ export const useAuth = () => {
     login,
     logout,
   };
+};
+
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const value = useAuthState();
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+}
+
+// 認証状態を読む。状態は AuthProvider が 1 つだけ持つので、どこから呼んでも同じ値になる
+export const useAuth = (): AuthContextValue => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error("useAuth は AuthProvider の中で使ってください（app/layout.tsx で囲んでいます）");
+  }
+  return context;
 };
