@@ -65,6 +65,8 @@ RSpec.configure do |config|
   # config.filter_gems_from_backtrace("gem name")
 
   config.include FactoryBot::Syntax::Methods
+
+  config.include ActiveSupport::Testing::TimeHelpers # travel_to で「今日」をずらすテスト用
 end
 
 Shoulda::Matchers.configure do |config|

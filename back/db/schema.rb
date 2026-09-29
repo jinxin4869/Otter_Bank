@@ -10,7 +10,10 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_07_11_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_28_000000) do
+  # These are extensions that must be enabled in order to support this database
+  enable_extension "pg_catalog.plpgsql"
+
   create_table "achievements", force: :cascade do |t|
     t.integer "category", default: 0, null: false
     t.datetime "created_at", null: false
@@ -154,7 +157,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_11_120000) do
     t.decimal "amount"
     t.string "category"
     t.datetime "created_at", null: false
-    t.datetime "date"
+    t.date "date"
     t.text "description"
     t.string "transaction_type"
     t.datetime "updated_at", null: false

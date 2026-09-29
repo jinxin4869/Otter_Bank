@@ -46,11 +46,14 @@ type ContactParams = {
 export const api = {
   /** 認証 */
   auth: {
+    // ログイン・登録の応答はリフレッシュトークンを Set-Cookie で返す。API は別オリジンなので、
+    // credentials: 'include' が無いとブラウザが Cookie を捨て、30 分後の更新（refresh）が必ず失敗する
     /** ログイン */
     login: (email: string, password: string) =>
       publicApiRequest<LoginResponse>('/sessions', {
         method: 'POST',
         body: { email, password },
+        credentials: 'include',
       }),
 
     /** ユーザー登録 */
@@ -58,6 +61,7 @@ export const api = {
       publicApiRequest<LoginResponse>('/users', {
         method: 'POST',
         body: { user: params },
+        credentials: 'include',
       }),
 
     /** パスワードリセットメール送信 */
@@ -74,9 +78,10 @@ export const api = {
         body: { token, password },
       }),
 
-    /** JWT トークンを検証してユーザー情報を取得する（形式は parseAuthUser で検証する） */
+    /** JWT トークンを検証してユーザー情報を取得する（形式は parseAuthUser で検証する）。
+     *  期限切れの扱いは useAuth 側で行うため、apiRequest の自動リフレッシュは使わない */
     verify: (token: string) =>
-      apiRequest<unknown>('/auth/verify', { token }),
+      apiRequest<unknown>('/auth/verify', { token, retryOnExpired: false }),
 
     /** リフレッシュトークンを使ってアクセストークンを更新する（Cookie 経由） */
     refresh: () =>

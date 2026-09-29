@@ -19,6 +19,21 @@ services:
         generateValue: true
       - key: WEB_CONCURRENCY
         value: 1
+      # メール送信（パスワードリセット・問い合わせ確認）。値は Render のダッシュボードで設定する。
+      # 未設定だと起動に失敗する（production.rb の smtp_settings が ENV.fetch で読むため）
+      - key: SMTP_ADDRESS
+        sync: false
+      - key: SMTP_PORT
+        value: 587
+      - key: SMTP_USERNAME
+        sync: false
+      - key: SMTP_PASSWORD
+        sync: false
+      - key: MAILER_FROM
+        sync: false
+      # リセットメールのリンク先・CORS・OAuth の戻り先に使うフロントの URL
+      - key: FRONTEND_URL
+        sync: false
       # お問い合わせの通知先（運営のメールアドレス）。未設定なら通知しない
       - key: CONTACT_NOTIFY_TO
         sync: false

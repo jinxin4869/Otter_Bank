@@ -49,6 +49,18 @@ RSpec.describe 'Api::V1::Budgets', type: :request do
       end
     end
 
+    it '月初の早朝（UTC ではまだ前月）でも、今月の予算とその日の支出を返す' do
+      # 2026-09-30 23:00 UTC = 2026-10-01 08:00 JST。time_zone が UTC だと「今月」が 9 月になり budget が null になる
+      travel_to Time.utc(2026, 9, 30, 23, 0) do
+        create(:budget, user: user, year: 2026, month: 10, amount: 50_000)
+        create(:transaction, user: user, transaction_type: :expense, amount: 20_000, date: Date.new(2026, 10, 1))
+        get '/api/v1/budgets/current', headers: headers
+        json = response.parsed_body
+        expect(json['budget']).to be_present
+        expect(json['total_expense']).to eq('20000.0')
+      end
+    end
+
     it '未認証では 401 を返す' do
       get '/api/v1/budgets/current'
       expect(response).to have_http_status(:unauthorized)

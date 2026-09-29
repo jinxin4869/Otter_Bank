@@ -23,7 +23,8 @@ module OtterBank
     # These settings can be overridden in specific environments using the files
     # in config/environments, which are processed later.
     #
-    # config.time_zone = "Central Time (US & Canada)"
+    # 「今日」「今月」の判定（連続記録・予算）を日本時間で行う。DB には UTC で保存する
+    config.time_zone = 'Tokyo'
     # config.eager_load_paths << Rails.root.join("extras")
 
     # Only loads a smaller set of middleware suitable for API only apps.
