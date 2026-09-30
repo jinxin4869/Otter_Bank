@@ -10,6 +10,7 @@ RSpec.describe Comment, type: :model do
 
   # バリデーション
   it { should validate_presence_of(:content) }
+  it { should validate_length_of(:content).is_at_most(1_000) }
 
   describe 'ファクトリー' do
     it '有効なファクトリーを持つ' do
