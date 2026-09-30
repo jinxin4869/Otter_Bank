@@ -15,13 +15,19 @@ module Api
       def index
         page = params[:page].to_i.clamp(1, Float::INFINITY).to_i
         per  = params[:per].to_i.zero? ? PER_PAGE : params[:per].to_i.clamp(1, 100)
+        viewer = optional_current_user
 
-        scope       = filtered_posts.includes(:user, :categories)
+        # 自分のブックマークだけを見るには本人の確認が要る（一覧自体は未ログインでも見られる）
+        if bookmarked_only? && viewer.nil?
+          render json: { error: 'ブックマークを見るにはログインが必要です' }, status: :unauthorized
+          return
+        end
+
+        scope       = filtered_posts(viewer).includes(:user, :categories)
         total_count = scope.count
         @posts      = scope.limit(per).offset((page - 1) * per)
         total_pages = (total_count.to_f / per).ceil
 
-        viewer = optional_current_user
         post_ids = @posts.map(&:id)
         liked_ids = if viewer
                       Like.where(likeable_type: 'Post', likeable_id: post_ids,
@@ -105,14 +111,19 @@ module Api
       private
 
       # 一覧の検索・カテゴリ絞り込み・並び替え（読み込み済みの範囲ではなく全投稿が対象）
-      def filtered_posts
+      def filtered_posts(viewer)
         scope = Post.all
+        scope = scope.where(id: viewer.bookmarks.select(:post_id)) if bookmarked_only?
         term = params[:q].to_s.strip.first(Post::SEARCH_TERM_MAX_LENGTH)
         scope = scope.search(term, string_list(:search_categories)) if term.present?
         scope = scope.in_categories(params[:category].to_s) if params[:category].present?
         categories = string_list(:categories)
         scope = scope.in_categories(categories) if categories.any?
         scope.sorted_by(params[:sort])
+      end
+
+      def bookmarked_only?
+        ActiveModel::Type::Boolean.new.cast(params[:bookmarked]) == true
       end
 
       # 配列パラメーター（categories[]=a&categories[]=b）を文字列の配列にする。不正な形は空として扱う

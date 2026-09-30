@@ -176,6 +176,38 @@ RSpec.describe 'Api::V1::Posts', type: :request do
       expect(ids.call.length).to eq(3)
     end
 
+    context 'bookmarked=true（自分のブックマーク）' do
+      before do
+        create(:bookmark, user: user, post: savings_post)
+        create(:bookmark, user: user, post: category_post)
+        create(:bookmark, user: create(:user), post: commented_post) # 他人のブックマークは含めない
+      end
+
+      it '自分がブックマークした投稿だけを新しい順に返す' do
+        get '/api/v1/posts', params: { bookmarked: true }, headers: headers
+        expect(ids.call).to eq([savings_post.id, category_post.id])
+        expect(response.parsed_body['posts']).to all(include('bookmarked_by_me' => true))
+      end
+
+      it 'ほかの条件と組み合わせられる' do
+        get '/api/v1/posts', params: { bookmarked: true, category: 'investment' }, headers: headers
+        expect(ids.call).to eq([category_post.id])
+      end
+
+      it '未ログイン（不正なトークンを含む）では 401 を返す' do
+        get '/api/v1/posts', params: { bookmarked: true }
+        expect(response).to have_http_status(:unauthorized)
+
+        get '/api/v1/posts', params: { bookmarked: true }, headers: { 'Authorization' => 'Bearer invalid-token' }
+        expect(response).to have_http_status(:unauthorized)
+      end
+
+      it 'bookmarked=false なら通常の一覧を返す' do
+        get '/api/v1/posts', params: { bookmarked: false }, headers: headers
+        expect(ids.call.length).to eq(3)
+      end
+    end
+
     it '未知の sort は新着順として扱う' do
       get '/api/v1/posts', params: { sort: 'unknown' }
       expect(ids.call).to eq([commented_post.id, savings_post.id, category_post.id])
