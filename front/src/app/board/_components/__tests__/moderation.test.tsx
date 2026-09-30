@@ -99,14 +99,14 @@ describe("CommentSection の削除", () => {
   it("一般ユーザーには自分のコメントの削除だけを出す", () => {
     renderComments({})
     expect(screen.getByRole("button", { name: "user1さんのコメントを削除" })).toBeInTheDocument()
-    expect(screen.queryByRole("button", { name: "user2さんのコメントを削除" })).toBeNull()
+    expect(screen.queryByRole("button", { name: /user2さんのコメントを削除/ })).toBeNull()
   })
 
   it("管理者は他人のコメントも確認のうえ削除できる", async () => {
     const onDeleteComment = jest.fn()
     renderComments({ isAdmin: true, onDeleteComment })
 
-    fireEvent.click(screen.getByRole("button", { name: "user2さんのコメントを削除" }))
+    fireEvent.click(screen.getByRole("button", { name: "user2さんのコメントを削除（管理者）" }))
     fireEvent.click(await screen.findByRole("button", { name: "削除する" }))
 
     expect(onDeleteComment).toHaveBeenCalledWith("2")

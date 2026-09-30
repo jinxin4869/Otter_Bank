@@ -120,7 +120,7 @@ function CommentSection({
                           variant="ghost"
                           size="sm"
                           className="h-6 px-2 text-xs text-muted-foreground hover:text-destructive"
-                          aria-label={`${comment.author}さんのコメントを削除`}
+                          aria-label={`${comment.author}さんのコメントを削除${isOwnComment ? "" : "（管理者）"}`}
                         >
                           <Trash2 className="mr-1 h-3 w-3" />
                           {isOwnComment ? "削除" : "削除（管理者）"}
