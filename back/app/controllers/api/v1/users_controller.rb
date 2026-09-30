@@ -41,6 +41,7 @@ module Api
         end
 
         if @current_user.update(update_user_params)
+          rotate_refresh_tokens if @current_user.saved_change_to_password_digest?
           render json: user_json(@current_user)
         else
           render json: { errors: @current_user.errors.full_messages }, status: :unprocessable_content
@@ -60,6 +61,12 @@ module Api
 
       def update_user_params
         params.expect(user: %i[username email name password password_confirmation])
+      end
+
+      # パスワードを変えたら他の端末のセッションを失効させ、操作中のこの端末だけ新しいトークンでログインを保つ
+      def rotate_refresh_tokens
+        @current_user.revoke_all_refresh_tokens!
+        issue_refresh_token_for(@current_user)
       end
 
       def changing_credentials?
