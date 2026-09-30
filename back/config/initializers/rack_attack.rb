@@ -31,6 +31,15 @@ class Rack::Attack
     req.ip if req.post? && req.path == '/api/v1/contacts'
   end
 
+  # 掲示板の投稿・コメントのレート制限（IPごとに1分間10回まで）。1 つのアカウントで掲示板を埋め尽くせないようにする
+  throttle('posts/ip', limit: 10, period: 1.minute) do |req|
+    req.ip if req.post? && req.path == '/api/v1/posts'
+  end
+
+  throttle('comments/ip', limit: 10, period: 1.minute) do |req|
+    req.ip if req.post? && req.path.match?(%r{\A/api/v1/posts/\d+/comments\z})
+  end
+
   # Google OAuthのレート制限（IPごとに1分間10回まで）
   throttle('OAuth/ip', limit: 10, period: 1.minute) do |req|
     req.ip if req.path.start_with?('/api/v1/auth/google')
