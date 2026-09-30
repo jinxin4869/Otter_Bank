@@ -249,3 +249,5 @@ Fly.io・Railway・Koyeb・Heroku は、新規向けの常時無料プランが�
 - アクセスが増えて 0.1 CPU では応答が遅くなったとき → Render の有料プランか Cloud Run へ
 - DB が 0.5GB に近づいた、または計算時間が 100 CU 時間を超えそうなとき → Neon の有料プランへ
 - 各サービスの無料枠の条件が変わったとき
+
+移す場合の構成案（API だけ Lightsail、Neon と Vercel は維持）は [aws-lightsail-plan.md](./aws-lightsail-plan.md) に置いてある（未実施）。
