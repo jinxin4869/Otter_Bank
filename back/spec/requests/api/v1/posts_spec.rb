@@ -153,6 +153,12 @@ RSpec.describe 'Api::V1::Posts', type: :request do
       expect(response).to have_http_status(:no_content)
     end
 
+    it '本人の削除では管理者削除のログを残さない' do
+      allow(Rails.logger).to receive(:info).and_call_original
+      delete "/api/v1/posts/#{post_record.id}", headers: headers
+      expect(Rails.logger).not_to have_received(:info).with(/管理者による/)
+    end
+
     it '他ユーザーの投稿は削除できない' do
       other_post = create(:post, user: create(:user))
       delete "/api/v1/posts/#{other_post.id}", headers: headers

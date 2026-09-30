@@ -93,8 +93,7 @@ module Api
           return
         end
 
-        @post.destroy
-        log_moderation('投稿', @post)
+        log_moderation('投稿', @post) if @post.destroy
         head :no_content
       end
 

@@ -55,8 +55,7 @@ module Api
           return
         end
 
-        @comment.destroy
-        log_moderation('コメント', @comment)
+        log_moderation('コメント', @comment) if @comment.destroy
         @post.decrement!(:comments_count) if @post.comments_count.to_i.positive?
         head :no_content
       end
