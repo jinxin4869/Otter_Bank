@@ -27,3 +27,22 @@ export const mapApiTransaction = (t: ApiTransaction): Transaction => ({
   description: t.description || "",
   date: t.date ? t.date.split("T")[0] : "",
 })
+
+/** 月ごとの収支（API: GET /transactions/monthly_summary） */
+export type ApiMonthlySummary = {
+  month: string // "yyyy-MM"
+  income: number | string
+  expense: number | string
+}
+
+export type MonthlySummary = {
+  month: string // "yyyy-MM"
+  income: number
+  expense: number
+}
+
+export const mapApiMonthlySummary = (m: ApiMonthlySummary): MonthlySummary => ({
+  month: m.month,
+  income: Number(m.income),
+  expense: Number(m.expense),
+})

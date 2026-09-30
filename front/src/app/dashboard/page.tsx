@@ -21,7 +21,7 @@ import { useTransactions } from "@/hooks/useTransactions"
 import { cn } from "@/lib/utils"
 import { getFinancialMood, type FinancialMood } from "@/lib/otter-mood"
 import { TIER_CONFIG } from "@/lib/tier"
-import { filterByPeriod, summarize, shiftPeriod, type PeriodView } from "@/lib/transaction-period"
+import { filterByPeriod, summarize, shiftPeriod, periodRange, type PeriodView } from "@/lib/transaction-period"
 import type { TransactionParams } from "@/lib/api"
 import type { NewlyUnlockedAchievement } from "@/types/achievement"
 import type { Transaction } from "@/types/transaction"
@@ -55,15 +55,23 @@ const VIEW_TITLE_FORMAT: Record<PeriodView, string> = {
 export default function DashboardPage() {
   const [currentView, setCurrentView] = useState<PeriodView>("month")
   const [currentDate, setCurrentDate] = useState<Date>(new Date())
-  const [otterMood, setOtterMood] = useState<FinancialMood>("neutral")
   const [celebratingSignal, setCelebratingSignal] = useState(0)
   const [achievementQueue, setAchievementQueue] = useState<NewlyUnlockedAchievement[]>([])
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null)
   const router = useRouter()
   const { user, token, isLoading: authIsLoading, isAuthenticated } = useAuth()
   const { achievements, achievementSummary, refetch: refetchAchievements } = useAchievements()
-  const { transactions, isLoading: isDataLoading, addTransaction, updateTransaction, deleteTransaction } =
-    useTransactions(token, isAuthenticated)
+  // 表示中の期間（日・月・年）の取引だけを取得する
+  const range = useMemo(() => periodRange(currentView, currentDate), [currentView, currentDate])
+  const {
+    transactions,
+    hasMore,
+    isLoading: isDataLoading,
+    monthlySummary,
+    addTransaction,
+    updateTransaction,
+    deleteTransaction,
+  } = useTransactions(token, isAuthenticated, range)
 
   const currentAchievement = achievementQueue[0] ?? null
 
@@ -76,9 +84,6 @@ export default function DashboardPage() {
     return daysSinceSignIn >= 7
   }, [user])
 
-  // 表示 mood の優先順位: excited（実績解除直後） > sleeping（長期未ログイン） > 財務状況
-  const displayMood: OtterMood =
-    celebratingSignal > 0 ? "excited" : isSleeping ? "sleeping" : otterMood
 
   const handleAchievementClose = useCallback(() => {
     setAchievementQueue((prev) => prev.slice(1))
@@ -99,11 +104,15 @@ export default function DashboardPage() {
     }
   }, [authIsLoading, isAuthenticated, router])
 
-  // 今月の収支でカワウソの気分を決める（判定は lib/otter-mood.ts）
-  useEffect(() => {
-    const { income, expense } = summarize(filterByPeriod(transactions, "month", new Date()))
-    setOtterMood(getFinancialMood(income, expense))
-  }, [transactions])
+  // 今月の収支でカワウソの気分を決める（判定は lib/otter-mood.ts）。表示中の期間に関係なく今月で見るため、月ごとの集計を使う
+  const otterMood = useMemo<FinancialMood>(() => {
+    const thisMonth = monthlySummary.find((m) => m.month === format(new Date(), "yyyy-MM"))
+    return thisMonth ? getFinancialMood(thisMonth.income, thisMonth.expense) : "neutral"
+  }, [monthlySummary])
+
+  // 表示 mood の優先順位: excited（実績解除直後） > sleeping（長期未ログイン） > 財務状況
+  const displayMood: OtterMood =
+    celebratingSignal > 0 ? "excited" : isSleeping ? "sleeping" : otterMood
 
   // 実績解除の高揚状態は一定時間で解除し、通常の mood に戻す
   // カウンター方式にすることで連続解除時も毎回タイマーが再起動される
@@ -282,6 +291,11 @@ export default function DashboardPage() {
             <CardTitle>取引履歴</CardTitle>
           </CardHeader>
           <CardContent>
+            {hasMore && (
+              <p role="status" className="mb-3 text-sm text-muted-foreground">
+                この期間の取引が多いため、新しいものから一部だけを表示しています。日別・月別に切り替えると全件を確認できます。
+              </p>
+            )}
             <TransactionList
               transactions={filteredTransactions}
               isLoading={isDataLoading}
@@ -345,7 +359,7 @@ export default function DashboardPage() {
             <CardTitle>月次推移</CardTitle>
           </CardHeader>
           <CardContent className="h-[300px]">
-            <MonthlyTrend transactions={transactions} />
+            <MonthlyTrend data={monthlySummary} />
           </CardContent>
         </Card>
       </div>

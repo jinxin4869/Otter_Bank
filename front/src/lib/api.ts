@@ -1,5 +1,5 @@
 import { apiRequest, publicApiRequest } from '@/lib/api-client'
-import type { ApiTransaction } from '@/types/transaction'
+import type { ApiMonthlySummary, ApiTransaction } from '@/types/transaction'
 import type { ApiPost, ApiComment, ApiPostsResponse } from '@/types/post'
 import type { AchievementResponse, ApiNewlyUnlockedAchievement } from '@/types/achievement'
 
@@ -101,9 +101,16 @@ export const api = {
 
   /** 取引 */
   transactions: {
-    /** 取引一覧を取得する */
-    list: (token: string) =>
-      apiRequest<{ transactions: ApiTransaction[] }>('/transactions', { token }),
+    /** 取引一覧を取得する（期間は yyyy-MM-dd。has_more は件数上限で切られたとき true） */
+    list: (token: string, range?: { startDate: string; endDate: string }) =>
+      apiRequest<{ transactions: ApiTransaction[]; has_more?: boolean }>(
+        range ? `/transactions?${new URLSearchParams({ start_date: range.startDate, end_date: range.endDate })}` : '/transactions',
+        { token }
+      ),
+
+    /** 今月を含む直近 months か月の収入・支出（古い月から） */
+    monthlySummary: (token: string, months = 6) =>
+      apiRequest<ApiMonthlySummary[]>(`/transactions/monthly_summary?months=${months}`, { token }),
 
     /** 取引を作成する */
     create: (token: string, params: TransactionParams) =>
