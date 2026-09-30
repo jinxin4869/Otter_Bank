@@ -49,8 +49,10 @@ module Api
         end
       end
 
+      # 退会。取引・実績・投稿・コメント・トークンなどは dependent で消える
       def destroy
-        @current_user.destroy
+        @current_user.destroy!
+        delete_refresh_token_cookie # 消したユーザーのトークンが Cookie に残らないようにする
         head :no_content
       end
 
