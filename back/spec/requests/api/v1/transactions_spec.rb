@@ -230,6 +230,18 @@ RSpec.describe 'Api::V1::Transactions', type: :request do
       expect(milestone.reload.unlocked).to be true
     end
 
+    it '種別を収入から支出に変えるとマイルストーンの進捗が下がる' do
+      milestone = user.achievements.find_by(original_achievement_id: 'savings_milestone_5000')
+      milestone.update!(progress: 1000)
+
+      patch "/api/v1/transactions/#{income_transaction.id}",
+            params: { transaction: { transaction_type: 'expense' } },
+            headers: headers
+
+      expect(response).to have_http_status(:ok)
+      expect(milestone.reload.progress).to eq(0)
+    end
+
     it 'レスポンスに transaction と newly_unlocked_achievements が含まれる' do
       patch "/api/v1/transactions/#{income_transaction.id}",
             params: { transaction: { amount: 30_000 } },
@@ -284,6 +296,39 @@ RSpec.describe 'Api::V1::Transactions', type: :request do
         delete "/api/v1/transactions/#{transaction.id}", headers: headers
       end.to change(Transaction, :count).by(-1)
       expect(response).to have_http_status(:no_content)
+    end
+
+    context '収入取引の削除' do
+      let!(:income_today) do
+        create(:transaction, user: user, amount: 3000, transaction_type: :income, category: '給与', date: Date.current)
+      end
+      let(:streak_achievement) { user.achievements.find_by(original_achievement_id: 'streak_3_days') }
+      let(:milestone) { user.achievements.find_by(original_achievement_id: 'savings_milestone_5000') }
+
+      before do
+        create(:transaction, user: user, amount: 1000, transaction_type: :income, category: '給与',
+                             date: Date.current - 1.day)
+        AchievementService.new(user).update_streak_achievements(user.current_streak)
+        AchievementService.new(user).update_milestone_achievements
+      end
+
+      it '今日の収入を削除すると連続記録の実績の進捗が下がる' do
+        expect(streak_achievement.reload.progress).to eq(2)
+
+        delete "/api/v1/transactions/#{income_today.id}", headers: headers
+
+        expect(response).to have_http_status(:no_content)
+        # 昨日の記録は残っているので、連続日数は 1 日
+        expect(streak_achievement.reload.progress).to eq(1)
+      end
+
+      it '収入を削除するとマイルストーンの進捗が下がる' do
+        expect(milestone.reload.progress).to eq(4000)
+
+        delete "/api/v1/transactions/#{income_today.id}", headers: headers
+
+        expect(milestone.reload.progress).to eq(1000)
+      end
     end
   end
 end
