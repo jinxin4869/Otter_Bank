@@ -156,22 +156,44 @@ export const useAuth = () => {
     notifyAuthStateChanged();
   }, [applySession, notifyAuthStateChanged]);
 
+  // 自分の操作でセッションを終える（ログアウト・退会）。ログイン必須ページが /login へ飛ばさないよう印を立て、
+  // ログインフォームではなくトップ（ログイン・新規登録の導線あり）へ戻す
+  const endSession = useCallback((message: string) => {
+    clearAuthStorage();
+    setUser(null);
+    setToken(null);
+    setHasLoggedOut(true);
+    notifyAuthStateChanged({ loggedOut: true });
+    toast.success(message);
+    router.push("/");
+  }, [notifyAuthStateChanged, router]);
+
   const logout = useCallback(async () => {
     try {
       await api.auth.logout(localStorage.getItem("authToken"));
     } catch (error) {
       console.error("[Auth] ログアウトエラー:", error);
     } finally {
-      clearAuthStorage();
-      setUser(null);
-      setToken(null);
-      setHasLoggedOut(true);
-      notifyAuthStateChanged({ loggedOut: true });
-      toast.success("ログアウトしました");
-      // 自分でログアウトした人にログインフォームを見せず、トップ（ログイン・新規登録の導線あり）へ戻す
-      router.push("/");
+      endSession("ログアウトしました");
     }
-  }, [notifyAuthStateChanged, router]);
+  }, [endSession]);
+
+  /** 退会（アカウントと家計データの削除）。成功したらセッションを終えてトップへ。失敗はトーストで知らせて false */
+  const deleteAccount = useCallback(async (): Promise<boolean> => {
+    if (!token) return false;
+    try {
+      await api.user.destroy(token);
+    } catch (error) {
+      console.error("[Auth] 退会エラー:", error);
+      toast.error("退会できませんでした", {
+        description: error instanceof Error ? error.message : "時間をおいて再度お試しください",
+      });
+      return false;
+    }
+    // サーバー側でトークンごと消えているので、ログアウト API は呼ばない
+    endSession("退会しました。ご利用ありがとうございました");
+    return true;
+  }, [token, endSession]);
 
   return {
     user,
@@ -181,5 +203,8 @@ export const useAuth = () => {
     hasLoggedOut,
     login,
     logout,
+    deleteAccount,
+    // プロフィールを更新したあと、表示中のユーザー情報を取り直す
+    refreshUser: checkAuth,
   };
 };

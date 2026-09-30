@@ -88,6 +88,71 @@ describe("useAuth", () => {
   })
 })
 
+describe("useAuth（退会）", () => {
+  const verifiedUser = { id: 1, email: "dev@example.com", username: "devuser" }
+  const originalFetch = global.fetch
+
+  beforeEach(() => {
+    localStorage.clear()
+    jest.clearAllMocks()
+    jest.spyOn(console, "error").mockImplementation(() => {})
+    localStorage.setItem("authToken", "access-token")
+  })
+
+  afterEach(() => {
+    global.fetch = originalFetch
+    jest.restoreAllMocks()
+  })
+
+  const mockApi = (deleteResponse: { ok: boolean; status: number; body?: unknown }) => {
+    global.fetch = jest.fn(async (url: string, init?: RequestInit) => {
+      if (String(url).endsWith("/user") && init?.method === "DELETE") {
+        return { ok: deleteResponse.ok, status: deleteResponse.status, json: async () => deleteResponse.body ?? {} }
+      }
+      return { ok: true, status: 200, json: async () => ({ user: verifiedUser }) }
+    }) as unknown as typeof fetch
+  }
+
+  it("退会に成功したら認証情報を消し、ログアウト API は呼ばずにトップへ移動する", async () => {
+    mockApi({ ok: true, status: 204 })
+    const { result } = renderHook(() => useAuth())
+    await waitFor(() => expect(result.current.isAuthenticated).toBe(true))
+
+    let ok = false
+    await act(async () => {
+      ok = await result.current.deleteAccount()
+    })
+
+    expect(ok).toBe(true)
+    const calls = (global.fetch as jest.Mock).mock.calls
+    const deleteCall = calls.find(([url, init]) => String(url).endsWith("/user") && init?.method === "DELETE")
+    // リフレッシュトークンの Cookie を消す応答を受け取れるよう credentials を付ける
+    expect(deleteCall?.[1]?.credentials).toBe("include")
+    expect(calls.some(([url]) => String(url).endsWith("/sessions"))).toBe(false)
+    expect(result.current.isAuthenticated).toBe(false)
+    expect(result.current.hasLoggedOut).toBe(true)
+    expect(localStorage.getItem("authToken")).toBeNull()
+    expect(toast.success).toHaveBeenCalledWith("退会しました。ご利用ありがとうございました")
+    expect(pushMock).toHaveBeenCalledWith("/")
+  })
+
+  it("退会に失敗したらエラーを知らせ、ログイン状態を保つ", async () => {
+    mockApi({ ok: false, status: 500, body: { error: "サーバーエラー" } })
+    const { result } = renderHook(() => useAuth())
+    await waitFor(() => expect(result.current.isAuthenticated).toBe(true))
+
+    let ok = true
+    await act(async () => {
+      ok = await result.current.deleteAccount()
+    })
+
+    expect(ok).toBe(false)
+    expect(toast.error).toHaveBeenCalledWith("退会できませんでした", expect.anything())
+    expect(result.current.isAuthenticated).toBe(true)
+    expect(localStorage.getItem("authToken")).toBe("access-token")
+  })
+})
+
 describe("useAuth（複数インスタンス間の認証状態の共有）", () => {
   const verifiedUser = { id: 1, email: "dev@example.com", username: "devuser" }
   const originalFetch = global.fetch

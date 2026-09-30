@@ -28,6 +28,14 @@ export type CreateTransactionParams = {
   date: string
 }
 
+export type UpdateUserParams = {
+  username?: string
+  name?: string
+  current_password?: string
+  password?: string
+  password_confirmation?: string
+}
+
 type CreatePostParams = {
   title: string
   content: string
@@ -97,6 +105,23 @@ export const api = {
         token: token ?? undefined,
         credentials: 'include',
       }),
+  },
+
+  /** 自分のアカウント */
+  user: {
+    /** プロフィール・パスワードを更新する（パスワード変更には current_password が必要） */
+    update: (token: string, params: UpdateUserParams) =>
+      apiRequest<unknown>('/user', {
+        method: 'PATCH',
+        token,
+        body: { user: params },
+        // パスワード変更時は他の端末のセッションが失効し、この端末には新しいリフレッシュトークンの Cookie が返る
+        credentials: 'include',
+      }),
+
+    /** 退会する。リフレッシュトークンの Cookie も消えるので credentials を付ける */
+    destroy: (token: string) =>
+      apiRequest<void>('/user', { method: 'DELETE', token, credentials: 'include' }),
   },
 
   /** 取引 */
