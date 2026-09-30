@@ -20,8 +20,10 @@ jobs:
         id: filter
         with:
           filters: |
+            # CI の設定自体を変えたときも、バックエンドのジョブ（Docker ビルドを含む）で確かめる
             backend:
               - 'back/**'
+              - '.github/workflows/ci.yml'
             frontend:
               - 'front/**'
 
