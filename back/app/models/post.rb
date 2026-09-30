@@ -10,12 +10,15 @@ class Post < ApplicationRecord
   has_many :categories, through: :post_categories
 
   # 並び替えの種類（front/src/app/board/_components/board-constants.ts の SORT_OPTIONS と揃える）。
-  # 同じ値のときは新しい順、さらに id で並びを固定し、ページをまたいで重複・欠落しないようにする
+  # 同じ値のときは新しい順、さらに id で並びを固定し、ページをまたいで重複・欠落しないようにする。
+  # likes_count / comments_count は NULL の行が残りうる（DESC だと NULL が先頭に来る）ため末尾に回す
+  NEWEST_FIRST = [arel_table[:created_at].desc, arel_table[:id].desc].freeze
   SORT_ORDERS = {
-    'latest' => { created_at: :desc, id: :desc },
-    'popular' => { likes_count: :desc, created_at: :desc, id: :desc },
-    'comments' => { comments_count: :desc, created_at: :desc, id: :desc }
+    'latest' => NEWEST_FIRST,
+    'popular' => [arel_table[:likes_count].desc.nulls_last, *NEWEST_FIRST],
+    'comments' => [arel_table[:comments_count].desc.nulls_last, *NEWEST_FIRST]
   }.freeze
+  SEARCH_TERM_MAX_LENGTH = 100
 
   # いずれかのカテゴリ（名前）が付いた投稿
   scope :in_categories, lambda { |names|
@@ -31,7 +34,7 @@ class Post < ApplicationRecord
     category_names.present? ? matched.or(left_joins(:user).in_categories(category_names)) : matched
   }
 
-  scope :sorted_by, ->(key) { order(SORT_ORDERS.fetch(key.to_s, SORT_ORDERS['latest'])) }
+  scope :sorted_by, ->(key) { order(*SORT_ORDERS.fetch(key.to_s, SORT_ORDERS['latest'])) }
 
   # バリデーション
   validates :title, :content, presence: true

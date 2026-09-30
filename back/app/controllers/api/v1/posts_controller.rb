@@ -107,8 +107,9 @@ module Api
       # 一覧の検索・カテゴリ絞り込み・並び替え（読み込み済みの範囲ではなく全投稿が対象）
       def filtered_posts
         scope = Post.all
-        scope = scope.search(params[:q].to_s.strip, string_list(:search_categories)) if params[:q].present?
-        scope = scope.in_categories(params[:category]) if params[:category].present?
+        term = params[:q].to_s.strip.first(Post::SEARCH_TERM_MAX_LENGTH)
+        scope = scope.search(term, string_list(:search_categories)) if term.present?
+        scope = scope.in_categories(params[:category].to_s) if params[:category].present?
         categories = string_list(:categories)
         scope = scope.in_categories(categories) if categories.any?
         scope.sorted_by(params[:sort])

@@ -147,6 +147,35 @@ RSpec.describe 'Api::V1::Posts', type: :request do
       expect(response.parsed_body['meta']['total_pages']).to eq(3)
     end
 
+    it 'いいね数・コメント数が NULL の投稿は人気順・コメント数順の末尾に回す' do
+      null_post = create(:post, title: '古いデータ', created_at: 1.hour.ago)
+      null_post.update_columns(likes_count: nil, comments_count: nil)
+
+      get '/api/v1/posts', params: { sort: 'popular' }
+      expect(ids.call.last).to eq(null_post.id)
+
+      get '/api/v1/posts', params: { sort: 'comments' }
+      expect(ids.call.last).to eq(null_post.id)
+    end
+
+    it '検索・カテゴリ・並び替えを組み合わせても、ページをまたいで重複しない' do
+      extra = create(:post, title: '貯金の積立 2', content: '本文', likes_count: 9)
+      extra.categories << Category.find_by!(name: 'savings')
+
+      conditions = { q: '積立', categories: %w[savings], sort: 'popular', per: 1 }
+      fetched = [1, 2].flat_map do |page|
+        get '/api/v1/posts', params: conditions.merge(page: page)
+        ids.call
+      end
+      expect(fetched).to eq([extra.id, savings_post.id])
+      expect(response.parsed_body['meta']['total_count']).to eq(2)
+    end
+
+    it 'q が空白だけなら検索しない' do
+      get '/api/v1/posts', params: { q: '   ' }
+      expect(ids.call.length).to eq(3)
+    end
+
     it '未知の sort は新着順として扱う' do
       get '/api/v1/posts', params: { sort: 'unknown' }
       expect(ids.call).to eq([commented_post.id, savings_post.id, category_post.id])
