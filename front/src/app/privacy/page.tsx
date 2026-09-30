@@ -15,19 +15,22 @@ export default function PrivacyPage() {
           </p>
 
           <section>
-            <h3 className="text-xl font-bold mb-2">1. 収集する情報</h3>
+            <h2 className="text-xl font-bold mb-2">1. 収集する情報</h2>
             <ul className="list-disc pl-6 space-y-1">
               <li>アカウント情報: メールアドレス、ユーザー名、表示名、パスワード（復元できない形に変換して保存し、元のパスワードは保存しません）</li>
               <li>家計データ: 取引の金額・種別（収入／支出）・カテゴリ・日付・メモ、予算、貯金目標、実績の進捗</li>
               <li>掲示板のデータ: 投稿・コメントの内容、いいね、ブックマーク</li>
               <li>お問い合わせの内容: お名前、メールアドレス、お問い合わせの種類と内容</li>
               <li>利用状況: 最後にログインした日時（しばらくぶりのログインでカワウソの表示を変えるために使います）</li>
-              <li>接続元の IP アドレス: 短時間に大量のリクエストを送る不正利用を防ぐため、一時的に回数の計算に使います</li>
+              <li>
+                接続元の IP アドレス: 短時間に大量のリクエストを送る不正利用を防ぐため、一時的に回数の計算に使います。
+                また、サーバーやホスティング事業者のアクセスログに記録されます
+              </li>
             </ul>
           </section>
 
           <section>
-            <h3 className="text-xl font-bold mb-2">2. Google アカウントでのログイン</h3>
+            <h2 className="text-xl font-bold mb-2">2. Google アカウントでのログイン</h2>
             <p>
               Google アカウントでログインする場合、Google からメールアドレス、名前、Google アカウントの識別子を受け取ります。
               これらはアカウントの作成とログインにのみ使い、Google のアクセストークンは保存しません。
@@ -35,7 +38,7 @@ export default function PrivacyPage() {
           </section>
 
           <section>
-            <h3 className="text-xl font-bold mb-2">3. 利用目的</h3>
+            <h2 className="text-xl font-bold mb-2">3. 利用目的</h2>
             <ul className="list-disc pl-6 space-y-1">
               <li>家計簿・実績・掲示板など、本サービスの機能を提供するため</li>
               <li>ログイン状態を保つため</li>
@@ -46,7 +49,7 @@ export default function PrivacyPage() {
           </section>
 
           <section>
-            <h3 className="text-xl font-bold mb-2">4. 第三者への提供・預託</h3>
+            <h2 className="text-xl font-bold mb-2">4. 第三者への提供・預託</h2>
             <p className="mb-2">
               法令に基づく場合を除き、利用者の同意なく個人情報を第三者に提供することはありません。
               ただし、本サービスの運営に必要な範囲で、次の事業者のサービスを利用しており、情報がこれらの事業者の設備に保存・送信されます。
@@ -62,7 +65,7 @@ export default function PrivacyPage() {
           </section>
 
           <section>
-            <h3 className="text-xl font-bold mb-2">5. Cookie とブラウザへの保存</h3>
+            <h2 className="text-xl font-bold mb-2">5. Cookie とブラウザへの保存</h2>
             <p className="mb-2">本サービスは、広告や行動分析のための Cookie を使いません。ログインと表示のために次の情報を保存します。</p>
             <ul className="list-disc pl-6 space-y-1">
               <li>Cookie: ログイン状態を更新するためのトークン（JavaScript から読めない形で保存し、14 日で失効します）</li>
@@ -73,7 +76,7 @@ export default function PrivacyPage() {
           </section>
 
           <section>
-            <h3 className="text-xl font-bold mb-2">6. 掲示板への投稿</h3>
+            <h2 className="text-xl font-bold mb-2">6. 掲示板への投稿</h2>
             <p>
               掲示板の投稿・コメントとユーザー名は、ログインしていない人を含むすべての閲覧者に公開されます。
               家計の具体的な金額や、個人を特定できる情報の投稿にはご注意ください。
@@ -82,20 +85,20 @@ export default function PrivacyPage() {
           </section>
 
           <section>
-            <h3 className="text-xl font-bold mb-2">7. 退会とデータの削除</h3>
+            <h2 className="text-xl font-bold mb-2">7. 退会とデータの削除</h2>
             <p>
               設定画面の「退会」から、いつでもアカウントを削除できます。
               退会すると、アカウント情報、家計データ、掲示板の投稿・コメント・いいね・ブックマークを削除し、元に戻すことはできません。
               ただし、障害に備えたデータベースのバックアップからは、一定期間が経過したのちに消去されます。
-              お問い合わせの内容は、回答のために保存しているため、退会後も残ります。削除を希望する場合はお問い合わせください。
+              お問い合わせの内容はアカウントと結びつけずに保存しているため、回答後も記録として残ります。削除を希望する場合はお問い合わせください。
             </p>
           </section>
 
           <section>
-            <h3 className="text-xl font-bold mb-2">8. お問い合わせ</h3>
+            <h2 className="text-xl font-bold mb-2">8. お問い合わせ</h2>
             <p>
               本ポリシーや、ご自身の情報の開示・訂正・削除については、
-              <Link href="/contact" className="text-primary hover:underline">
+              <Link href="/contact" className="text-primary underline underline-offset-4">
                 お問い合わせフォーム
               </Link>
               からご連絡ください。
@@ -103,7 +106,7 @@ export default function PrivacyPage() {
           </section>
 
           <section>
-            <h3 className="text-xl font-bold mb-2">9. 改定</h3>
+            <h2 className="text-xl font-bold mb-2">9. 改定</h2>
             <p>本ポリシーは、本サービスの変更に合わせて改定することがあります。改定した場合は、このページでお知らせします。</p>
           </section>
 
