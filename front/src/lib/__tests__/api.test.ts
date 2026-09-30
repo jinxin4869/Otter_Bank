@@ -49,6 +49,11 @@ describe("api.posts.list の検索条件", () => {
     expect(params.get("sort")).toBe("popular")
   })
 
+  it("bookmarked を指定すると bookmarked=true を送る", async () => {
+    await api.posts.list("t", 1, 20, { bookmarked: true })
+    expect(lastUrl().searchParams.get("bookmarked")).toBe("true")
+  })
+
   it("条件が無ければページ指定だけを送る", async () => {
     await api.posts.list("t")
     expect([...lastUrl().searchParams.keys()]).toEqual(["page", "per"])

@@ -18,6 +18,8 @@ type PostListProps = {
   onEdit: (post: Post) => void
   onDeleteRequest: (postId: string) => void
   onCreatePost: () => void
+  // 空のときの文言（ブックマーク一覧など文脈ごとに差し替える）。指定するとタブに合わない「最初の投稿を作成」は出さない
+  emptyMessage?: { title: string; description: string }
 }
 
 function PostList({
@@ -32,6 +34,7 @@ function PostList({
   onEdit,
   onDeleteRequest,
   onCreatePost,
+  emptyMessage,
 }: PostListProps) {
   if (isLoading) {
     return (
@@ -45,11 +48,15 @@ function PostList({
     return (
       <div className="text-center py-10">
         <MessageSquare className="mx-auto h-12 w-12 text-muted-foreground opacity-50" />
-        <h3 className="mt-4 text-lg font-medium">投稿がありません</h3>
-        <p className="mt-2 text-muted-foreground">検索条件に一致する投稿がないか、まだ投稿がありません。</p>
-        <Button className="mt-4 text-primary-foreground bg-primary hover:bg-primary/90" onClick={onCreatePost}>
-          最初の投稿を作成
-        </Button>
+        <h3 className="mt-4 text-lg font-medium">{emptyMessage?.title ?? "投稿がありません"}</h3>
+        <p className="mt-2 text-muted-foreground">
+          {emptyMessage?.description ?? "検索条件に一致する投稿がないか、まだ投稿がありません。"}
+        </p>
+        {!emptyMessage && (
+          <Button className="mt-4 text-primary-foreground bg-primary hover:bg-primary/90" onClick={onCreatePost}>
+            最初の投稿を作成
+          </Button>
+        )}
       </div>
     )
   }

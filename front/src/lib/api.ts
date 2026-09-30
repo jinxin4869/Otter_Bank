@@ -38,6 +38,8 @@ export type PostListFilters = {
   // フィルターで選んだカテゴリ（いずれかを含む）
   categories?: string[]
   sort?: string
+  // 自分がブックマークした投稿だけ（要ログイン）
+  bookmarked?: boolean
 }
 
 const postListQuery = (page: number, per: number, filters: PostListFilters): string => {
@@ -47,6 +49,7 @@ const postListQuery = (page: number, per: number, filters: PostListFilters): str
   if (filters.category) query.set('category', filters.category)
   filters.categories?.forEach((c) => query.append('categories[]', c))
   if (filters.sort) query.set('sort', filters.sort)
+  if (filters.bookmarked) query.set('bookmarked', 'true')
   return query.toString()
 }
 

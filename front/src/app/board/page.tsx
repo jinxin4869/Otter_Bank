@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
-import { Search, Filter, Plus, Loader2 } from "lucide-react"
+import { Search, Filter, Plus, Loader2, Bookmark } from "lucide-react"
 import { useAuth } from "@/hooks/useAuth"
 import { usePosts } from "@/hooks/usePosts"
 import { useComments } from "@/hooks/useComments"
@@ -24,6 +24,13 @@ import CreatePostModal from "./_components/create-post-modal"
 import EditPostModal from "./_components/edit-post-modal"
 
 const SEARCH_DEBOUNCE_MS = 300
+// 「すべて」「ブックマーク」とカテゴリのタブ。ブックマークはカテゴリではなく自分のブックマークで絞る
+const BOOKMARKS_TAB = "bookmarks"
+const TAB_VALUES = ["all", BOOKMARKS_TAB, ...BOARD_CATEGORIES.map((c) => c.value)] as const
+const BOOKMARKS_EMPTY_MESSAGE = {
+  title: "ブックマークした投稿はありません",
+  description: "投稿のブックマークボタンを押すと、ここにまとめて表示されます。",
+}
 
 export default function BoardPage() {
   const router = useRouter()
@@ -51,7 +58,8 @@ export default function BoardPage() {
       searchCategories: term
         ? BOARD_CATEGORIES.filter((cat) => cat.label.toLowerCase().includes(term)).map((cat) => cat.value)
         : undefined,
-      category: activeTab === "all" ? undefined : activeTab,
+      category: activeTab === "all" || activeTab === BOOKMARKS_TAB ? undefined : activeTab,
+      bookmarked: activeTab === BOOKMARKS_TAB || undefined,
       categories: selectedCategories.length > 0 ? selectedCategories : undefined,
       sort: sortOption,
     }
@@ -226,6 +234,10 @@ export default function BoardPage() {
       <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="w-full justify-start overflow-x-auto scrollbar-none">
           <TabsTrigger value="all">すべて</TabsTrigger>
+          <TabsTrigger value={BOOKMARKS_TAB}>
+            <Bookmark className="mr-1 h-4 w-4" aria-hidden="true" />
+            ブックマーク
+          </TabsTrigger>
           {BOARD_CATEGORIES.map((category) => (
             <TabsTrigger
               key={category.value}
@@ -237,24 +249,9 @@ export default function BoardPage() {
           ))}
         </TabsList>
 
-        <TabsContent value="all" className="mt-6">
-          <PostList
-            posts={posts}
-            isLoading={isPostsLoading}
-            likedPostIds={likedPostIds}
-            bookmarkedPostIds={bookmarkedPostIds}
-            currentUserId={user?.id}
-            onLike={toggleLike}
-            onBookmark={toggleBookmark}
-            onView={handleViewPost}
-            onEdit={handleEditPost}
-            onDeleteRequest={openDeleteDialog}
-            onCreatePost={() => setIsNewPostDialogOpen(true)}
-          />
-        </TabsContent>
-
-        {BOARD_CATEGORIES.map((category) => (
-          <TabsContent key={category.value} value={category.value} className="mt-6">
+        {/* 一覧はサーバーでタブの条件に絞り込み済みなので、どのタブでも同じ一覧を出す */}
+        {TAB_VALUES.map((value) => (
+          <TabsContent key={value} value={value} className="mt-6">
             <PostList
               posts={posts}
               isLoading={isPostsLoading}
@@ -267,6 +264,7 @@ export default function BoardPage() {
               onEdit={handleEditPost}
               onDeleteRequest={openDeleteDialog}
               onCreatePost={() => setIsNewPostDialogOpen(true)}
+              emptyMessage={value === BOOKMARKS_TAB ? BOOKMARKS_EMPTY_MESSAGE : undefined}
             />
           </TabsContent>
         ))}
