@@ -157,7 +157,7 @@ jobs:
       - name: Build production image
         run: docker build -f back/Dockerfile -t otter-bank-api:ci back
 
-      # 値はダミー。render.yaml の envVars に必須の変数を足したら、ここにも足す（足し忘れるとこのジョブが落ちる）
+      # 値はダミー。production.rb や initializers で必須の環境変数（ENV.fetch）を足したら、render.yaml とここにも足す
       - name: Boot with production settings
         run: |
           docker run -d --name api --network host \

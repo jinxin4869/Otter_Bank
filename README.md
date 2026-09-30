@@ -194,7 +194,7 @@ npm run build         # 本番ビルド
 | --- | --- |
 | `check_ruby` | Brakeman セキュリティスキャン + RuboCop |
 | `test_backend` | RSpec（PostgreSQL 使用） |
-| `build_backend` | 本番用 `back/Dockerfile` のビルドと、production 設定（ダミーの環境変数）での起動確認（`db:prepare` → `GET /up`）。必須の環境変数を増やしたら `ci.yml` のこのジョブにも足す |
+| `build_backend` | 本番用 `back/Dockerfile` のビルドと、production 設定（ダミーの環境変数）での起動確認（`db:prepare` → `GET /up`）。`production.rb` や initializers で必須の環境変数を増やしたら、`render.yaml` と `ci.yml` のこのジョブにも足す（足し忘れるとこのジョブが落ちる） |
 | `lint_frontend` | ESLint + TypeScript 型チェック + Jest + `next build` |
 
 フロントエンドは Vercel、バックエンドは Render に自動デプロイ。DB は Neon（構成の理由は [ARCHITECTURE.md §7](docs/ARCHITECTURE.md)）。
