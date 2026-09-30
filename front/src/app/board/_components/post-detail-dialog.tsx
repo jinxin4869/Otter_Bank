@@ -15,10 +15,12 @@ type PostDetailDialogProps = {
   comments: Comment[]
   currentUserEmail: string
   currentUserId?: number
+  isAdmin?: boolean
   likedCommentIds: string[]
   onOpenChange: (open: boolean) => void
   onAddComment: (content: string) => Promise<void>
   onLikeComment: (commentId: string) => void
+  onDeleteComment: (commentId: string) => void
 }
 
 export default function PostDetailDialog({
@@ -27,10 +29,12 @@ export default function PostDetailDialog({
   comments,
   currentUserEmail,
   currentUserId,
+  isAdmin = false,
   likedCommentIds,
   onOpenChange,
   onAddComment,
   onLikeComment,
+  onDeleteComment,
 }: PostDetailDialogProps) {
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -74,9 +78,11 @@ export default function PostDetailDialog({
                 comments={comments}
                 currentUserEmail={currentUserEmail}
                 currentUserId={currentUserId}
+                isAdmin={isAdmin}
                 likedCommentIds={likedCommentIds}
                 onAddComment={onAddComment}
                 onLikeComment={onLikeComment}
+                onDeleteComment={onDeleteComment}
               />
             </div>
           </>

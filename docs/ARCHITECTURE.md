@@ -103,6 +103,7 @@ Rack::Attack（レート制限）→ Rack::Cors → ApplicationController#author
 | Google ログイン | OmniAuth → `/auth/google/callback` → `oauth_providers(provider, uid)` でユーザーと紐付け |
 | ゲスト | `POST /guest_sessions` で共有ゲストユーザーのトークンを発行 |
 | 公開エンドポイント | 各コントローラーの `skip_before_action :authorize_request, only: [...]` で明示（GET 系と登録・ログインのみ） |
+| 管理者 | `users.admin`（既定 false）。他人の投稿・コメントを削除できる（編集は本人のみ）。付与は `rails runner` のみで API からは変更不可。削除時は ID だけをログに残す |
 
 ### 4.3 主要エンドポイント
 

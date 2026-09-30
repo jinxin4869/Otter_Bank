@@ -162,6 +162,10 @@ export function usePosts(token: string | null, isAuthenticated: boolean) {
     setPosts((prev) => prev.map((p) => (p.id === postId ? { ...p, comments: p.comments + 1 } : p)))
   }, [])
 
+  const decrementCommentCount = useCallback((postId: string) => {
+    setPosts((prev) => prev.map((p) => (p.id === postId ? { ...p, comments: Math.max(0, p.comments - 1) } : p)))
+  }, [])
+
   return {
     posts,
     likedPostIds,
@@ -178,5 +182,6 @@ export function usePosts(token: string | null, isAuthenticated: boolean) {
     deletePost,
     incrementViews,
     incrementCommentCount,
+    decrementCommentCount,
   }
 }

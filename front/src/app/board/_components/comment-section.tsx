@@ -4,9 +4,20 @@ import React, { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 import { format } from "date-fns"
 import { ja } from "date-fns/locale"
-import { ThumbsUp, Send } from "lucide-react"
+import { ThumbsUp, Send, Trash2 } from "lucide-react"
 import { type Comment } from "@/types/post"
 import { getUserInitial } from "./board-constants"
 import { cn } from "@/lib/utils"
@@ -15,12 +26,24 @@ type CommentSectionProps = {
   comments: Comment[]
   currentUserEmail: string
   currentUserId?: number
+  // 管理者は他人のコメントも削除できる
+  isAdmin?: boolean
   likedCommentIds: string[]
   onAddComment: (content: string) => Promise<void>
   onLikeComment: (commentId: string) => void
+  onDeleteComment: (commentId: string) => void
 }
 
-function CommentSection({ comments, currentUserEmail, currentUserId, likedCommentIds, onAddComment, onLikeComment }: CommentSectionProps) {
+function CommentSection({
+  comments,
+  currentUserEmail,
+  currentUserId,
+  isAdmin = false,
+  likedCommentIds,
+  onAddComment,
+  onLikeComment,
+  onDeleteComment,
+}: CommentSectionProps) {
   const [content, setContent] = useState("")
 
   const handleSubmit = async () => {
@@ -90,6 +113,36 @@ function CommentSection({ comments, currentUserEmail, currentUserId, likedCommen
                     <ThumbsUp className={cn("mr-1 h-3 w-3", isCommentLiked && "fill-primary text-primary")} />
                     {comment.likes}
                   </Button>
+                  {(isOwnComment || isAdmin) && (
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 px-2 text-xs text-muted-foreground hover:text-destructive"
+                          aria-label={`${comment.author}さんのコメントを削除`}
+                        >
+                          <Trash2 className="mr-1 h-3 w-3" />
+                          {isOwnComment ? "削除" : "削除（管理者）"}
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent className="bg-popover text-popover-foreground">
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>コメントを削除しますか？</AlertDialogTitle>
+                          <AlertDialogDescription>この操作は取り消すことができません。</AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>キャンセル</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={() => onDeleteComment(comment.id)}
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                          >
+                            削除する
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  )}
                 </div>
               </div>
             </div>
