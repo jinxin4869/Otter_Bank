@@ -86,6 +86,73 @@ RSpec.describe 'Api::V1::Posts', type: :request do
     end
   end
 
+  describe 'GET /api/v1/posts の検索・絞り込み・並び替え' do
+    let(:ids) { -> { response.parsed_body['posts'].pluck('id') } }
+    let(:category_post) do
+      create(:post, title: '投資の話', content: '本文', created_at: 3.days.ago).tap do |p|
+        p.categories << Category.find_or_create_by!(name: 'investment')
+      end
+    end
+    let!(:savings_post) do
+      create(:post, title: '貯金のコツ', content: '毎月の積立', likes_count: 5, comments_count: 0, created_at: 2.days.ago)
+        .tap { |p| p.categories << Category.find_or_create_by!(name: 'savings') }
+    end
+    let!(:commented_post) do
+      create(:post, title: '質問です', content: 'NISA について', likes_count: 1, comments_count: 9,
+                    created_at: 1.day.ago)
+    end
+
+    before { category_post }
+
+    it 'q でタイトル・本文を部分一致で検索する（読み込み済みの範囲に限らない）' do
+      get '/api/v1/posts', params: { q: '積立', per: 1 }
+      expect(ids.call).to eq([savings_post.id])
+      expect(response.parsed_body['meta']['total_count']).to eq(1)
+    end
+
+    it 'q は投稿者のユーザー名にも一致する' do
+      get '/api/v1/posts', params: { q: commented_post.user.username }
+      expect(ids.call).to eq([commented_post.id])
+    end
+
+    it 'q の % や _ はワイルドカードとして扱わない' do
+      get '/api/v1/posts', params: { q: '%' }
+      expect(ids.call).to be_empty
+    end
+
+    it 'search_categories を渡すと、そのカテゴリの投稿も検索結果に含める' do
+      get '/api/v1/posts', params: { q: '該当なしの語', search_categories: ['investment'] }
+      expect(ids.call).to eq([category_post.id])
+    end
+
+    it 'category（タブ）と categories（フィルター）で絞り込む' do
+      get '/api/v1/posts', params: { category: 'savings' }
+      expect(ids.call).to eq([savings_post.id])
+
+      get '/api/v1/posts', params: { categories: %w[savings investment] }
+      expect(ids.call).to contain_exactly(savings_post.id, category_post.id)
+    end
+
+    it 'sort=popular はいいね数、sort=comments はコメント数の多い順に並べる' do
+      get '/api/v1/posts', params: { sort: 'popular' }
+      expect(ids.call.first).to eq(savings_post.id)
+
+      get '/api/v1/posts', params: { sort: 'comments' }
+      expect(ids.call.first).to eq(commented_post.id)
+    end
+
+    it '並び替えは全投稿が対象で、2 ページ目にも続きが正しく入る' do
+      get '/api/v1/posts', params: { sort: 'popular', per: 1, page: 2 }
+      expect(ids.call).to eq([commented_post.id])
+      expect(response.parsed_body['meta']['total_pages']).to eq(3)
+    end
+
+    it '未知の sort は新着順として扱う' do
+      get '/api/v1/posts', params: { sort: 'unknown' }
+      expect(ids.call).to eq([commented_post.id, savings_post.id, category_post.id])
+    end
+  end
+
   describe 'POST /api/v1/posts' do
     let(:valid_params) { { post: { title: 'テスト投稿', content: 'テスト内容です。' } } }
 
