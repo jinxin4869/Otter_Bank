@@ -50,6 +50,9 @@ export default function BoardPage() {
     return () => clearTimeout(timer)
   }, [searchTerm])
 
+  // 検索・フィルターで絞っている（空でも「ブックマークがない」とは限らない）
+  const isNarrowing = debouncedSearchTerm !== "" || selectedCategories.length > 0
+
   const postFilters = useMemo<PostListFilters>(() => {
     const term = debouncedSearchTerm.toLowerCase()
     return {
@@ -230,7 +233,7 @@ export default function BoardPage() {
         </div>
       </div>
 
-      {/* カテゴリータブ */}
+      {/* タブ（すべて・ブックマーク・カテゴリ） */}
       <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="w-full justify-start overflow-x-auto scrollbar-none">
           <TabsTrigger value="all">すべて</TabsTrigger>
@@ -264,7 +267,7 @@ export default function BoardPage() {
               onEdit={handleEditPost}
               onDeleteRequest={openDeleteDialog}
               onCreatePost={() => setIsNewPostDialogOpen(true)}
-              emptyMessage={value === BOOKMARKS_TAB ? BOOKMARKS_EMPTY_MESSAGE : undefined}
+              emptyMessage={value === BOOKMARKS_TAB && !isNarrowing ? BOOKMARKS_EMPTY_MESSAGE : undefined}
             />
           </TabsContent>
         ))}

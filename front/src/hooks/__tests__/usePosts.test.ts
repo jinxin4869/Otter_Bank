@@ -146,6 +146,20 @@ describe("usePosts のブックマーク一覧", () => {
     expect(result.current.posts.map((p) => p.id)).toEqual(["2"])
   })
 
+  it("ブックマーク一覧に続きのページがあるときは、外したあと取り直してずれを防ぐ", async () => {
+    list.mockResolvedValue({ ...bookmarkedPage(), meta: { ...bookmarkedPage().meta, total_pages: 2 } })
+    ;(api.posts.unbookmark as jest.Mock).mockResolvedValue(undefined)
+    const filters = { bookmarked: true }
+    const { result } = renderHook(() => usePosts("t", true, filters))
+    await waitFor(() => expect(result.current.posts).toHaveLength(2))
+
+    await act(async () => {
+      await result.current.toggleBookmark("1")
+    })
+    await waitFor(() => expect(list).toHaveBeenCalledTimes(2))
+    expect(list).toHaveBeenLastCalledWith("t", 1, 20, filters)
+  })
+
   it("通常の一覧では、ブックマークを外しても投稿は残す", async () => {
     list.mockResolvedValue(bookmarkedPage())
     ;(api.posts.unbookmark as jest.Mock).mockResolvedValue(undefined)
