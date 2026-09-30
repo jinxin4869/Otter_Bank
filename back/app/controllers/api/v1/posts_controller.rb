@@ -9,19 +9,17 @@ module Api
       before_action :set_post, only: %i[destroy increment_views]
 
       skip_before_action :authorize_request, only: %i[index show increment_views]
+      # 自分のブックマークだけを見るときは本人の確認が要る。通常の認証を通し、期限切れなら
+      # code: token_expired 付きの 401 を返してフロントの自動更新に任せる（一覧自体は未ログインでも見られる）。
+      # before_action :authorize_request を再宣言すると既存の設定を置き換えて他のアクションの認証が外れるので、別名で呼ぶ
+      before_action :authorize_bookmark_listing, only: :index
 
       PER_PAGE = 20
 
       def index
         page = params[:page].to_i.clamp(1, Float::INFINITY).to_i
         per  = params[:per].to_i.zero? ? PER_PAGE : params[:per].to_i.clamp(1, 100)
-        viewer = optional_current_user
-
-        # 自分のブックマークだけを見るには本人の確認が要る（一覧自体は未ログインでも見られる）
-        if bookmarked_only? && viewer.nil?
-          render json: { error: 'ブックマークを見るにはログインが必要です' }, status: :unauthorized
-          return
-        end
+        viewer = bookmarked_only? ? current_api_v1_user : optional_current_user
 
         scope       = filtered_posts(viewer).includes(:user, :categories)
         total_count = scope.count
@@ -122,8 +120,13 @@ module Api
         scope.sorted_by(params[:sort])
       end
 
+      def authorize_bookmark_listing
+        authorize_request if bookmarked_only?
+      end
+
+      # 'true' のときだけ（Boolean キャストは 'abc' なども true にするため、明示の値に限る）
       def bookmarked_only?
-        ActiveModel::Type::Boolean.new.cast(params[:bookmarked]) == true
+        params[:bookmarked].to_s == 'true'
       end
 
       # 配列パラメーター（categories[]=a&categories[]=b）を文字列の配列にする。不正な形は空として扱う

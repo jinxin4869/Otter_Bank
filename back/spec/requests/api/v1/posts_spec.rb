@@ -194,16 +194,28 @@ RSpec.describe 'Api::V1::Posts', type: :request do
         expect(ids.call).to eq([category_post.id])
       end
 
-      it '未ログイン（不正なトークンを含む）では 401 を返す' do
+      it '未ログインでは 401 を返す' do
         get '/api/v1/posts', params: { bookmarked: true }
         expect(response).to have_http_status(:unauthorized)
+      end
 
+      it '不正なトークンでは 401 を返す' do
         get '/api/v1/posts', params: { bookmarked: true }, headers: { 'Authorization' => 'Bearer invalid-token' }
         expect(response).to have_http_status(:unauthorized)
       end
 
-      it 'bookmarked=false なら通常の一覧を返す' do
-        get '/api/v1/posts', params: { bookmarked: false }, headers: headers
+      it '期限切れのトークンでは token_expired コード付きの 401 を返す（フロントが更新して再試行できる）' do
+        expired = JsonWebToken.encode({ user_id: user.id }, 1.minute.ago)
+        get '/api/v1/posts', params: { bookmarked: true }, headers: { 'Authorization' => "Bearer #{expired}" }
+        expect(response).to have_http_status(:unauthorized)
+        expect(response.parsed_body['code']).to eq('token_expired')
+      end
+
+      it 'bookmarked=false や真偽値でない値なら通常の一覧を返す（認証も要らない）' do
+        get '/api/v1/posts', params: { bookmarked: false }
+        expect(ids.call.length).to eq(3)
+
+        get '/api/v1/posts', params: { bookmarked: 'abc' }
         expect(ids.call.length).to eq(3)
       end
     end
