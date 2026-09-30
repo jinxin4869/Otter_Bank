@@ -1,10 +1,15 @@
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import { toast } from "sonner"
-import { api } from "@/lib/api"
+import { api, type PostListFilters } from "@/lib/api"
 import { mapApiPost, mapApiPostsResponse, type Post } from "@/types/post"
 
-// 掲示板の投稿一覧と、それに対する操作（ページング・いいね・ブックマーク・作成・更新・削除・閲覧数）
-export function usePosts(token: string | null, isAuthenticated: boolean) {
+const PER_PAGE = 20
+const NO_FILTERS: PostListFilters = {}
+
+// 掲示板の投稿一覧と、それに対する操作（ページング・いいね・ブックマーク・作成・更新・削除・閲覧数）。
+// 検索・絞り込み・並び替えは filters としてサーバーに渡し、変わったら 1 ページ目から取り直す。
+// filters は呼び出し元で useMemo する（参照が毎回変わると取り直しが続く）
+export function usePosts(token: string | null, isAuthenticated: boolean, filters: PostListFilters = NO_FILTERS) {
   const [posts, setPosts] = useState<Post[]>([])
   const [likedPostIds, setLikedPostIds] = useState<string[]>([])
   const [bookmarkedPostIds, setBookmarkedPostIds] = useState<string[]>([])
@@ -12,12 +17,16 @@ export function usePosts(token: string | null, isAuthenticated: boolean) {
   const [isLoadingMore, setIsLoadingMore] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
+  // 条件を素早く変えたとき、古い条件の応答で一覧を上書きしないよう、最新の取得だけを反映する
+  const requestIdRef = useRef(0)
 
   const fetchPosts = useCallback(async () => {
     if (!token) return
+    const requestId = ++requestIdRef.current
     setIsLoading(true)
     try {
-      const data = await api.posts.list(token, 1)
+      const data = await api.posts.list(token, 1, PER_PAGE, filters)
+      if (requestId !== requestIdRef.current) return
       if (data) {
         const { posts: fetched, meta } = mapApiPostsResponse(data)
         setPosts(fetched)
@@ -27,12 +36,13 @@ export function usePosts(token: string | null, isAuthenticated: boolean) {
         setTotalPages(meta.totalPages)
       }
     } catch (err) {
+      if (requestId !== requestIdRef.current) return
       console.error("投稿取得エラー:", err)
       toast.error("投稿の取得に失敗しました")
     } finally {
-      setIsLoading(false)
+      if (requestId === requestIdRef.current) setIsLoading(false)
     }
-  }, [token])
+  }, [token, filters])
 
   useEffect(() => {
     if (isAuthenticated && token) {
@@ -44,8 +54,11 @@ export function usePosts(token: string | null, isAuthenticated: boolean) {
     if (!token || isLoadingMore || currentPage >= totalPages) return
     setIsLoadingMore(true)
     const nextPage = currentPage + 1
+    const requestId = requestIdRef.current
     try {
-      const data = await api.posts.list(token, nextPage)
+      const data = await api.posts.list(token, nextPage, PER_PAGE, filters)
+      // 読み込み中に条件が変わったら、古い条件の続きは足さない
+      if (requestId !== requestIdRef.current) return
       if (data) {
         const { posts: fetched, meta } = mapApiPostsResponse(data)
         setPosts((prev) => [...prev, ...fetched])
@@ -60,7 +73,7 @@ export function usePosts(token: string | null, isAuthenticated: boolean) {
     } finally {
       setIsLoadingMore(false)
     }
-  }, [token, isLoadingMore, currentPage, totalPages])
+  }, [token, isLoadingMore, currentPage, totalPages, filters])
 
   const toggleLike = useCallback(async (postId: string) => {
     if (!token) return

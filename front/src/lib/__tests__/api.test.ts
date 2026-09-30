@@ -26,3 +26,31 @@ describe("api.auth の Cookie 送受信", () => {
     expect(lastInit().credentials).toBe("include")
   })
 })
+
+describe("api.posts.list の検索条件", () => {
+  beforeEach(() => fetchMock.mockClear())
+
+  const lastUrl = () => new URL(String(fetchMock.mock.calls[fetchMock.mock.calls.length - 1][0]))
+
+  it("条件をクエリパラメーターにして送る（配列は [] 付きで繰り返す）", async () => {
+    await api.posts.list("t", 2, 20, {
+      q: "節約 & 貯金",
+      searchCategories: ["savings"],
+      category: "budget",
+      categories: ["investment", "income"],
+      sort: "popular",
+    })
+    const params = lastUrl().searchParams
+    expect(params.get("page")).toBe("2")
+    expect(params.get("q")).toBe("節約 & 貯金")
+    expect(params.getAll("search_categories[]")).toEqual(["savings"])
+    expect(params.get("category")).toBe("budget")
+    expect(params.getAll("categories[]")).toEqual(["investment", "income"])
+    expect(params.get("sort")).toBe("popular")
+  })
+
+  it("条件が無ければページ指定だけを送る", async () => {
+    await api.posts.list("t")
+    expect([...lastUrl().searchParams.keys()]).toEqual(["page", "per"])
+  })
+})

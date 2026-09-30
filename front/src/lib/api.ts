@@ -28,6 +28,28 @@ export type CreateTransactionParams = {
   date: string
 }
 
+/** 掲示板一覧の検索・絞り込み・並び替え（サーバー側で全投稿に対して行う） */
+export type PostListFilters = {
+  q?: string
+  // 検索語に一致したカテゴリ（画面のラベルで検索したときの保存値）。q の結果に加える
+  searchCategories?: string[]
+  // タブで選んだカテゴリ
+  category?: string
+  // フィルターで選んだカテゴリ（いずれかを含む）
+  categories?: string[]
+  sort?: string
+}
+
+const postListQuery = (page: number, per: number, filters: PostListFilters): string => {
+  const query = new URLSearchParams({ page: String(page), per: String(per) })
+  if (filters.q) query.set('q', filters.q)
+  filters.searchCategories?.forEach((c) => query.append('search_categories[]', c))
+  if (filters.category) query.set('category', filters.category)
+  filters.categories?.forEach((c) => query.append('categories[]', c))
+  if (filters.sort) query.set('sort', filters.sort)
+  return query.toString()
+}
+
 type CreatePostParams = {
   title: string
   content: string
@@ -137,9 +159,9 @@ export const api = {
 
   /** 投稿 */
   posts: {
-    /** 投稿一覧を取得する（page: ページ番号, per: 1ページあたりの件数） */
-    list: (token: string, page = 1, per = 20) =>
-      apiRequest<ApiPostsResponse>(`/posts?page=${page}&per=${per}`, { token }),
+    /** 投稿一覧を取得する（page: ページ番号, per: 1ページあたりの件数, filters: 検索・絞り込み・並び替え） */
+    list: (token: string, page = 1, per = 20, filters: PostListFilters = {}) =>
+      apiRequest<ApiPostsResponse>(`/posts?${postListQuery(page, per, filters)}`, { token }),
 
     /** 投稿を作成する */
     create: (token: string, params: CreatePostParams) =>
