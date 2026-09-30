@@ -110,6 +110,20 @@ RSpec.describe 'Api::V1::Users', type: :request do
         expect(response).to have_http_status(:ok)
       end
 
+      it 'この端末の古い Cookie も失効し、新しいトークンに置き換わる' do
+        this_device = RefreshToken.generate_for(user)
+        cookies[:refresh_token] = this_device.token
+
+        patch '/api/v1/user',
+              params: { user: { current_password: 'current-pass', password: 'new-pass-123',
+                                password_confirmation: 'new-pass-123' } },
+              headers: headers
+
+        expect(this_device.reload.revoked).to be true
+        expect(response.cookies['refresh_token']).to be_present
+        expect(response.cookies['refresh_token']).not_to eq(this_device.token)
+      end
+
       it 'パスワード以外の変更ではリフレッシュトークンを失効させない' do
         other_device = RefreshToken.generate_for(user)
 

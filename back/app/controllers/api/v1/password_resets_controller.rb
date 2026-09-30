@@ -29,11 +29,17 @@ module Api
           return
         end
 
-        if user.update(password: params[:password], password_confirmation: params[:password])
+        # パスワードが変わったなら必ず全端末のセッションも失効しているよう、1 トランザクションで行う
+        reset = User.transaction do
+          next false unless user.update(password: params[:password], password_confirmation: params[:password])
+
           user.clear_password_reset_token!
-          # 他の端末に残っているセッションも締め出す。この端末もログイン画面へ誘導するので Cookie を消す
           user.revoke_all_refresh_tokens!
-          delete_refresh_token_cookie
+          true
+        end
+
+        if reset
+          delete_refresh_token_cookie # この端末もログイン画面へ誘導するので Cookie を消す
           render json: { message: 'パスワードをリセットしました。ログインしてください。' }, status: :ok
         else
           render json: { error: user.errors.full_messages.join(', ') }, status: :unprocessable_content
