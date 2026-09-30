@@ -1,6 +1,6 @@
 "use client"
 
-import { format } from "date-fns"
+import { format, parseISO } from "date-fns"
 import { HelpCircle, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
@@ -21,6 +21,7 @@ import type { Transaction } from "@/types/transaction"
 type TransactionListProps = {
   transactions: Transaction[]
   isLoading: boolean
+  onEdit: (transaction: Transaction) => void
   onDelete: (id: string) => void
 }
 
@@ -29,7 +30,7 @@ const CategoryIcon = ({ transaction }: { transaction: Transaction }) => {
   return <Icon className="h-4 w-4 text-foreground" />
 }
 
-export default function TransactionList({ transactions, isLoading, onDelete }: TransactionListProps) {
+export default function TransactionList({ transactions, isLoading, onEdit, onDelete }: TransactionListProps) {
   if (isLoading) {
     return (
       <div className="flex justify-center py-8">
@@ -65,14 +66,17 @@ export default function TransactionList({ transactions, isLoading, onDelete }: T
               )}
             </div>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
             <div className="text-right">
               <div className={cn("font-medium", transaction.type === "income" ? "text-income" : "text-expense")}>
                 {transaction.type === "income" ? "+" : "-"}
                 {transaction.amount.toLocaleString()} 円
               </div>
-              <div className="text-sm text-muted-foreground">{format(new Date(transaction.date), "yyyy/MM/dd")}</div>
+              <div className="text-sm text-muted-foreground">{format(parseISO(transaction.date), "yyyy/MM/dd")}</div>
             </div>
+            <Button variant="ghost" size="sm" className="ml-2 text-muted-foreground" onClick={() => onEdit(transaction)}>
+              編集
+            </Button>
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-destructive">

@@ -1,10 +1,10 @@
 import { useState, useEffect, useCallback } from "react"
 import { toast } from "sonner"
-import { api, type CreateTransactionParams } from "@/lib/api"
+import { api, type TransactionParams } from "@/lib/api"
 import { type Transaction, mapApiTransaction } from "@/types/transaction"
 import { mapApiNewlyUnlockedAchievement, type NewlyUnlockedAchievement } from "@/types/achievement"
 
-// 取引の取得・登録・削除。表示のための絞り込みや集計は lib/transaction-period.ts に置く
+// 取引の取得・登録・更新・削除。表示のための絞り込みや集計は lib/transaction-period.ts に置く
 export function useTransactions(token: string | null, isAuthenticated: boolean) {
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [isLoading, setIsLoading] = useState(false)
@@ -34,7 +34,7 @@ export function useTransactions(token: string | null, isAuthenticated: boolean) 
 
   /** 登録に成功したら新たに解除された実績を返す。失敗はトーストで知らせて null */
   const addTransaction = useCallback(
-    async (params: CreateTransactionParams): Promise<NewlyUnlockedAchievement[] | null> => {
+    async (params: TransactionParams): Promise<NewlyUnlockedAchievement[] | null> => {
       if (!token) return null
       try {
         const result = await api.transactions.create(token, params)
@@ -45,6 +45,27 @@ export function useTransactions(token: string | null, isAuthenticated: boolean) 
         console.error("取引登録エラー:", err)
         // 失敗を画面に出さないと、ユーザーには何も起きていないように見える（issue #392）
         toast.error("取引を登録できませんでした", {
+          description: err instanceof Error ? err.message : "時間をおいて再度お試しください",
+        })
+        return null
+      }
+    },
+    [token]
+  )
+
+  /** 更新に成功したら新たに解除された実績を返す。失敗はトーストで知らせて null */
+  const updateTransaction = useCallback(
+    async (id: string, params: TransactionParams): Promise<NewlyUnlockedAchievement[] | null> => {
+      if (!token) return null
+      try {
+        const result = await api.transactions.update(token, id, params)
+        if (!result) return []
+        const updated = mapApiTransaction(result.transaction)
+        setTransactions((prev) => prev.map((t) => (t.id === id ? updated : t)))
+        return result.newly_unlocked_achievements.map(mapApiNewlyUnlockedAchievement)
+      } catch (err) {
+        console.error("取引更新エラー:", err)
+        toast.error("取引を更新できませんでした", {
           description: err instanceof Error ? err.message : "時間をおいて再度お試しください",
         })
         return null
@@ -69,5 +90,5 @@ export function useTransactions(token: string | null, isAuthenticated: boolean) 
     [token]
   )
 
-  return { transactions, isLoading, addTransaction, deleteTransaction }
+  return { transactions, isLoading, addTransaction, updateTransaction, deleteTransaction }
 }
