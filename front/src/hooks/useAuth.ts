@@ -58,9 +58,13 @@ export const useAuth = () => {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [token, setToken] = useState<string | null>(null);
+  // 自分でログアウトした（期限切れ・未ログインとは区別する）。ログイン必須ページが /login へ飛ばさないために使う
+  const [hasLoggedOut, setHasLoggedOut] = useState(false);
 
-  const notifyAuthStateChanged = useCallback(() => {
-    window.dispatchEvent(new CustomEvent(AUTH_STATE_CHANGED_EVENT, { detail: { source: instanceRef.current } }));
+  const notifyAuthStateChanged = useCallback((extra: { loggedOut?: boolean } = {}) => {
+    window.dispatchEvent(
+      new CustomEvent(AUTH_STATE_CHANGED_EVENT, { detail: { source: instanceRef.current, ...extra } })
+    );
   }, []);
 
   const applySession = useCallback((result: SessionResult) => {
@@ -70,6 +74,7 @@ export const useAuth = () => {
       case "authenticated":
         setUser(result.user);
         setToken(result.token);
+        setHasLoggedOut(false);
         localStorage.setItem("isLoggedIn", "true");
         return;
       case "unavailable":
@@ -108,8 +113,15 @@ export const useAuth = () => {
     // useAuth は呼び出しごとに状態を持つため、他のインスタンス（ログイン画面など）の
     // ログイン・ログアウトをヘッダー等へ反映するためにイベントで再検証する
     const handleAuthStateChanged = (event: Event) => {
-      const detail = (event as CustomEvent<{ source?: unknown; expired?: boolean }>).detail;
+      const detail = (event as CustomEvent<{ source?: unknown; expired?: boolean; loggedOut?: boolean }>).detail;
       if (detail?.source === instanceRef.current) return;
+      // 他のインスタンス（ヘッダーなど）で自分でログアウトした。ログイン必須ページが /login へ飛ばさないよう区別する
+      if (detail?.loggedOut) {
+        setUser(null);
+        setToken(null);
+        setHasLoggedOut(true);
+        return;
+      }
       // API 呼び出し中の更新失敗。再検証しても同じ結果なので、そのままセッション終了として扱う
       if (detail?.expired) {
         applySession({ kind: "rejected", expired: true });
@@ -151,8 +163,11 @@ export const useAuth = () => {
       clearAuthStorage();
       setUser(null);
       setToken(null);
-      notifyAuthStateChanged();
-      router.push("/login");
+      setHasLoggedOut(true);
+      notifyAuthStateChanged({ loggedOut: true });
+      toast.success("ログアウトしました");
+      // 自分でログアウトした人にログインフォームを見せず、トップ（ログイン・新規登録の導線あり）へ戻す
+      router.push("/");
     }
   }, [notifyAuthStateChanged, router]);
 
@@ -161,6 +176,7 @@ export const useAuth = () => {
     token,
     isLoading,
     isAuthenticated: !!user && !!token,
+    hasLoggedOut,
     login,
     logout,
   };

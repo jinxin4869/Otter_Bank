@@ -29,10 +29,9 @@ export default function Header() {
     setMounted(true)
   }, [])
 
+  // 遷移（トップへ）とトーストは useAuth の logout が行う
   const handleLogout = async () => {
     await logout()
-    // router.push("/") は logout 内で行われるか、ここで行うかは実装による
-    // useAuth の logout 内で router.push('/login') が呼ばれるはずなので十分
   };
 
   const commonLinks = [
