@@ -31,7 +31,7 @@ class Rack::Attack
     req.ip if req.post? && req.path == '/api/v1/contacts'
   end
 
-  # 掲示板の投稿・コメントのレート制限（IPごとに1分間10回まで）。1 つのアカウントで掲示板を埋め尽くせないようにする
+  # 掲示板の投稿・コメントのレート制限（IPごとに1分間10回まで）。短時間の連投で掲示板を埋め尽くせないようにする
   throttle('posts/ip', limit: 10, period: 1.minute) do |req|
     req.ip if req.post? && req.path == '/api/v1/posts'
   end
