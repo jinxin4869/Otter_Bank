@@ -39,7 +39,7 @@ const formatUnlockedAt = (dateStr: string): string => {
 
 export default function CollectionPage() {
   const router = useRouter();
-  const { isLoading: authIsLoading, isAuthenticated } = useAuth();
+  const { isLoading: authIsLoading, isAuthenticated, hasLoggedOut } = useAuth();
   const {
     achievements,
     filteredAchievements,
@@ -52,10 +52,11 @@ export default function CollectionPage() {
 
   // 認証チェック
   useEffect(() => {
-    if (!authIsLoading && !isAuthenticated) {
+    // 自分でログアウトした場合は useAuth がトップへ移動させるので、ここでは /login へ飛ばさない
+    if (!authIsLoading && !isAuthenticated && !hasLoggedOut) {
       router.push("/login")
     }
-  }, [authIsLoading, isAuthenticated, router])
+  }, [authIsLoading, isAuthenticated, hasLoggedOut, router])
 
   // 実績達成率に応じたカワウソのムードとメッセージを計算
   const otterMood = useMemo((): "happy" | "neutral" | "sad" => {
