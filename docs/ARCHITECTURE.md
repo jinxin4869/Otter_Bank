@@ -101,14 +101,14 @@ Rack::Attack（レート制限）→ Rack::Cors → ApplicationController#author
 | アクセストークン | JWT（HS256）、payload は `user_id` のみ、有効期限 30 分、`Authorization: Bearer` |
 | リフレッシュトークン | ランダム値のダイジェストを `refresh_tokens` に保存、14 日、HttpOnly Cookie。使用時に行ロック → 失効 → 再発行（ローテーション） |
 | Google ログイン | OmniAuth → `/auth/google/callback` → `oauth_providers(provider, uid)` でユーザーと紐付け |
-| ゲスト | `POST /guest_sessions` で共有ゲストユーザーのトークンを発行 |
+| ゲスト | なし（共有アカウント方式の API は #443 で削除。一時ユーザー方式で作り直す。PRD §9） |
 | 公開エンドポイント | 各コントローラーの `skip_before_action :authorize_request, only: [...]` で明示（GET 系と登録・ログインのみ） |
 
 ### 4.3 主要エンドポイント
 
 | 領域 | エンドポイント |
 |---|---|
-| 認証 | `POST /users` `GET/PATCH/DELETE /user` `POST/DELETE /sessions` `POST /guest_sessions` `GET /auth/verify` `POST /auth/refresh` `GET /auth/google(/callback)` `POST /auth/reset-password(/confirm)` |
+| 認証 | `POST /users` `GET/PATCH/DELETE /user` `POST/DELETE /sessions` `GET /auth/verify` `POST /auth/refresh` `GET /auth/google(/callback)` `POST /auth/reset-password(/confirm)` |
 | 家計 | `/transactions` `/savings_goals` `/budgets`（+ `GET /budgets/current`）`/achievements` |
 | 掲示板 | `/posts`（+ `increment_views` `like` `unlike`）`/posts/:id/comments`（+ `like` `unlike`）`/posts/:id/bookmark` |
 | その他 | `POST /contacts` `GET /health` |
