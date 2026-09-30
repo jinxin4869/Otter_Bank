@@ -153,6 +153,56 @@ describe("useAuth（退会）", () => {
   })
 })
 
+describe("useAuth（refreshUser）", () => {
+  const originalFetch = global.fetch
+
+  beforeEach(() => {
+    localStorage.clear()
+    jest.clearAllMocks()
+    jest.spyOn(console, "error").mockImplementation(() => {})
+    localStorage.setItem("authToken", "access-token")
+  })
+
+  afterEach(() => {
+    global.fetch = originalFetch
+    jest.restoreAllMocks()
+  })
+
+  it("取り直したユーザー情報で表示を更新する", async () => {
+    let username = "before"
+    global.fetch = jest.fn(async () => ({
+      ok: true,
+      status: 200,
+      json: async () => ({ user: { id: 1, email: "a@b.c", username } }),
+    })) as unknown as typeof fetch
+    const { result } = renderHook(() => useAuth())
+    await waitFor(() => expect(result.current.user?.username).toBe("before"))
+
+    username = "after"
+    await act(async () => {
+      await result.current.refreshUser()
+    })
+    expect(result.current.user?.username).toBe("after")
+  })
+
+  it("通信に失敗しても表示中のユーザーを消さない", async () => {
+    global.fetch = jest.fn(async () => ({
+      ok: true,
+      status: 200,
+      json: async () => ({ user: { id: 1, email: "a@b.c", username: "otter" } }),
+    })) as unknown as typeof fetch
+    const { result } = renderHook(() => useAuth())
+    await waitFor(() => expect(result.current.isAuthenticated).toBe(true))
+
+    global.fetch = jest.fn().mockRejectedValue(new TypeError("Failed to fetch")) as unknown as typeof fetch
+    await act(async () => {
+      await result.current.refreshUser()
+    })
+    expect(result.current.isAuthenticated).toBe(true)
+    expect(result.current.user?.username).toBe("otter")
+  })
+})
+
 describe("useAuth（複数インスタンス間の認証状態の共有）", () => {
   const verifiedUser = { id: 1, email: "dev@example.com", username: "devuser" }
   const originalFetch = global.fetch

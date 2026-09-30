@@ -32,23 +32,34 @@ export default function ProfileForm({ token, initialUsername, initialName, onSav
   const onSubmit = async (values: ProfileFormValues) => {
     try {
       await api.user.update(token, { username: values.username, name: values.name })
-      toast.success("プロフィールを保存しました")
-      reset(values)
-      await onSaved()
     } catch (error) {
       console.error("プロフィール更新エラー:", error)
       toast.error("プロフィールを保存できませんでした", {
         description: error instanceof Error ? error.message : "時間をおいて再度お試しください",
       })
+      return
     }
+    toast.success("プロフィールを保存しました")
+    reset(values)
+    await onSaved()
   }
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <div className="space-y-2">
         <Label htmlFor="username">ユーザー名</Label>
-        <Input id="username" autoComplete="username" {...register("username")} />
-        {errors.username && <p className="text-sm text-destructive">{errors.username.message}</p>}
+        <Input
+          id="username"
+          autoComplete="username"
+          aria-invalid={!!errors.username}
+          aria-describedby={errors.username ? "username-error" : undefined}
+          {...register("username")}
+        />
+        {errors.username && (
+          <p id="username-error" role="alert" className="text-sm text-destructive">
+            {errors.username.message}
+          </p>
+        )}
       </div>
       <div className="space-y-2">
         <Label htmlFor="name">表示名（任意）</Label>

@@ -195,6 +195,15 @@ export const useAuth = () => {
     return true;
   }, [token, endSession]);
 
+  // プロフィールを更新したあと、表示中のユーザー情報を取り直す。
+  // 取り直しに失敗しても（一時的な通信障害など）更新自体は済んでいるので、表示中のユーザーは消さない
+  const refreshUser = useCallback(async () => {
+    const current = localStorage.getItem("authToken");
+    if (!current) return;
+    const result = await resolveSession(current);
+    if (result.kind === "authenticated") applySession(result);
+  }, [applySession]);
+
   return {
     user,
     token,
@@ -204,7 +213,6 @@ export const useAuth = () => {
     login,
     logout,
     deleteAccount,
-    // プロフィールを更新したあと、表示中のユーザー情報を取り直す
-    refreshUser: checkAuth,
+    refreshUser,
   };
 };

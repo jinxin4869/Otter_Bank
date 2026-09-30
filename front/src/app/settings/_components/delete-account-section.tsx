@@ -37,10 +37,8 @@ export default function DeleteAccountSection({ onDelete }: DeleteAccountSectionP
 
   const handleDelete = async () => {
     setIsDeleting(true)
-    const ok = await onDelete()
-    setIsDeleting(false)
-    if (!ok) return
-    setOpen(false)
+    // 成功するとセッションが終わり、この画面ごと閉じてトップへ移るので、失敗時だけ状態を戻す
+    if (!(await onDelete())) setIsDeleting(false)
   }
 
   return (
@@ -60,7 +58,7 @@ export default function DeleteAccountSection({ onDelete }: DeleteAccountSectionP
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div className="space-y-2">
-            <Label htmlFor="delete-confirmation">確認</Label>
+            <Label htmlFor="delete-confirmation">確認のため「{DELETE_CONFIRMATION_WORD}」と入力</Label>
             <Input
               id="delete-confirmation"
               value={confirmation}
@@ -78,7 +76,7 @@ export default function DeleteAccountSection({ onDelete }: DeleteAccountSectionP
               disabled={confirmation.trim() !== DELETE_CONFIRMATION_WORD || isDeleting}
             >
               {isDeleting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              退会する
+              退会を確定する
             </Button>
           </AlertDialogFooter>
         </AlertDialogContent>
