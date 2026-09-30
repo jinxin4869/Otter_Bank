@@ -143,6 +143,8 @@ export const useAuth = () => {
   }, [checkAuth, applySession]);
 
   const login = useCallback(async (accessToken: string, email?: string) => {
+    // 検証の結果（失敗を含む）を待たずに、ログアウト済みの印は外す
+    setHasLoggedOut(false);
     localStorage.setItem("authToken", accessToken);
     localStorage.setItem("isLoggedIn", "true");
     if (email) {
