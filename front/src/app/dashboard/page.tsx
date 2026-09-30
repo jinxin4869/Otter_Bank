@@ -143,12 +143,14 @@ export default function DashboardPage() {
       if (!editingTransaction) return false
       const newlyUnlocked = await updateTransaction(editingTransaction.id, params)
       if (newlyUnlocked === null) return false
-      toast.success("取引を更新しました")
+      // 日付を変えて表示中の期間から外れると一覧から消えるので、消えた理由を伝える
+      const movedOut = filterByPeriod([{ ...editingTransaction, date: params.date }], currentView, currentDate).length === 0
+      toast.success("取引を更新しました", movedOut ? { description: "表示中の期間の外に移動しました" } : undefined)
       setEditingTransaction(null)
       celebrateUnlocked(newlyUnlocked)
       return true
     },
-    [editingTransaction, updateTransaction, celebrateUnlocked]
+    [editingTransaction, updateTransaction, celebrateUnlocked, currentView, currentDate]
   )
 
   const filteredTransactions = useMemo(
@@ -175,7 +177,12 @@ export default function DashboardPage() {
     <div className="p-4 md:p-6 lg:p-8 space-y-8">
       <AchievementUnlockModal achievement={currentAchievement} onClose={handleAchievementClose} />
 
-      <Dialog open={editingTransaction !== null} onOpenChange={(open) => !open && setEditingTransaction(null)}>
+      <Dialog
+        open={editingTransaction !== null}
+        onOpenChange={(open) => {
+          if (!open) setEditingTransaction(null)
+        }}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>取引を編集</DialogTitle>

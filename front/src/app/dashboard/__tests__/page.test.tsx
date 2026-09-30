@@ -24,6 +24,19 @@ jest.mock("@/lib/api", () => ({
   api: { transactions: { list: jest.fn(), create: jest.fn(), update: jest.fn(), delete: jest.fn() } },
 }))
 jest.mock("@/components/tutorial", () => ({ Tutorial: () => null }))
+// 日付の選択は Radix の Popover + カレンダー操作になるため、固定日を選ぶボタンに差し替える
+jest.mock("@/components/ui/popover", () => ({
+  Popover: ({ children }: { children: ReactNode }) => <>{children}</>,
+  PopoverTrigger: ({ children }: { children: ReactNode }) => <>{children}</>,
+  PopoverContent: ({ children }: { children: ReactNode }) => <>{children}</>,
+}))
+jest.mock("@/components/ui/calendar", () => ({
+  Calendar: ({ onSelect }: { onSelect: (d: Date) => void }) => (
+    <button type="button" onClick={() => onSelect(new Date(2020, 0, 15))}>
+      2020-01-15 を選ぶ
+    </button>
+  ),
+}))
 jest.mock("@/components/achievement-unlock-modal", () => ({ AchievementUnlockModal: () => null }))
 // Radix の Select は jsdom で操作しづらいため、ネイティブの select に差し替える
 jest.mock("@/components/ui/select", () => ({
@@ -123,7 +136,7 @@ describe("DashboardPage 取引の編集", () => {
 
   const openEditDialog = async () => {
     render(<DashboardPage />)
-    fireEvent.click(await screen.findByRole("button", { name: "編集" }))
+    fireEvent.click(await screen.findByRole("button", { name: /を編集$/ }))
     return screen.findByRole("dialog")
   }
 
@@ -150,8 +163,31 @@ describe("DashboardPage 取引の編集", () => {
     )
     await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull())
     // 一覧の行が新しい金額に置き換わる（収支カードにも同じ金額が出るので、編集ボタンのある行の中で探す）
-    const row = screen.getByRole("button", { name: "編集" }).parentElement!
+    const row = screen.getByRole("button", { name: /を編集$/ }).parentElement!
     expect(within(row).getByText("-1,200 円")).toBeInTheDocument()
+  })
+
+  it("編集・削除ボタンは行ごとに区別できる名前を持つ", async () => {
+    render(<DashboardPage />)
+    const [month, day] = [today.getMonth() + 1, today.getDate()]
+    expect(await screen.findByRole("button", { name: `${month}月${day}日の食費を編集` })).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: `${month}月${day}日の食費を削除` })).toBeInTheDocument()
+  })
+
+  it("表示中の期間の外へ日付を移したら、そのことをトーストで伝える", async () => {
+    update.mockImplementation(async (_t: string, _id: string, params: { date: string }) => ({
+      transaction: { ...existing, date: params.date },
+      newly_unlocked_achievements: [],
+    }))
+    const { toast } = jest.requireMock("sonner") as { toast: { success: jest.Mock } }
+    toast.success.mockClear()
+    const dialog = await openEditDialog()
+
+    fireEvent.click(within(dialog).getByRole("button", { name: "2020-01-15 を選ぶ" }))
+    fireEvent.click(within(dialog).getByRole("button", { name: "保存" }))
+
+    await waitFor(() => expect(update).toHaveBeenCalledWith("test-token", "7", expect.objectContaining({ date: "2020-01-15" })))
+    expect(toast.success).toHaveBeenCalledWith("取引を更新しました", { description: "表示中の期間の外に移動しました" })
   })
 
   it("更新に失敗したらダイアログを閉じない", async () => {

@@ -59,7 +59,8 @@ export function useTransactions(token: string | null, isAuthenticated: boolean) 
       if (!token) return null
       try {
         const result = await api.transactions.update(token, id, params)
-        if (!result) return []
+        // PATCH は常に本文を返す。空なら画面に反映できないので失敗として扱う
+        if (!result) throw new Error("更新後の取引を受け取れませんでした")
         const updated = mapApiTransaction(result.transaction)
         setTransactions((prev) => prev.map((t) => (t.id === id ? updated : t)))
         return result.newly_unlocked_achievements.map(mapApiNewlyUnlockedAchievement)
