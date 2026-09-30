@@ -10,5 +10,10 @@ FactoryBot.define do
     trait :without_achievements do
       after(:create) { |user| user.achievements.delete_all }
     end
+
+    # 運営（他人の投稿・コメントを削除できる）
+    trait :admin do
+      admin { true }
+    end
   end
 end

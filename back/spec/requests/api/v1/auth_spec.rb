@@ -16,6 +16,15 @@ RSpec.describe 'Api::V1::Auths', type: :request do
       expect(json['email']).to eq(user.email)
     end
 
+    it '管理者かどうか（admin）を返す' do
+      get '/api/v1/auth/verify', headers: headers
+      expect(response.parsed_body['admin']).to be(false)
+
+      admin = create(:user, :admin)
+      get '/api/v1/auth/verify', headers: { 'Authorization' => "Bearer #{JsonWebToken.encode(user_id: admin.id)}" }
+      expect(response.parsed_body['admin']).to be(true)
+    end
+
     it 'レスポンスに last_sign_in_at キーを含む' do
       user.update_columns(last_sign_in_at: 3.days.ago)
       get '/api/v1/auth/verify', headers: headers

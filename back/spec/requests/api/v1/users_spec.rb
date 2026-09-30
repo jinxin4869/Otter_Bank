@@ -29,6 +29,12 @@ RSpec.describe 'Api::V1::Users', type: :request do
       expect(response.parsed_body['token']).to be_present
     end
 
+    it '登録時に admin を送っても管理者にはならない' do
+      post '/api/v1/users', params: { user: valid_params[:user].merge(admin: true) }
+      expect(response).to have_http_status(:created)
+      expect(User.find_by(email: 'new@example.com').admin).to be(false)
+    end
+
     it 'メールアドレス重複ではエラーを返す' do
       create(:user, email: 'new@example.com')
       post '/api/v1/users', params: valid_params
@@ -56,6 +62,11 @@ RSpec.describe 'Api::V1::Users', type: :request do
       patch '/api/v1/user', params: { user: { username: '新ユーザー名' } }, headers: headers
       expect(response).to have_http_status(:ok)
       expect(user.reload.username).to eq('新ユーザー名')
+    end
+
+    it 'API から自分を管理者にすることはできない' do
+      patch '/api/v1/user', params: { user: { username: '新ユーザー名', admin: true } }, headers: headers
+      expect(user.reload.admin).to be(false)
     end
 
     it 'バリデーションエラーは 422 を返す' do

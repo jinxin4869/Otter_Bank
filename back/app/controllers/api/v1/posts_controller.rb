@@ -88,12 +88,13 @@ module Api
       end
 
       def destroy
-        unless @post.user_id == current_api_v1_user.id
+        unless @post.deletable_by?(current_api_v1_user)
           render json: { error: '投稿の削除権限がありません' }, status: :forbidden
           return
         end
 
         @post.destroy
+        log_moderation('投稿', @post)
         head :no_content
       end
 

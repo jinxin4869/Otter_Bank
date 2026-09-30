@@ -13,6 +13,10 @@ RSpec.describe User, type: :model do
   it { should have_many(:bookmarks).dependent(:destroy) }
   it { should have_many(:oauth_providers).dependent(:destroy) }
 
+  it '管理者フラグの既定値は false' do
+    expect(described_class.new.admin).to be(false)
+  end
+
   # バリデーション
   it { should validate_presence_of(:username) }
   it { should validate_presence_of(:email) }
