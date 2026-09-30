@@ -45,7 +45,10 @@ export default function TransactionList({ transactions, isLoading, onEdit, onDel
 
   return (
     <div className="space-y-2 max-h-[400px] overflow-y-auto pr-2">
-      {transactions.map((transaction) => (
+      {transactions.map((transaction) => {
+        // 行ごとに同じ「編集」「削除」が並ぶので、読み上げで区別できるよう対象を名前に含める
+        const rowLabel = `${format(parseISO(transaction.date), "M月d日")}の${getCategoryLabel(transaction.category, transaction.type)}`
+        return (
         <div
           key={transaction.id}
           className="flex justify-between items-center p-3 border rounded hover:bg-accent/50 transition-colors"
@@ -74,12 +77,23 @@ export default function TransactionList({ transactions, isLoading, onEdit, onDel
               </div>
               <div className="text-sm text-muted-foreground">{format(parseISO(transaction.date), "yyyy/MM/dd")}</div>
             </div>
-            <Button variant="ghost" size="sm" className="ml-2 text-muted-foreground" onClick={() => onEdit(transaction)}>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="ml-2 text-muted-foreground"
+              aria-label={`${rowLabel}を編集`}
+              onClick={() => onEdit(transaction)}
+            >
               編集
             </Button>
             <AlertDialog>
               <AlertDialogTrigger asChild>
-                <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-destructive">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-muted-foreground hover:text-destructive"
+                  aria-label={`${rowLabel}を削除`}
+                >
                   削除
                 </Button>
               </AlertDialogTrigger>
@@ -101,7 +115,8 @@ export default function TransactionList({ transactions, isLoading, onEdit, onDel
             </AlertDialog>
           </div>
         </div>
-      ))}
+        )
+      })}
     </div>
   )
 }

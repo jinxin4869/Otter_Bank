@@ -65,13 +65,18 @@ export default function TransactionForm({ onSubmit, initialTransaction }: Transa
     if (!amount || !category || !validateAmount(amount)) return
 
     setIsSubmitting(true)
-    const ok = await onSubmit({
-      amount: Number.parseFloat(amount.replace(/,/g, "")),
-      transaction_type: type,
-      category,
-      description,
-      date: format(date, "yyyy-MM-dd"),
-    }).finally(() => setIsSubmitting(false))
+    let ok = false
+    try {
+      ok = await onSubmit({
+        amount: Number.parseFloat(amount.replace(/,/g, "")),
+        transaction_type: type,
+        category,
+        description,
+        date: format(date, "yyyy-MM-dd"),
+      })
+    } finally {
+      setIsSubmitting(false)
+    }
     if (!ok || isEditing) return
 
     setAmount("")
@@ -102,6 +107,7 @@ export default function TransactionForm({ onSubmit, initialTransaction }: Transa
           <Button
             type="button"
             variant={type === "expense" ? "default" : "outline"}
+            aria-pressed={type === "expense"}
             className={cn("flex-1", type === "expense" && "bg-expense hover:bg-expense/90 text-white")}
             onClick={() => {
               setType("expense")
@@ -113,6 +119,7 @@ export default function TransactionForm({ onSubmit, initialTransaction }: Transa
           <Button
             type="button"
             variant={type === "income" ? "default" : "outline"}
+            aria-pressed={type === "income"}
             className={cn("flex-1", type === "income" && "bg-income hover:bg-income/90 text-white")}
             onClick={() => {
               setType("income")
