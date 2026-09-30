@@ -6,6 +6,10 @@ import { mapApiPost, mapApiPostsResponse, type Post } from "@/types/post"
 const PER_PAGE = 20
 const NO_FILTERS: PostListFilters = {}
 
+// 新着順で条件なし（新しい投稿は必ず先頭に来る）
+const hasNoFilters = (f: PostListFilters) =>
+  !f.q && !f.category && !f.categories?.length && (f.sort ?? "latest") === "latest"
+
 // 掲示板の投稿一覧と、それに対する操作（ページング・いいね・ブックマーク・作成・更新・削除・閲覧数）。
 // 検索・絞り込み・並び替えは filters としてサーバーに渡し、変わったら 1 ページ目から取り直す。
 // filters は呼び出し元で useMemo する（参照が毎回変わると取り直しが続く）
@@ -51,7 +55,8 @@ export function usePosts(token: string | null, isAuthenticated: boolean, filters
   }, [isAuthenticated, token, fetchPosts])
 
   const loadMore = useCallback(async () => {
-    if (!token || isLoadingMore || currentPage >= totalPages) return
+    // 条件を変えて取り直している最中は、古いページ番号で続きを取らない
+    if (!token || isLoading || isLoadingMore || currentPage >= totalPages) return
     setIsLoadingMore(true)
     const nextPage = currentPage + 1
     const requestId = requestIdRef.current
@@ -73,7 +78,7 @@ export function usePosts(token: string | null, isAuthenticated: boolean, filters
     } finally {
       setIsLoadingMore(false)
     }
-  }, [token, isLoadingMore, currentPage, totalPages, filters])
+  }, [token, isLoading, isLoadingMore, currentPage, totalPages, filters])
 
   const toggleLike = useCallback(async (postId: string) => {
     if (!token) return
@@ -122,8 +127,11 @@ export function usePosts(token: string | null, isAuthenticated: boolean, filters
     if (!token) return false
     try {
       const newPost = await api.posts.create(token, { title, content, category_names: categories })
-      if (newPost) {
-        setPosts((prev) => [mapApiPost(newPost), ...prev])
+      // 絞り込み・並び替えの途中なら、条件に合うか・何番目かはサーバーに任せて取り直す
+      if (hasNoFilters(filters)) {
+        if (newPost) setPosts((prev) => [mapApiPost(newPost), ...prev])
+      } else {
+        void fetchPosts()
       }
       toast.success("投稿が完了しました", { description: "あなたの投稿が掲示板に追加されました。" })
       return true
@@ -131,7 +139,7 @@ export function usePosts(token: string | null, isAuthenticated: boolean, filters
       toast.error("投稿の作成に失敗しました")
       return false
     }
-  }, [token])
+  }, [token, filters, fetchPosts])
 
   /** 更新に成功したら true */
   const updatePost = useCallback(async (postId: string, title: string, content: string, categories: string[]) => {

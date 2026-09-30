@@ -277,7 +277,7 @@ export default function BoardPage() {
             <Button
               variant="outline"
               onClick={loadMore}
-              disabled={isLoadingMore}
+              disabled={isLoadingMore || isPostsLoading}
               className="min-w-32"
             >
               {isLoadingMore ? (

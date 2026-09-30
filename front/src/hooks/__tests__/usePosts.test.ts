@@ -3,9 +3,10 @@ import { usePosts } from "@/hooks/usePosts"
 import { api, type PostListFilters } from "@/lib/api"
 
 jest.mock("sonner", () => ({ toast: { success: jest.fn(), error: jest.fn() } }))
-jest.mock("@/lib/api", () => ({ api: { posts: { list: jest.fn() } } }))
+jest.mock("@/lib/api", () => ({ api: { posts: { list: jest.fn(), create: jest.fn() } } }))
 
 const list = api.posts.list as jest.Mock
+const create = api.posts.create as jest.Mock
 
 const apiPost = (id: number) => ({
   id, title: `投稿${id}`, content: "本文", author: "otter", user_id: 1, categories: [],
@@ -64,5 +65,62 @@ describe("usePosts の検索条件", () => {
       resolveOld(page([1]))
     })
     expect(result.current.posts.map((p) => p.id)).toEqual(["2"])
+  })
+})
+
+describe("usePosts の投稿作成", () => {
+  beforeEach(() => {
+    list.mockReset()
+    create.mockReset()
+  })
+
+  it("条件なしの新着順なら、作った投稿を先頭に足す（取り直さない）", async () => {
+    list.mockResolvedValue(page([1]))
+    create.mockResolvedValue(apiPost(9))
+    const { result } = renderHook(() => usePosts("t", true))
+    await waitFor(() => expect(result.current.posts).toHaveLength(1))
+
+    await act(async () => {
+      await result.current.createPost("題", "本文", [])
+    })
+    expect(result.current.posts.map((p) => p.id)).toEqual(["9", "1"])
+    expect(list).toHaveBeenCalledTimes(1)
+  })
+
+  it("絞り込み中なら先頭に足さず、条件どおりに取り直す", async () => {
+    list.mockResolvedValue(page([1]))
+    create.mockResolvedValue(apiPost(9))
+    const filters = { category: "savings" }
+    const { result } = renderHook(() => usePosts("t", true, filters))
+    await waitFor(() => expect(result.current.posts).toHaveLength(1))
+
+    await act(async () => {
+      await result.current.createPost("題", "本文", ["investment"])
+    })
+    await waitFor(() => expect(list).toHaveBeenCalledTimes(2))
+    expect(list).toHaveBeenLastCalledWith("t", 1, 20, filters)
+    expect(result.current.posts.map((p) => p.id)).toEqual(["1"])
+  })
+})
+
+describe("usePosts の取り直し中のもっと見る", () => {
+  beforeEach(() => list.mockReset())
+
+  it("条件を変えて取り直している間は、続きのページを取らない", async () => {
+    list.mockResolvedValue(page([1], 3))
+    const { result, rerender } = renderHook(({ filters }) => usePosts("t", true, filters), {
+      initialProps: { filters: { sort: "latest" } as PostListFilters },
+    })
+    await waitFor(() => expect(result.current.posts).toHaveLength(1))
+
+    list.mockImplementation(() => new Promise(() => {})) // 取り直しが終わらない状態にする
+    rerender({ filters: { sort: "popular" } })
+    await waitFor(() => expect(result.current.isLoading).toBe(true))
+
+    const callsBefore = list.mock.calls.length
+    await act(async () => {
+      await result.current.loadMore()
+    })
+    expect(list.mock.calls.length).toBe(callsBefore)
   })
 })
