@@ -103,14 +103,20 @@ export const api = {
   transactions: {
     /** 取引一覧を取得する（期間は yyyy-MM-dd。has_more は件数上限で切られたとき true） */
     list: (token: string, range?: { startDate: string; endDate: string }) =>
-      apiRequest<{ transactions: ApiTransaction[]; has_more?: boolean }>(
+      apiRequest<{
+        transactions: ApiTransaction[]
+        has_more?: boolean
+        summary?: { total_income: number | string; total_expense: number | string; balance: number | string }
+      }>(
         range ? `/transactions?${new URLSearchParams({ start_date: range.startDate, end_date: range.endDate })}` : '/transactions',
         { token }
       ),
 
     /** 今月を含む直近 months か月の収入・支出（古い月から） */
     monthlySummary: (token: string, months = 6) =>
-      apiRequest<ApiMonthlySummary[]>(`/transactions/monthly_summary?months=${months}`, { token }),
+      apiRequest<ApiMonthlySummary[]>(`/transactions/monthly_summary?${new URLSearchParams({ months: String(months) })}`, {
+        token,
+      }),
 
     /** 取引を作成する */
     create: (token: string, params: TransactionParams) =>

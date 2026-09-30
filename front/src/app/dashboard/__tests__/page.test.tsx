@@ -149,6 +149,8 @@ describe("DashboardPage 取引の編集", () => {
       newly_unlocked_achievements: [],
     })
     const dialog = await openEditDialog()
+    // 更新後は表示中の期間を取り直すので、サーバーも更新後の値を返すようにする
+    list.mockResolvedValue({ transactions: [{ ...existing, amount: 1200 }] })
     const amountInput = dialog.querySelector("#edit-amount") as HTMLInputElement
     expect(amountInput.value).toBe("500")
 
@@ -244,6 +246,17 @@ describe("DashboardPage 期間ごとの取得", () => {
     monthlySummary.mockResolvedValue([{ month: thisMonth, income: 1000, expense: 5000 }])
     render(<DashboardPage />)
     expect(await screen.findByAltText("心配しているカワウソ")).toBeInTheDocument()
+  })
+
+  it("合計カードは、件数上限で切られた一覧ではなくサーバーの期間全体の合計を使う", async () => {
+    list.mockResolvedValue({
+      transactions: [],
+      has_more: true,
+      summary: { total_income: "250000.0", total_expense: "12345.0", balance: "237655.0" },
+    })
+    render(<DashboardPage />)
+    expect(await screen.findByText("250,000 円")).toBeInTheDocument()
+    expect(screen.getByText("12,345 円")).toBeInTheDocument()
   })
 
   it("件数上限で一部しか受け取れなかったときは、そのことを表示する", async () => {

@@ -66,6 +66,7 @@ export default function DashboardPage() {
   const {
     transactions,
     hasMore,
+    summary: periodSummary,
     isLoading: isDataLoading,
     monthlySummary,
     addTransaction,
@@ -166,7 +167,8 @@ export default function DashboardPage() {
     () => filterByPeriod(transactions, currentView, currentDate),
     [transactions, currentView, currentDate]
   )
-  const { income: totalIncome, expense: totalExpense, balance } = summarize(filteredTransactions)
+  // 合計はサーバーが期間全体で出した値を使う（件数上限で一覧が切られても正しい）。取得中・変更直後は一覧から計算する
+  const { income: totalIncome, expense: totalExpense, balance } = periodSummary ?? summarize(filteredTransactions)
 
   if (authIsLoading) {
     return (
