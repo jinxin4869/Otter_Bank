@@ -102,7 +102,7 @@
 
 | 分類 | 要件 |
 |---|---|
-| セキュリティ | 家計データは本人のみ参照可（全クエリを `current_user` でスコープ）。アクセストークン 30 分・リフレッシュトークン 14 日（ローテーション）。ログイン・登録・リセット・問い合わせにレート制限。メールアドレス・トークン等をログに残さない（実装は `config/initializers/rack_attack.rb`、`ApplicationController#authorize_request`、`RefreshToken`） |
+| セキュリティ | 家計データは本人のみ参照可（全クエリを `current_user` でスコープ）。アクセストークン 30 分・リフレッシュトークン 14 日（ローテーション）。ログイン・登録・リセット・問い合わせ・掲示板の投稿とコメントにレート制限、投稿・コメント・問い合わせに文字数上限。メールアドレス・トークン等をログに残さない（実装は `config/initializers/rack_attack.rb`、`ApplicationController#authorize_request`、`RefreshToken`） |
 | 性能 | 主要画面の初回表示 3 秒以内（コールドスタート時を除く）。API の p95 500ms 以内 |
 | 可用性 | 個人開発のベストエフォート。無料プランのスリープによる初回遅延は許容するが、UI でローディングを明示する |
 | 対応環境 | モバイルファースト。最新の Chrome / Safari / Edge / Firefox |
