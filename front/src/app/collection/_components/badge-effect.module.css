@@ -1,0 +1,112 @@
+/*
+ * 実績バッジ: gold / platinum の獲得済みに重ねるエフェクト
+ * 位置の % はバッジ画像（512x512 の正方形）に対する値。親は正方形にすること
+ */
+.root {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* 光の帯（メダル部分だけにクリップ）。位置と大きさは gold の枠の外円に合わせた値（platinum は下で上書き） */
+.shine {
+  position: absolute;
+  left: 11.7%;
+  top: 6.25%;
+  width: 76.6%;
+  height: 76.6%;
+  border-radius: 50%;
+  overflow: hidden;
+  pointer-events: none;
+}
+.root[data-tier="platinum"] .shine {
+  left: 8.2%;
+  top: 2.7%;
+  width: 83.6%;
+  height: 83.6%;
+}
+.shine::before {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: 0;
+  width: 30%;
+  height: 200%;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0));
+  animation: shine 3.2s ease-in-out infinite;
+}
+
+/* またたく星（輪郭付き。明るい背景でも見える） */
+.spark {
+  position: absolute;
+  aspect-ratio: 1;
+  pointer-events: none;
+  transform: scale(0);
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='-3 -3 30 30'%3E%3Cpath d='M12 0C13 8 16 11 24 12C16 13 13 16 12 24C11 16 8 13 0 12C8 11 11 8 12 0Z' fill='%23FFF8E4' stroke='%234A3418' stroke-width='2.6' stroke-linejoin='round'/%3E%3C/svg%3E")
+    center / contain no-repeat;
+  animation: twinkle 2.6s ease-in-out infinite;
+}
+
+/* platinum だけ: 背後でゆっくり回る後光。画像の外に少しはみ出すので、親に overflow: hidden を付けない */
+.root[data-tier="platinum"]::before {
+  content: "";
+  position: absolute;
+  left: -6%;
+  top: -9%;
+  width: 112%;
+  height: 112%;
+  border-radius: 50%;
+  pointer-events: none;
+  /* ラベンダーと金を交互に。ライト／ダークどちらの背景でも見える */
+  background: repeating-conic-gradient(
+    rgba(179, 157, 219, 0.6) 0deg 7deg,
+    rgba(179, 157, 219, 0) 7deg 15deg,
+    rgba(232, 194, 74, 0.55) 15deg 22deg,
+    rgba(232, 194, 74, 0) 22deg 30deg
+  );
+  -webkit-mask-image: radial-gradient(closest-side, #000 55%, transparent 100%);
+  mask-image: radial-gradient(closest-side, #000 55%, transparent 100%);
+  animation: spin 14s linear infinite;
+}
+
+/* 端末の「視差効果を減らす」設定では動きを止め、星は出したままにする */
+@media (prefers-reduced-motion: reduce) {
+  .root::before,
+  .shine::before,
+  .spark {
+    animation: none;
+  }
+  .spark {
+    transform: scale(0.8);
+  }
+}
+
+@keyframes shine {
+  0% {
+    transform: translateX(-160%) rotate(20deg);
+  }
+  55%,
+  100% {
+    transform: translateX(320%) rotate(20deg);
+  }
+}
+
+@keyframes twinkle {
+  0%,
+  100% {
+    transform: scale(0) rotate(0deg);
+    opacity: 0;
+  }
+  45%,
+  55% {
+    transform: scale(1) rotate(45deg);
+    opacity: 1;
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
