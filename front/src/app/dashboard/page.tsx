@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { format } from "date-fns"
 import { ja } from "date-fns/locale"
 import { Wallet, ArrowUpCircle, ArrowDownCircle, Loader2, Trophy } from "lucide-react"
@@ -21,8 +22,9 @@ import { cn } from "@/lib/utils"
 import { getFinancialMood, type FinancialMood } from "@/lib/otter-mood"
 import { TIER_CONFIG } from "@/lib/tier"
 import { filterByPeriod, summarize, shiftPeriod, type PeriodView } from "@/lib/transaction-period"
-import type { CreateTransactionParams } from "@/lib/api"
+import type { TransactionParams } from "@/lib/api"
 import type { NewlyUnlockedAchievement } from "@/types/achievement"
+import type { Transaction } from "@/types/transaction"
 import TransactionForm from "./_components/transaction-form"
 import TransactionList from "./_components/transaction-list"
 
@@ -56,13 +58,12 @@ export default function DashboardPage() {
   const [otterMood, setOtterMood] = useState<FinancialMood>("neutral")
   const [celebratingSignal, setCelebratingSignal] = useState(0)
   const [achievementQueue, setAchievementQueue] = useState<NewlyUnlockedAchievement[]>([])
+  const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null)
   const router = useRouter()
   const { user, token, isLoading: authIsLoading, isAuthenticated } = useAuth()
   const { achievements, achievementSummary, refetch: refetchAchievements } = useAchievements()
-  const { transactions, isLoading: isDataLoading, addTransaction, deleteTransaction } = useTransactions(
-    token,
-    isAuthenticated
-  )
+  const { transactions, isLoading: isDataLoading, addTransaction, updateTransaction, deleteTransaction } =
+    useTransactions(token, isAuthenticated)
 
   const currentAchievement = achievementQueue[0] ?? null
 
@@ -112,23 +113,44 @@ export default function DashboardPage() {
     return () => clearTimeout(timer)
   }, [celebratingSignal])
 
+  // 登録・更新で新たに解除された実績を知らせる
+  const celebrateUnlocked = useCallback(
+    (newlyUnlocked: NewlyUnlockedAchievement[]) => {
+      if (newlyUnlocked.length === 0) return
+      newlyUnlocked.forEach((ach) => {
+        toast.success(`実績解除: ${ach.title}`, { description: ach.description })
+      })
+      setAchievementQueue((prev) => [...prev, ...newlyUnlocked])
+      setCelebratingSignal((n) => n + 1)
+      // 解除で成長ステージが変わる可能性があるため、表示を変えずに再取得する
+      void refetchAchievements({ silent: true })
+    },
+    [refetchAchievements]
+  )
+
   const handleSubmit = useCallback(
-    async (params: CreateTransactionParams) => {
+    async (params: TransactionParams) => {
       const newlyUnlocked = await addTransaction(params)
       if (newlyUnlocked === null) return false
-
-      if (newlyUnlocked.length > 0) {
-        newlyUnlocked.forEach((ach) => {
-          toast.success(`実績解除: ${ach.title}`, { description: ach.description })
-        })
-        setAchievementQueue((prev) => [...prev, ...newlyUnlocked])
-        setCelebratingSignal((n) => n + 1)
-        // 解除で成長ステージが変わる可能性があるため、表示を変えずに再取得する
-        void refetchAchievements({ silent: true })
-      }
+      celebrateUnlocked(newlyUnlocked)
       return true
     },
-    [addTransaction, refetchAchievements]
+    [addTransaction, celebrateUnlocked]
+  )
+
+  const handleUpdate = useCallback(
+    async (params: TransactionParams) => {
+      if (!editingTransaction) return false
+      const newlyUnlocked = await updateTransaction(editingTransaction.id, params)
+      if (newlyUnlocked === null) return false
+      // 日付を変えて表示中の期間から外れると一覧から消えるので、消えた理由を伝える
+      const movedOut = filterByPeriod([{ ...editingTransaction, date: params.date }], currentView, currentDate).length === 0
+      toast.success("取引を更新しました", movedOut ? { description: "表示中の期間の外に移動しました" } : undefined)
+      setEditingTransaction(null)
+      celebrateUnlocked(newlyUnlocked)
+      return true
+    },
+    [editingTransaction, updateTransaction, celebrateUnlocked, currentView, currentDate]
   )
 
   const filteredTransactions = useMemo(
@@ -154,6 +176,24 @@ export default function DashboardPage() {
   return (
     <div className="p-4 md:p-6 lg:p-8 space-y-8">
       <AchievementUnlockModal achievement={currentAchievement} onClose={handleAchievementClose} />
+
+      <Dialog
+        open={editingTransaction !== null}
+        onOpenChange={(open) => {
+          if (!open) setEditingTransaction(null)
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>取引を編集</DialogTitle>
+            <DialogDescription>金額・種別・カテゴリー・日付を直せます。実績の進捗も再計算されます。</DialogDescription>
+          </DialogHeader>
+          {editingTransaction && (
+            // key で取引ごとにフォームを作り直し、初期値を確実に入れ替える
+            <TransactionForm key={editingTransaction.id} initialTransaction={editingTransaction} onSubmit={handleUpdate} />
+          )}
+        </DialogContent>
+      </Dialog>
       <Tutorial />
 
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -242,7 +282,12 @@ export default function DashboardPage() {
             <CardTitle>取引履歴</CardTitle>
           </CardHeader>
           <CardContent>
-            <TransactionList transactions={filteredTransactions} isLoading={isDataLoading} onDelete={deleteTransaction} />
+            <TransactionList
+              transactions={filteredTransactions}
+              isLoading={isDataLoading}
+              onEdit={setEditingTransaction}
+              onDelete={deleteTransaction}
+            />
           </CardContent>
         </Card>
 

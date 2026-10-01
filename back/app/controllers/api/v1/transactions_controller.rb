@@ -45,8 +45,11 @@ module Api
       end
 
       def update
+        was_income = @transaction.income?
         if @transaction.update(transaction_params)
-          newly_unlocked = with_achievement_tracking { update_achievements_for_transaction(@transaction) }
+          newly_unlocked = with_achievement_tracking do
+            update_achievements_for_transaction(@transaction, was_income: was_income)
+          end
           render json: { transaction: @transaction, newly_unlocked_achievements: newly_unlocked }
         else
           render json: { errors: @transaction.errors.full_messages }, status: :unprocessable_content
@@ -56,7 +59,7 @@ module Api
       def destroy
         was_income = @transaction.income?
         @transaction.destroy
-        update_milestone_achievements_after_destroy if was_income
+        update_achievements_after_income_destroy if was_income
         head :no_content
       end
 
@@ -72,14 +75,17 @@ module Api
         params.expect(transaction: %i[amount transaction_type category description date])
       end
 
-      # 取引の登録・更新後に実績を更新する
-      def update_achievements_for_transaction(transaction)
+      # 取引の登録・更新後に実績を更新する。was_income は更新前に収入だったか（登録時は false）
+      def update_achievements_for_transaction(transaction, was_income: false)
         service = AchievementService.new(current_api_v1_user)
 
         if transaction.income?
           service.update_savings_achievements(transaction.amount) # マイルストーンの更新も含む
           # 投資カテゴリの取引で investment_debut 実績を解除する
           service.update_special_achievements(:investment_debut) if transaction.category == 'investment'
+        elsif was_income
+          # 収入から支出に変えると貯金額が減るので、マイルストーンの進捗を下げる
+          service.update_milestone_achievements
         end
 
         # income/expense どちらの取引でもストリークを再計算する
@@ -92,10 +98,11 @@ module Api
         Rails.logger.error "実績更新エラー: #{e.message}"
       end
 
-      # 収入取引の削除後にマイルストーン実績を再計算する
-      def update_milestone_achievements_after_destroy
+      # 収入取引の削除後に、貯金額と連続日数に基づく実績を再計算する
+      def update_achievements_after_income_destroy
         service = AchievementService.new(current_api_v1_user)
         service.update_milestone_achievements
+        service.update_streak_achievements(current_api_v1_user.current_streak)
       rescue StandardError => e
         Rails.logger.error "実績更新エラー（削除後）: #{e.message}"
       end
