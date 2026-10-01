@@ -15,6 +15,7 @@ import { Loader2 } from "lucide-react"
 import { contactSchema, type ContactFormValues } from "@/lib/schemas/auth"
 import { api } from "@/lib/api"
 import { useAuth } from "@/hooks/useAuth"
+import { CONTACT_MESSAGE_MAX_LENGTH } from "@/lib/text-limits"
 
 export default function ContactPage() {
   const router = useRouter()
@@ -103,6 +104,7 @@ export default function ContactPage() {
                 id="message"
                 placeholder="お問い合わせ内容を詳しくご記入ください"
                 rows={5}
+                maxLength={CONTACT_MESSAGE_MAX_LENGTH}
                 {...register("message")}
               />
               {errors.message && <p className="text-sm text-destructive">{errors.message.message}</p>}

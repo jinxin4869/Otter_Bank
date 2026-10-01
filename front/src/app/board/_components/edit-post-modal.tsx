@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { type Post } from "@/types/post"
 import { BOARD_CATEGORIES, getCategoryColor } from "./board-constants"
+import { POST_CONTENT_MAX_LENGTH, POST_TITLE_MAX_LENGTH } from "@/lib/text-limits"
 
 type EditPostModalProps = {
   isOpen: boolean
@@ -59,7 +60,7 @@ export default function EditPostModal({ isOpen, post, onOpenChange, onSubmit }: 
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="投稿のタイトルを入力"
-              maxLength={100}
+              maxLength={POST_TITLE_MAX_LENGTH}
             />
           </div>
           <div className="grid gap-2">
@@ -85,6 +86,7 @@ export default function EditPostModal({ isOpen, post, onOpenChange, onSubmit }: 
               onChange={(e) => setContent(e.target.value)}
               placeholder="投稿の内容を入力"
               rows={8}
+              maxLength={POST_CONTENT_MAX_LENGTH}
             />
           </div>
         </div>

@@ -9,8 +9,13 @@ class Post < ApplicationRecord
   has_many :post_categories, dependent: :destroy
   has_many :categories, through: :post_categories
 
+  # 文字数の上限（画面の maxLength は front/src/lib/text-limits.ts と揃える）
+  TITLE_MAX_LENGTH = 100
+  CONTENT_MAX_LENGTH = 5_000
+
   # バリデーション
-  validates :title, :content, presence: true
+  validates :title, presence: true, length: { maximum: TITLE_MAX_LENGTH }
+  validates :content, presence: true, length: { maximum: CONTENT_MAX_LENGTH }
 
   # メソッド
   def increment_views!
