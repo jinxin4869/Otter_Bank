@@ -47,7 +47,7 @@ module Api
           refresh_token&.revoke!
         end
 
-        cookies.delete(:refresh_token)
+        delete_refresh_token_cookie
 
         render json: {
           status: 'success',

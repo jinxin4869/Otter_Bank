@@ -1,4 +1,4 @@
-import { format } from "date-fns"
+import { endOfDay, endOfMonth, endOfYear, format, startOfDay, startOfMonth, startOfYear } from "date-fns"
 import type { Transaction } from "@/types/transaction"
 
 export type PeriodView = "day" | "month" | "year"
@@ -21,6 +21,17 @@ export function summarize(transactions: Transaction[]): { income: number; expens
   const income = transactions.filter((t) => t.type === "income").reduce((sum, t) => sum + t.amount, 0)
   const expense = transactions.filter((t) => t.type === "expense").reduce((sum, t) => sum + t.amount, 0)
   return { income, expense, balance: income - expense }
+}
+
+/** 表示期間（日・月・年）の初日と末日（yyyy-MM-dd）。取引をその期間だけ取得するのに使う */
+export function periodRange(view: PeriodView, current: Date): { startDate: string; endDate: string } {
+  const [start, end] =
+    view === "day"
+      ? [startOfDay(current), endOfDay(current)]
+      : view === "month"
+        ? [startOfMonth(current), endOfMonth(current)]
+        : [startOfYear(current), endOfYear(current)]
+  return { startDate: format(start, "yyyy-MM-dd"), endDate: format(end, "yyyy-MM-dd") }
 }
 
 /** 表示期間を前後に 1 つ動かす */

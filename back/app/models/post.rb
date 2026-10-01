@@ -9,6 +9,10 @@ class Post < ApplicationRecord
   has_many :post_categories, dependent: :destroy
   has_many :categories, through: :post_categories
 
+  # 文字数の上限（画面の maxLength は front/src/lib/text-limits.ts と揃える）
+  TITLE_MAX_LENGTH = 100
+  CONTENT_MAX_LENGTH = 5_000
+
   # 並び替えの種類（front/src/app/board/_components/board-constants.ts の SORT_OPTIONS と揃える）。
   # 同じ値のときは新しい順、さらに id で並びを固定し、ページをまたいで重複・欠落しないようにする。
   # likes_count / comments_count は NULL の行が残りうる（DESC だと NULL が先頭に来る）ため末尾に回す
@@ -37,7 +41,8 @@ class Post < ApplicationRecord
   scope :sorted_by, ->(key) { order(*SORT_ORDERS.fetch(key.to_s, SORT_ORDERS['latest'])) }
 
   # バリデーション
-  validates :title, :content, presence: true
+  validates :title, presence: true, length: { maximum: TITLE_MAX_LENGTH }
+  validates :content, presence: true, length: { maximum: CONTENT_MAX_LENGTH }
 
   # メソッド
   def increment_views!

@@ -1,5 +1,5 @@
 import { apiRequest, publicApiRequest } from '@/lib/api-client'
-import type { ApiTransaction } from '@/types/transaction'
+import type { ApiMonthlySummary, ApiTransaction } from '@/types/transaction'
 import type { ApiPost, ApiComment, ApiPostsResponse } from '@/types/post'
 import type { AchievementResponse, ApiNewlyUnlockedAchievement } from '@/types/achievement'
 
@@ -20,7 +20,7 @@ type RegisterParams = {
   password_confirmation: string
 }
 
-export type CreateTransactionParams = {
+export type TransactionParams = {
   amount: number
   transaction_type: "income" | "expense"
   category: string
@@ -51,6 +51,14 @@ const postListQuery = (page: number, per: number, filters: PostListFilters): str
   if (filters.sort) query.set('sort', filters.sort)
   if (filters.bookmarked) query.set('bookmarked', 'true')
   return query.toString()
+}
+
+export type UpdateUserParams = {
+  username?: string
+  name?: string
+  current_password?: string
+  password?: string
+  password_confirmation?: string
 }
 
 type CreatePostParams = {
@@ -124,16 +132,54 @@ export const api = {
       }),
   },
 
+  /** 自分のアカウント */
+  user: {
+    /** プロフィール・パスワードを更新する（パスワード変更には current_password が必要） */
+    update: (token: string, params: UpdateUserParams) =>
+      apiRequest<unknown>('/user', {
+        method: 'PATCH',
+        token,
+        body: { user: params },
+        // パスワード変更時は他の端末のセッションが失効し、この端末には新しいリフレッシュトークンの Cookie が返る
+        credentials: 'include',
+      }),
+
+    /** 退会する。リフレッシュトークンの Cookie も消えるので credentials を付ける */
+    destroy: (token: string) =>
+      apiRequest<void>('/user', { method: 'DELETE', token, credentials: 'include' }),
+  },
+
   /** 取引 */
   transactions: {
-    /** 取引一覧を取得する */
-    list: (token: string) =>
-      apiRequest<{ transactions: ApiTransaction[] }>('/transactions', { token }),
+    /** 取引一覧を取得する（期間は yyyy-MM-dd。has_more は件数上限で切られたとき true） */
+    list: (token: string, range?: { startDate: string; endDate: string }) =>
+      apiRequest<{
+        transactions: ApiTransaction[]
+        has_more?: boolean
+        summary?: { total_income: number | string; total_expense: number | string; balance: number | string }
+      }>(
+        range ? `/transactions?${new URLSearchParams({ start_date: range.startDate, end_date: range.endDate })}` : '/transactions',
+        { token }
+      ),
+
+    /** 今月を含む直近 months か月の収入・支出（古い月から） */
+    monthlySummary: (token: string, months = 6) =>
+      apiRequest<ApiMonthlySummary[]>(`/transactions/monthly_summary?${new URLSearchParams({ months: String(months) })}`, {
+        token,
+      }),
 
     /** 取引を作成する */
-    create: (token: string, params: CreateTransactionParams) =>
+    create: (token: string, params: TransactionParams) =>
       apiRequest<{ transaction: ApiTransaction; newly_unlocked_achievements: ApiNewlyUnlockedAchievement[] }>('/transactions', {
         method: 'POST',
+        token,
+        body: { transaction: params },
+      }),
+
+    /** 取引を更新する */
+    update: (token: string, id: string, params: TransactionParams) =>
+      apiRequest<{ transaction: ApiTransaction; newly_unlocked_achievements: ApiNewlyUnlockedAchievement[] }>(`/transactions/${id}`, {
+        method: 'PATCH',
         token,
         body: { transaction: params },
       }),

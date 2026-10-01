@@ -260,6 +260,13 @@ RSpec.describe 'Api::V1::Posts', type: :request do
       post '/api/v1/posts', params: { post: { content: '内容だけ' } }, headers: headers
       expect(response).to have_http_status(:unprocessable_content)
     end
+
+    it '本文が 5,000 文字を超えると422を返し、保存しない' do
+      expect do
+        post '/api/v1/posts', params: { post: { title: 'タイトル', content: 'あ' * 5_001 } }, headers: headers
+      end.not_to change(Post, :count)
+      expect(response).to have_http_status(:unprocessable_content)
+    end
   end
 
   describe 'PATCH /api/v1/posts/:id' do

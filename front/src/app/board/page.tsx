@@ -34,7 +34,7 @@ const BOOKMARKS_EMPTY_MESSAGE = {
 
 export default function BoardPage() {
   const router = useRouter()
-  const { user, token, isLoading: authIsLoading, isAuthenticated } = useAuth()
+  const { user, token, isLoading: authIsLoading, isAuthenticated, hasLoggedOut } = useAuth()
   const searchParams = useSearchParams()
 
   // 表示状態（検索・タブ・カテゴリ・並び替えはサーバーに渡し、全投稿を対象にする）
@@ -105,10 +105,11 @@ export default function BoardPage() {
 
   // 認証チェック
   useEffect(() => {
-    if (!authIsLoading && !isAuthenticated) {
+    // 自分でログアウトした場合は useAuth がトップへ移動させるので、ここでは /login へ飛ばさない
+    if (!authIsLoading && !isAuthenticated && !hasLoggedOut) {
       router.push("/login")
     }
-  }, [authIsLoading, isAuthenticated, router])
+  }, [authIsLoading, isAuthenticated, hasLoggedOut, router])
 
   // 実績シェアのクエリパラメータ処理
   const hasProcessedShareParams = useRef(false)
