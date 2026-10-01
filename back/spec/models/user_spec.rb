@@ -12,11 +12,25 @@ RSpec.describe User, type: :model do
   it { should have_many(:likes).dependent(:destroy) }
   it { should have_many(:bookmarks).dependent(:destroy) }
   it { should have_many(:oauth_providers).dependent(:destroy) }
+  it { should have_many(:refresh_tokens).dependent(:delete_all) }
 
   # バリデーション
   it { should validate_presence_of(:username) }
   it { should validate_presence_of(:email) }
   it { should validate_uniqueness_of(:email) }
+
+  describe '#revoke_all_refresh_tokens!' do
+    let(:user) { create(:user) }
+
+    it '自分の有効なリフレッシュトークンだけを失効させ、他のユーザーのものには触れない' do
+      mine = Array.new(2) { RefreshToken.generate_for(user) }
+      others = RefreshToken.generate_for(create(:user))
+
+      expect(user.revoke_all_refresh_tokens!).to eq(2)
+      expect(mine.map { |t| t.reload.revoked }).to all(be true)
+      expect(others.reload.revoked).to be false
+    end
+  end
 
   describe 'ユーザー名のバリデーション' do
     it '3文字未満のユーザー名は無効' do

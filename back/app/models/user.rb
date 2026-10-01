@@ -12,6 +12,7 @@ class User < ApplicationRecord
   has_many :likes, dependent: :destroy
   has_many :bookmarks, dependent: :destroy
   has_many :budgets, dependent: :destroy
+  has_many :refresh_tokens, dependent: :delete_all # 外部キーがあるため退会時に先に消す
 
   # 貯金関連のアソシエーション（transactions の中から income タイプを取得）
   has_many :savings, -> { where(transaction_type: 'income') }, class_name: 'Transaction'
@@ -21,7 +22,6 @@ class User < ApplicationRecord
   validates :password, presence: true, length: { minimum: 8 }, if: :password_required? # パスワード長を8文字に変更 (フロントエンドと合わせる)
 
   after_create :setup_initial_achievements # ユーザー作成時に初期実績を生成
-  before_update :protect_guest_user
 
   # OAuthアカウントのみかどうか
   def oauth_only?
@@ -34,26 +34,6 @@ class User < ApplicationRecord
   def track_sign_in!
     now = Time.current
     update_columns(last_sign_in_at: current_sign_in_at || now, current_sign_in_at: now)
-  end
-
-  # ゲストユーザーを取得または作成する
-  def self.guest
-    user = find_or_create_by!(email: 'guest@otter-bank.example.com') do |u|
-      u.username = 'guest_user'
-      u.name = 'ゲストユーザー'
-      u.password = SecureRandom.alphanumeric(32)
-    end
-
-    # 既存のゲストユーザーが外部から書き換えられていても、毎回期待値に戻す
-    expected_username = 'guest_user'
-    expected_name = 'ゲストユーザー'
-
-    if user.username != expected_username || user.name != expected_name
-      # バリデーションやコールバックを通さずにシステム側で強制リセットする
-      user.update_columns(username: expected_username, name: expected_name)
-    end
-
-    user
   end
 
   # OAuthからユーザーを作成または検索
@@ -120,6 +100,12 @@ class User < ApplicationRecord
     update_columns(reset_password_token: nil, reset_password_sent_at: nil)
   end
 
+  # パスワードのリセット・変更後に、全端末のリフレッシュトークンを失効させる。
+  # 漏れたトークンでログインし続けられないようにするため。戻り値は件数
+  def revoke_all_refresh_tokens!
+    refresh_tokens.where(revoked: false).update_all(revoked: true, updated_at: Time.current)
+  end
+
   private
 
   def password_required?
@@ -149,21 +135,6 @@ class User < ApplicationRecord
   def setup_initial_achievements
     achievement_service = AchievementService.new(self)
     achievement_service.create_initial_achievements
-  end
-
-  # ゲストユーザー（固定メールアドレスを持つユーザー）かどうかを判定
-  def guest_account?
-    # email_was を使うことで、ゲストメールアドレスから他のメールアドレスへの変更も検知する
-    email_was == 'guest@otter-bank.example.com'
-  end
-
-  # ゲストユーザーの名前やメールアドレスなどが変更されないように保護する
-  def protect_guest_user
-    return unless guest_account?
-    return unless will_save_change_to_email? || will_save_change_to_username? || will_save_change_to_name?
-
-    errors.add(:base, 'ゲストユーザーの情報は変更できません。')
-    throw(:abort)
   end
 
   public

@@ -88,6 +88,52 @@ RSpec.describe 'Api::V1::Users', type: :request do
         expect(user.reload.authenticate('new-pass-123')).to be_truthy
       end
 
+      it 'パスワードを変えると他の端末のリフレッシュトークンは失効し、この端末には新しいトークンを発行する' do
+        other_device = RefreshToken.generate_for(user)
+
+        patch '/api/v1/user',
+              params: { user: { current_password: 'current-pass', password: 'new-pass-123',
+                                password_confirmation: 'new-pass-123' } },
+              headers: headers
+
+        expect(response).to have_http_status(:ok)
+        expect(other_device.reload.revoked).to be true
+        new_token = response.cookies['refresh_token']
+        expect(new_token).to be_present
+
+        cookies[:refresh_token] = other_device.token
+        post '/api/v1/auth/refresh'
+        expect(response).to have_http_status(:unauthorized)
+
+        cookies[:refresh_token] = new_token
+        post '/api/v1/auth/refresh'
+        expect(response).to have_http_status(:ok)
+      end
+
+      it 'この端末の古い Cookie も失効し、新しいトークンに置き換わる' do
+        this_device = RefreshToken.generate_for(user)
+        cookies[:refresh_token] = this_device.token
+
+        patch '/api/v1/user',
+              params: { user: { current_password: 'current-pass', password: 'new-pass-123',
+                                password_confirmation: 'new-pass-123' } },
+              headers: headers
+
+        expect(this_device.reload.revoked).to be true
+        expect(response.cookies['refresh_token']).to be_present
+        expect(response.cookies['refresh_token']).not_to eq(this_device.token)
+      end
+
+      it 'パスワード以外の変更ではリフレッシュトークンを失効させない' do
+        other_device = RefreshToken.generate_for(user)
+
+        patch '/api/v1/user', params: { user: { name: '表示名' } }, headers: headers
+
+        expect(response).to have_http_status(:ok)
+        expect(other_device.reload.revoked).to be false
+        expect(response.cookies).not_to have_key('refresh_token')
+      end
+
       it '現在のパスワード無しではメールアドレスを変更できない' do
         patch '/api/v1/user', params: { user: { email: 'changed@example.com' } }, headers: headers
         expect(response).to have_http_status(:unprocessable_content)
@@ -118,6 +164,12 @@ RSpec.describe 'Api::V1::Users', type: :request do
       delete '/api/v1/user', headers: headers
       expect(response).to have_http_status(:no_content)
       expect(User.exists?(user.id)).to be false
+    end
+
+    it 'リフレッシュトークンを持つユーザーも削除でき、トークンも消える' do
+      RefreshToken.generate_for(user)
+      expect { delete '/api/v1/user', headers: headers }.to change(RefreshToken, :count).by(-1)
+      expect(response).to have_http_status(:no_content)
     end
 
     it '未認証ではアクセスできない' do

@@ -99,16 +99,16 @@ Rack::Attack（レート制限）→ Rack::Cors → ApplicationController#author
 | 項目 | 仕様 |
 |---|---|
 | アクセストークン | JWT（HS256）、payload は `user_id` のみ、有効期限 30 分、`Authorization: Bearer` |
-| リフレッシュトークン | ランダム値のダイジェストを `refresh_tokens` に保存、14 日、HttpOnly Cookie。使用時に行ロック → 失効 → 再発行（ローテーション） |
+| リフレッシュトークン | ランダム値のダイジェストを `refresh_tokens` に保存、14 日、HttpOnly Cookie。使用時に行ロック → 失効 → 再発行（ローテーション）。パスワードのリセット・変更時はそのユーザーの全トークンを失効（変更した端末には新しいトークンを発行。発行済みのアクセストークンは失効できないため最大 30 分は有効） |
 | Google ログイン | OmniAuth → `/auth/google/callback` → `oauth_providers(provider, uid)` でユーザーと紐付け |
-| ゲスト | `POST /guest_sessions` で共有ゲストユーザーのトークンを発行 |
+| ゲスト | なし（共有アカウント方式の API は #443 で削除。一時ユーザー方式で作り直す。PRD §9） |
 | 公開エンドポイント | 各コントローラーの `skip_before_action :authorize_request, only: [...]` で明示（GET 系と登録・ログインのみ） |
 
 ### 4.3 主要エンドポイント
 
 | 領域 | エンドポイント |
 |---|---|
-| 認証 | `POST /users` `GET/PATCH/DELETE /user` `POST/DELETE /sessions` `POST /guest_sessions` `GET /auth/verify` `POST /auth/refresh` `GET /auth/google(/callback)` `POST /auth/reset-password(/confirm)` |
+| 認証 | `POST /users` `GET/PATCH/DELETE /user` `POST/DELETE /sessions` `GET /auth/verify` `POST /auth/refresh` `GET /auth/google(/callback)` `POST /auth/reset-password(/confirm)` |
 | 家計 | `/transactions` `/savings_goals` `/budgets`（+ `GET /budgets/current`）`/achievements` |
 | 掲示板 | `/posts`（+ `increment_views` `like` `unlike`）`/posts/:id/comments`（+ `like` `unlike`）`/posts/:id/bookmark` |
 | その他 | `POST /contacts` `GET /health` |
@@ -249,3 +249,5 @@ Fly.io・Railway・Koyeb・Heroku は、新規向けの常時無料プランが�
 - アクセスが増えて 0.1 CPU では応答が遅くなったとき → Render の有料プランか Cloud Run へ
 - DB が 0.5GB に近づいた、または計算時間が 100 CU 時間を超えそうなとき → Neon の有料プランへ
 - 各サービスの無料枠の条件が変わったとき
+
+移す場合の構成案（API だけ Lightsail、Neon と Vercel は維持）は [aws-lightsail-plan.md](./aws-lightsail-plan.md) に置いてある（未実施）。
