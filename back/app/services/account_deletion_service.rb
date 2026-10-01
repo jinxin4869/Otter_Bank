@@ -4,6 +4,13 @@
 # コメント数・いいね数は counter_cache ではなくコントローラーで増減しているため、
 # dependent: :destroy で消えるだけでは他人の投稿・コメントの件数が減らない。削除の前に差し引く
 class AccountDeletionService
+  # 減らす列ごとの SQL。列名を文字列に埋め込まないよう、固定の文にしておく
+  DECREMENT_SQL = {
+    comments_count: 'comments_count = GREATEST(comments_count - ?, 0)',
+    likes_count: 'likes_count = GREATEST(likes_count - ?, 0)'
+  }.freeze
+  private_constant :DECREMENT_SQL
+
   def initialize(user)
     @user = user
   end
@@ -37,8 +44,9 @@ class AccountDeletionService
 
   # { id => 件数 } の分だけ減らす。手動で増減してきた値なので 0 未満にはしない
   def decrement_counts(model, column, counts)
+    sql = DECREMENT_SQL.fetch(column)
     counts.each do |id, count|
-      model.where(id: id).update_all(["#{column} = GREATEST(#{column} - ?, 0)", count])
+      model.where(id: id).update_all([sql, count])
     end
   end
 end
