@@ -47,7 +47,7 @@ export default function Home() {
             <div className="absolute rounded-xl opacity-20 dark:opacity-60 dark:border" />
             <div className="absolute left-0 bottom-0 w-80 h-80 z-10">
               <Image
-                src="/otter_budget_check.png"
+                src="/otter/scene/budget_check.png"
                 alt="タブレットで家計のグラフを確かめるカワウソ"
                 fill
                 sizes="320px"
@@ -56,7 +56,7 @@ export default function Home() {
             </div>
             <div className="absolute right-0 top-6 w-72 h-72 rotate-6">
               <Image
-                src="/otter_umbrella.png"
+                src="/otter/scene/umbrella.png"
                 alt="傘をさして雨の中を歩くカワウソ"
                 fill
                 sizes="288px"
@@ -65,7 +65,7 @@ export default function Home() {
             </div>
             <div className="absolute right-24 bottom-0 w-60 h-60 -rotate-3">
               <Image
-                src="/otter_receipts.png"
+                src="/otter/scene/receipts.png"
                 alt="レシートを整理するカワウソ"
                 fill
                 sizes="240px"
@@ -276,7 +276,7 @@ export default function Home() {
                         </button>
                         <div className="shrink-0 w-full h-full relative">
                           <Image
-                            src="/app-top.png"
+                            src="/screenshots/app-top.png"
                             alt="Otter Bank のダッシュボード画面"
                             fill
                             className="object-cover rounded-lg border"
@@ -298,7 +298,7 @@ export default function Home() {
                   </div>
                   <div className="absolute -bottom-20 right-20 w-40 h-40 z-10">
                     <Image
-                      src="/otter_report.png"
+                      src="/otter/scene/report.png"
                       alt="家計のレポートを見せてくれるカワウソ"
                       fill
                       sizes="160px"
@@ -468,7 +468,7 @@ export default function Home() {
                 </div>
                 <div className="relative rounded-xl overflow-hidden h-64 md:h-auto md:min-h-64 bg-linear-to-br from-primary/10 to-primary/5 border">
                   <Image
-                    src="/otter_together.png"
+                    src="/otter/scene/together.png"
                     alt="通帳とコインを持って並ぶ2匹のカワウソ"
                     fill
                     sizes="(max-width: 768px) 100vw, 40vw"

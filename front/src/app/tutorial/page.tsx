@@ -22,7 +22,7 @@ const tutorialSteps = [
     icon: <Wallet className="h-6 w-6 text-primary" />,
     title: "マイページの使い方",
     description: "家計簿の記録と分析を行うメインページです。",
-    image: { src: "/otter_smartphone.png", alt: "スマホで家計簿をつけるカワウソ" },
+    image: { src: "/otter/scene/smartphone.png", alt: "スマホで家計簿をつけるカワウソ" },
     features: [
       "収入と支出を記録できます。",
       "カテゴリー別に支出を分類できます。",
@@ -47,7 +47,7 @@ const tutorialSteps = [
     icon: <Trophy className="h-6 w-6 text-primary" />,
     title: "図鑑の使い方",
     description: "貯金や継続利用などの目標を達成すると、特別な実績が解放されます。",
-    image: { src: "/otter_excited.png", alt: "実績を解除して大喜びするカワウソ" },
+    image: { src: "/otter/mood/excited.png", alt: "実績を解除して大喜びするカワウソ" },
     features: [
       "実績カテゴリー: 貯金、節約、継続、特別。",
       "貯金額に応じた実績や、支出削減に関する実績などがあります。",
@@ -67,7 +67,7 @@ const tutorialSteps = [
     icon: <MessageCircle className="h-6 w-6 text-primary" />,
     title: "掲示板の使い方",
     description: "お金の管理や貯金のコツ、投資の経験などを共有できるコミュニティです。",
-    image: { src: "/otter_together.png", alt: "通帳とコインを持って並ぶ2匹のカワウソ" },
+    image: { src: "/otter/scene/together.png", alt: "通帳とコインを持って並ぶ2匹のカワウソ" },
     features: [
       "経験や質問を投稿できます。",
       "カテゴリーでトピックを整理できます。",

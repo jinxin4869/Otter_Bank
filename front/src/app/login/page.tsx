@@ -84,7 +84,7 @@ export default function LoginPage() {
       <Card className="w-full max-w-md">
         <CardHeader>
           <Image
-            src="/otter_security.png"
+            src="/otter/scene/security.png"
             alt="鍵付きの盾を持つカワウソ"
             width={112}
             height={112}
@@ -166,7 +166,7 @@ export default function LoginPage() {
               {isGoogleLoading ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               ) : (
-                <Image src="/Google.svg" alt="Google" width={20} height={20} className="mr-2" />
+                <Image src="/icons/google.svg" alt="Google" width={20} height={20} className="mr-2" />
               )}
               Googleでログイン
             </Button>

@@ -45,7 +45,7 @@ export default function ResetPassword() {
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
           <Image
-            src="/otter_reminder.png"
+            src="/otter/scene/reminder.png"
             alt="カレンダーを持ってベルを鳴らすカワウソ"
             width={112}
             height={112}

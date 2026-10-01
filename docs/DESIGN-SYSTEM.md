@@ -257,13 +257,13 @@ UI トークンとは別に管理し、イラスト制作時のみ使う。コ�
 
 | mood | 画像 | 表示する状況 | 吹き出しの背景 |
 |---|---|---|---|
-| `happy` | `otter_happy.png` | 収支がプラス・予算内 | `bg-category-4/15`（オリーブ） |
-| `neutral` | `otter_neutral.png` | 通常 | `bg-muted` |
-| `sad` | `otter_sad.png` | 予算超過・支出過多（責めない表情） | `bg-category-6/15`（プラム。警告色にしない） |
-| `excited` | `otter_excited.png` | 実績解除・目標達成 | `bg-category-2/20`（マスタード） |
-| `sleeping` | `otter_sleeping.png` | 長期間ログインがなかった | `bg-secondary` |
+| `happy` | `otter/mood/happy.png` | 収支がプラス・予算内 | `bg-category-4/15`（オリーブ） |
+| `neutral` | `otter/mood/neutral.png` | 通常 | `bg-muted` |
+| `sad` | `otter/mood/sad.png` | 予算超過・支出過多（責めない表情） | `bg-category-6/15`（プラム。警告色にしない） |
+| `excited` | `otter/mood/excited.png` | 実績解除・目標達成 | `bg-category-2/20`（マスタード） |
+| `sleeping` | `otter/mood/sleeping.png` | 長期間ログインがなかった | `bg-secondary` |
 
-- 画像は `front/public/otter_<mood>.png` に置き、`next/image` で表示する（`OtterAnimation` がテンプレート文字列で参照するので、ファイル名を変えない）
+- 画像は `front/public/otter/mood/<mood>.png` に置き、`next/image` で表示する（`OtterAnimation` がテンプレート文字列で参照するので、ファイル名を mood と一致させる）
 - セリフは mood ごとの候補からランダムに 1 つ選ぶ（`MOOD_MESSAGES`）。口調はやさしいタメ口・語尾に「〜だよ」「〜しよう」、否定や命令はしない
 - 気分の導出は `useMemo` で行う（state + effect にしない）
 - 画像には必ず状況がわかる日本語の `alt` を付ける（`MOOD_ALT` で mood ごとに定義）
@@ -274,20 +274,38 @@ UI トークンとは別に管理し、イラスト制作時のみ使う。コ�
 
 | 画像 | 内容 | 使っている場所 |
 |---|---|---|
-| `otter_smartphone.png` | スマホで家計簿をつける | チュートリアル（マイページ） |
-| `otter_umbrella.png` | 傘をさして雨の中を歩く（もしもの備え） | トップのヒーロー |
-| `otter_receipts.png` | レシートを整理する | トップのヒーロー |
-| `otter_budget_check.png` | タブレットで家計のグラフを確かめる | トップのヒーロー |
-| `otter_report.png` | 家計のレポートを見せる | トップの「実際に使ってみよう」 |
-| `otter_together.png` | 通帳とコインを持って並ぶ 2 匹（みんなで） | トップの「皆さんへのお願い」、チュートリアル（掲示板） |
-| `otter_security.png` | 鍵付きの盾を持つ（安心・セキュリティ） | ログイン |
-| `otter_reminder.png` | カレンダーを持ってベルを鳴らす（通知・リマインド） | パスワードリセットの申請 |
-| `otter_excited.png`（§6 の mood 画像） | 実績を解除して大喜びする | `OtterAnimation`、チュートリアル（図鑑） |
+| `otter/scene/smartphone.png` | スマホで家計簿をつける | チュートリアル（マイページ） |
+| `otter/scene/umbrella.png` | 傘をさして雨の中を歩く（もしもの備え） | トップのヒーロー |
+| `otter/scene/receipts.png` | レシートを整理する | トップのヒーロー |
+| `otter/scene/budget_check.png` | タブレットで家計のグラフを確かめる | トップのヒーロー |
+| `otter/scene/report.png` | 家計のレポートを見せる | トップの「実際に使ってみよう」 |
+| `otter/scene/together.png` | 通帳とコインを持って並ぶ 2 匹（みんなで） | トップの「皆さんへのお願い」、チュートリアル（掲示板） |
+| `otter/scene/security.png` | 鍵付きの盾を持つ（安心・セキュリティ） | ログイン |
+| `otter/scene/reminder.png` | カレンダーを持ってベルを鳴らす（通知・リマインド） | パスワードリセットの申請 |
+| `otter/mood/excited.png`（§6 の mood 画像） | 実績を解除して大喜びする | `OtterAnimation`、チュートリアル（図鑑） |
 
-- 画像は `front/public/otter_<内容>.png` に置く。名前は場面を表す英単語にする（`otter_<mood>` と重ならないように）
+- 画像は `front/public/otter/scene/<内容>.png` に置く。名前は場面を表す英単語（snake_case）にする
 - 背景は透過、正方形（800×800）に余白を詰めて書き出す。白背景のまま置くと、カードやダークモードの上で白い四角が出る
-- ロゴは `front/public/logo.png`（512×512、背景透過の円形）。ファビコンは同じ画像を `front/src/app/icon.png` に置く（Next.js のファイル規約で `<link rel="icon">` が付く）
+- ロゴは `front/public/brand/logo.png`（512×512、背景透過の円形）。ファビコンは同じ画像を `front/src/app/icon.png` に置く（Next.js のファイル規約で `<link rel="icon">` が付く）
 - 絵柄の違う旧イラストは [design/legacy/](design/legacy/) に退避している。アプリからは参照しない
+
+### 6.2 public の画像フォルダ
+
+`front/public/` の直下には画像を置かず、用途ごとのフォルダに分ける。
+
+```
+front/public/
+├── achievements/   実績バッジ（§5.4。AchievementService の image_url と同じパス）
+├── brand/          ロゴ
+├── icons/          外部サービスのアイコン（google.svg など）
+├── otter/
+│   ├── mood/       気分ごとのカワウソ（§6）
+│   └── scene/      場面のイラスト（§6.1）
+└── screenshots/    アプリ画面のスクリーンショット
+```
+
+- フォルダ名で種類がわかるので、ファイル名に `otter_` などの接頭辞を付けない
+- 新しい種類の画像を足すときは、直下に置かずにフォルダを作る
 
 ## 7. モーション
 
@@ -342,4 +360,4 @@ UI トークンとは別に管理し、イラスト制作時のみ使う。コ�
 ### 未対応
 
 1. **支出の円グラフ（`expense-pie-chart.tsx`）の色が HEX 直書き** — 10 カテゴリを見分ける必要があり、暖色だけでは区別しにくい。グラフ用の `--chart-*` トークンを定義し、グラフに限り寒色も許すかを別途決める
-2. **トップページの紹介画像（`public/app-top.png`）が旧デザインのスクリーンショット** — 青系の旧 UI が写っているので撮り直す
+2. **トップページの紹介画像（`public/screenshots/app-top.png`）が旧デザインのスクリーンショット** — 青系の旧 UI が写っているので撮り直す

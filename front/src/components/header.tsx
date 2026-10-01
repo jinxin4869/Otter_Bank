@@ -60,7 +60,7 @@ export default function Header() {
       <header className="sticky top-0 z-50 w-full border-b border-border">
         <div className="header-container flex h-16 items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
-            <Image src="/logo.png" alt="Otter Bank ロゴ" width={32} height={32} className="rounded-full" />
+            <Image src="/brand/logo.png" alt="Otter Bank ロゴ" width={32} height={32} className="rounded-full" />
             <span className="font-bold text-lg">Otter Bank</span>
           </Link>
           <div className="h-8 w-8 bg-muted rounded-md animate-pulse"></div>
@@ -73,7 +73,7 @@ export default function Header() {
     <header className="sticky top-0 z-50 w-full border-b border-border shadow-sm">
       <div className="header-container flex h-16 items-center">
         <Link href={logoHref} className="flex items-center gap-2">
-          <Image src="/logo.png" alt="Otter Bank ロゴ" width={36} height={36} className="rounded-full transition-transform hover:scale-110" />
+          <Image src="/brand/logo.png" alt="Otter Bank ロゴ" width={36} height={36} className="rounded-full transition-transform hover:scale-110" />
           <span className="font-bold text-lg hidden sm:inline-block">Otter Bank</span>
         </Link>
 
