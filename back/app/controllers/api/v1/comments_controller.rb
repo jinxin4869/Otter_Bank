@@ -50,12 +50,12 @@ module Api
       end
 
       def destroy
-        unless @comment.user_id == current_api_v1_user.id
+        unless @comment.deletable_by?(current_api_v1_user)
           render json: { error: 'コメントの削除権限がありません' }, status: :forbidden
           return
         end
 
-        @comment.destroy
+        log_moderation('コメント', @comment) if @comment.destroy
         @post.decrement!(:comments_count) if @post.comments_count.to_i.positive?
         head :no_content
       end

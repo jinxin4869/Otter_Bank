@@ -136,5 +136,28 @@ RSpec.describe 'Api::V1::Comments', type: :request do
       delete "/api/v1/posts/#{post_record.id}/comments/#{comment.id}"
       expect(response).to have_http_status(:unauthorized)
     end
+
+    context '管理者' do
+      let(:admin) { create(:user, :admin) }
+      let(:admin_headers) { { 'Authorization' => "Bearer #{JsonWebToken.encode(user_id: admin.id)}" } }
+
+      it '他人のコメントを削除でき、コメント数を減らしてログに残す' do
+        post_record.update!(comments_count: 1)
+        allow(Rails.logger).to receive(:info).and_call_original
+        expect do
+          delete "/api/v1/posts/#{post_record.id}/comments/#{comment.id}", headers: admin_headers
+        end.to change(Comment, :count).by(-1)
+        expect(response).to have_http_status(:no_content)
+        expect(post_record.reload.comments_count).to eq(0)
+        expect(Rails.logger).to have_received(:info)
+          .with("管理者によるコメント削除 admin_id=#{admin.id} comment_id=#{comment.id} author_id=#{user.id}")
+      end
+
+      it '他人のコメントを編集はできない' do
+        patch "/api/v1/posts/#{post_record.id}/comments/#{comment.id}",
+              params: { comment: { content: '管理者の書き換え' } }, headers: admin_headers
+        expect(response).to have_http_status(:forbidden)
+      end
+    end
   end
 end

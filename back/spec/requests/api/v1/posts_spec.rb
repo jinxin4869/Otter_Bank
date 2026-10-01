@@ -160,6 +160,12 @@ RSpec.describe 'Api::V1::Posts', type: :request do
       expect(response).to have_http_status(:no_content)
     end
 
+    it '本人の削除では管理者削除のログを残さない' do
+      allow(Rails.logger).to receive(:info).and_call_original
+      delete "/api/v1/posts/#{post_record.id}", headers: headers
+      expect(Rails.logger).not_to have_received(:info).with(/管理者による/)
+    end
+
     it '他ユーザーの投稿は削除できない' do
       other_post = create(:post, user: create(:user))
       delete "/api/v1/posts/#{other_post.id}", headers: headers
@@ -169,6 +175,28 @@ RSpec.describe 'Api::V1::Posts', type: :request do
     it '未認証では削除できない' do
       delete "/api/v1/posts/#{post_record.id}"
       expect(response).to have_http_status(:unauthorized)
+    end
+
+    context '管理者' do
+      let(:admin) { create(:user, :admin) }
+      let(:admin_headers) { { 'Authorization' => "Bearer #{JsonWebToken.encode(user_id: admin.id)}" } }
+      let!(:others_post) { create(:post, user: create(:user)) }
+
+      it '他人の投稿を削除でき、その記録をログに残す' do
+        allow(Rails.logger).to receive(:info).and_call_original
+        expect do
+          delete "/api/v1/posts/#{others_post.id}", headers: admin_headers
+        end.to change(Post, :count).by(-1)
+        expect(response).to have_http_status(:no_content)
+        expect(Rails.logger).to have_received(:info)
+          .with("管理者による投稿削除 admin_id=#{admin.id} post_id=#{others_post.id} author_id=#{others_post.user_id}")
+      end
+
+      it '他人の投稿を編集はできない' do
+        patch "/api/v1/posts/#{others_post.id}", params: { post: { title: '管理者の書き換え' } }, headers: admin_headers
+        expect(response).to have_http_status(:forbidden)
+        expect(others_post.reload.title).not_to eq('管理者の書き換え')
+      end
     end
   end
 

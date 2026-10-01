@@ -174,6 +174,9 @@ bundle exec rspec                    # 全テスト実行
 bundle exec rspec --format documentation  # 詳細出力
 bin/rubocop -f github               # RuboCop（スタイルチェック）
 bin/brakeman --no-pager             # Brakeman（セキュリティスキャン）
+
+# 運営（他人の投稿・コメントを削除できる管理者）を付与する。画面・API からは付与できない
+bin/rails runner "User.find_by!(email: 'admin@example.com').update!(admin: true)"
 ```
 
 ### フロントエンド
