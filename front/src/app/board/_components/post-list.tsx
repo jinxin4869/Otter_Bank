@@ -12,6 +12,7 @@ type PostListProps = {
   likedPostIds: string[]
   bookmarkedPostIds: string[]
   currentUserId?: number
+  isAdmin?: boolean
   onLike: (postId: string) => void
   onBookmark: (postId: string) => void
   onView: (post: Post) => void
@@ -28,6 +29,7 @@ function PostList({
   likedPostIds,
   bookmarkedPostIds,
   currentUserId,
+  isAdmin = false,
   onLike,
   onBookmark,
   onView,
@@ -70,6 +72,7 @@ function PostList({
           isLiked={likedPostIds.includes(post.id)}
           isBookmarked={bookmarkedPostIds.includes(post.id)}
           isOwner={post.userId === currentUserId}
+          canModerate={isAdmin}
           onLike={onLike}
           onBookmark={onBookmark}
           onView={onView}

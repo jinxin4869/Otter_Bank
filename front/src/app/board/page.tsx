@@ -83,8 +83,11 @@ export default function BoardPage() {
     deletePost,
     incrementViews,
     incrementCommentCount,
+    decrementCommentCount,
   } = usePosts(token, isAuthenticated, postFilters)
-  const { likedCommentIds, fetchComments, addComment, toggleCommentLike, commentsFor } = useComments(token)
+  const { likedCommentIds, fetchComments, addComment, deleteComment, toggleCommentLike, commentsFor } =
+    useComments(token)
+  const isAdmin = user?.isAdmin ?? false
 
   // ダイアログの状態
   const [isNewPostDialogOpen, setIsNewPostDialogOpen] = useState(false)
@@ -161,6 +164,11 @@ export default function BoardPage() {
     if (!selectedPost) return
     void toggleCommentLike(selectedPost.id, commentId)
   }, [selectedPost, toggleCommentLike])
+
+  const handleDeleteComment = useCallback(async (commentId: string) => {
+    if (!selectedPost) return
+    if (await deleteComment(selectedPost.id, commentId)) decrementCommentCount(selectedPost.id)
+  }, [selectedPost, deleteComment, decrementCommentCount])
 
   const handleDeletePost = async () => {
     if (!deletingPostId) return
@@ -262,6 +270,7 @@ export default function BoardPage() {
               likedPostIds={likedPostIds}
               bookmarkedPostIds={bookmarkedPostIds}
               currentUserId={user?.id}
+              isAdmin={isAdmin}
               onLike={toggleLike}
               onBookmark={toggleBookmark}
               onView={handleViewPost}
@@ -317,10 +326,12 @@ export default function BoardPage() {
         comments={selectedPost ? commentsFor(selectedPost.id) : []}
         currentUserEmail={user?.email || ""}
         currentUserId={user?.id}
+        isAdmin={isAdmin}
         likedCommentIds={likedCommentIds}
         onOpenChange={setIsPostDetailDialogOpen}
         onAddComment={handleAddComment}
         onLikeComment={handleLikeComment}
+        onDeleteComment={handleDeleteComment}
       />
 
       {/* 削除確認ダイアログ */}

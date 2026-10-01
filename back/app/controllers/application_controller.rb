@@ -42,9 +42,17 @@ class ApplicationController < ActionController::API
     nil
   end
 
-  # 自分のユーザー情報として返す JSON
+  # 自分のユーザー情報として返す JSON。admin はフロントが管理者用の削除メニューを出すために使う
   def user_json(user)
-    { id: user.id, email: user.email, username: user.username, name: user.name }
+    { id: user.id, email: user.email, username: user.username, name: user.name, admin: user.admin }
+  end
+
+  # 管理者が他人の投稿・コメントを削除したときの記録（後から誰が何を消したか追えるように ID だけ残す）
+  def log_moderation(kind, record)
+    return if record.user_id == current_api_v1_user.id
+
+    Rails.logger.info "管理者による#{kind}削除 admin_id=#{current_api_v1_user.id} " \
+                      "#{record.class.name.underscore}_id=#{record.id} author_id=#{record.user_id}"
   end
 
   def write_refresh_token_cookie(token)

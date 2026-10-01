@@ -3,7 +3,7 @@ import { toast } from "sonner"
 import { api } from "@/lib/api"
 import { mapApiComment, type Comment } from "@/types/post"
 
-// 投稿詳細のコメント一覧と、コメントの投稿・いいね。投稿をまたいで保持し、postId で絞り込んで使う
+// 投稿詳細のコメント一覧と、コメントの投稿・削除・いいね。投稿をまたいで保持し、postId で絞り込んで使う
 export function useComments(token: string | null) {
   const [comments, setComments] = useState<Comment[]>([])
   const [likedCommentIds, setLikedCommentIds] = useState<string[]>([])
@@ -43,6 +43,21 @@ export function useComments(token: string | null) {
     }
   }, [token])
 
+  /** 削除に成功したら true（呼び出し元は投稿のコメント数を戻す） */
+  const deleteComment = useCallback(async (postId: string, commentId: string) => {
+    if (!token) return false
+    try {
+      await api.posts.comments.delete(token, postId, commentId)
+      setComments((prev) => prev.filter((c) => c.id !== commentId))
+      setLikedCommentIds((prev) => prev.filter((id) => id !== commentId))
+      toast.success("コメントを削除しました")
+      return true
+    } catch {
+      toast.error("コメントの削除に失敗しました")
+      return false
+    }
+  }, [token])
+
   const toggleCommentLike = useCallback(async (postId: string, commentId: string) => {
     if (!token) return
     const isCurrentlyLiked = likedCommentIds.includes(commentId)
@@ -75,5 +90,5 @@ export function useComments(token: string | null) {
     [comments]
   )
 
-  return { likedCommentIds, fetchComments, addComment, toggleCommentLike, commentsFor }
+  return { likedCommentIds, fetchComments, addComment, deleteComment, toggleCommentLike, commentsFor }
 }

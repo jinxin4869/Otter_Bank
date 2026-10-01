@@ -18,6 +18,8 @@ type PostCardProps = {
   isLiked: boolean
   isBookmarked: boolean
   isOwner: boolean
+  // 管理者は他人の投稿も削除できる（編集は本人のみ）
+  canModerate?: boolean
   onLike: (postId: string) => void
   onBookmark: (postId: string) => void
   onView: (post: Post) => void
@@ -25,7 +27,7 @@ type PostCardProps = {
   onDeleteRequest: (postId: string) => void
 }
 
-function PostCard({ post, isLiked, isBookmarked, isOwner, onLike, onBookmark, onView, onEdit, onDeleteRequest }: PostCardProps) {
+function PostCard({ post, isLiked, isBookmarked, isOwner, canModerate = false, onLike, onBookmark, onView, onEdit, onDeleteRequest }: PostCardProps) {
   return (
     <Card className="hover:shadow-md transition-shadow">
       <CardHeader className="pb-2">
@@ -48,25 +50,29 @@ function PostCard({ post, isLiked, isBookmarked, isOwner, onLike, onBookmark, on
             <div className="text-sm text-muted-foreground">
               {format(new Date(post.createdAt), "yyyy年MM月dd日", { locale: ja })}
             </div>
-            {isOwner && (
+            {(isOwner || canModerate) && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm">
+                  <Button variant="ghost" size="sm" aria-label="投稿のメニュー">
                     <MoreVertical className="h-4 w-4" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => onEdit(post)}>
-                    <Edit className="mr-2 h-4 w-4" />
-                    編集
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
+                  {isOwner && (
+                    <>
+                      <DropdownMenuItem onClick={() => onEdit(post)}>
+                        <Edit className="mr-2 h-4 w-4" />
+                        編集
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                    </>
+                  )}
                   <DropdownMenuItem
                     variant="destructive"
                     onClick={() => onDeleteRequest(post.id)}
                   >
                     <Trash2 className="mr-2 h-4 w-4" />
-                    削除
+                    {isOwner ? "削除" : "削除（管理者）"}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>

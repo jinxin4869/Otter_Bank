@@ -5,6 +5,7 @@ export type AuthUser = {
   username: string
   name?: string
   lastSignInAt: string | null // 前回サインイン時刻（sleeping mood 判定用）
+  isAdmin: boolean // 運営（他人の投稿・コメントを削除できる）。表示の出し分けだけに使い、権限の判定はサーバーが行う
 }
 
 /**
@@ -23,5 +24,6 @@ export function parseAuthUser(data: unknown): AuthUser | null {
     username: raw.username,
     name: typeof raw.name === "string" ? raw.name : undefined,
     lastSignInAt: typeof raw.last_sign_in_at === "string" ? raw.last_sign_in_at : null,
+    isAdmin: raw.admin === true,
   }
 }
