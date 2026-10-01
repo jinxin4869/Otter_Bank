@@ -9,19 +9,23 @@ module Api
       before_action :set_post, only: %i[destroy increment_views]
 
       skip_before_action :authorize_request, only: %i[index show increment_views]
+      # 自分のブックマークだけを見るときは本人の確認が要る。通常の認証を通し、期限切れなら
+      # code: token_expired 付きの 401 を返してフロントの自動更新に任せる（一覧自体は未ログインでも見られる）。
+      # before_action :authorize_request を再宣言すると既存の設定を置き換えて他のアクションの認証が外れるので、別名で呼ぶ
+      before_action :authorize_bookmark_listing, only: :index
 
       PER_PAGE = 20
 
       def index
         page = params[:page].to_i.clamp(1, Float::INFINITY).to_i
         per  = params[:per].to_i.zero? ? PER_PAGE : params[:per].to_i.clamp(1, 100)
+        viewer = bookmarked_only? ? current_api_v1_user : optional_current_user
 
-        scope       = filtered_posts.includes(:user, :categories)
+        scope       = filtered_posts(viewer).includes(:user, :categories)
         total_count = scope.count
         @posts      = scope.limit(per).offset((page - 1) * per)
         total_pages = (total_count.to_f / per).ceil
 
-        viewer = optional_current_user
         post_ids = @posts.map(&:id)
         liked_ids = if viewer
                       Like.where(likeable_type: 'Post', likeable_id: post_ids,
@@ -105,14 +109,24 @@ module Api
       private
 
       # 一覧の検索・カテゴリ絞り込み・並び替え（読み込み済みの範囲ではなく全投稿が対象）
-      def filtered_posts
+      def filtered_posts(viewer)
         scope = Post.all
+        scope = scope.where(id: viewer.bookmarks.select(:post_id)) if bookmarked_only?
         term = params[:q].to_s.strip.first(Post::SEARCH_TERM_MAX_LENGTH)
         scope = scope.search(term, string_list(:search_categories)) if term.present?
         scope = scope.in_categories(params[:category].to_s) if params[:category].present?
         categories = string_list(:categories)
         scope = scope.in_categories(categories) if categories.any?
         scope.sorted_by(params[:sort])
+      end
+
+      def authorize_bookmark_listing
+        authorize_request if bookmarked_only?
+      end
+
+      # 'true' のときだけ（Boolean キャストは 'abc' なども true にするため、明示の値に限る）
+      def bookmarked_only?
+        params[:bookmarked].to_s == 'true'
       end
 
       # 配列パラメーター（categories[]=a&categories[]=b）を文字列の配列にする。不正な形は空として扱う

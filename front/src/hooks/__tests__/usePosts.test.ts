@@ -3,7 +3,7 @@ import { usePosts } from "@/hooks/usePosts"
 import { api, type PostListFilters } from "@/lib/api"
 
 jest.mock("sonner", () => ({ toast: { success: jest.fn(), error: jest.fn() } }))
-jest.mock("@/lib/api", () => ({ api: { posts: { list: jest.fn(), create: jest.fn() } } }))
+jest.mock("@/lib/api", () => ({ api: { posts: { list: jest.fn(), create: jest.fn(), unbookmark: jest.fn() } } }))
 
 const list = api.posts.list as jest.Mock
 const create = api.posts.create as jest.Mock
@@ -122,5 +122,54 @@ describe("usePosts の取り直し中のもっと見る", () => {
       await result.current.loadMore()
     })
     expect(list.mock.calls.length).toBe(callsBefore)
+  })
+})
+
+describe("usePosts のブックマーク一覧", () => {
+  beforeEach(() => list.mockReset())
+
+  const bookmarkedPage = () => ({
+    ...page([1, 2]),
+    posts: [1, 2].map((id) => ({ ...apiPost(id), bookmarked_by_me: true })),
+  })
+
+  it("ブックマーク一覧でブックマークを外したら、その投稿を一覧から消す", async () => {
+    list.mockResolvedValue(bookmarkedPage())
+    ;(api.posts.unbookmark as jest.Mock).mockResolvedValue(undefined)
+    const filters = { bookmarked: true }
+    const { result } = renderHook(() => usePosts("t", true, filters))
+    await waitFor(() => expect(result.current.posts).toHaveLength(2))
+
+    await act(async () => {
+      await result.current.toggleBookmark("1")
+    })
+    expect(result.current.posts.map((p) => p.id)).toEqual(["2"])
+  })
+
+  it("ブックマーク一覧に続きのページがあるときは、外したあと取り直してずれを防ぐ", async () => {
+    list.mockResolvedValue({ ...bookmarkedPage(), meta: { ...bookmarkedPage().meta, total_pages: 2 } })
+    ;(api.posts.unbookmark as jest.Mock).mockResolvedValue(undefined)
+    const filters = { bookmarked: true }
+    const { result } = renderHook(() => usePosts("t", true, filters))
+    await waitFor(() => expect(result.current.posts).toHaveLength(2))
+
+    await act(async () => {
+      await result.current.toggleBookmark("1")
+    })
+    await waitFor(() => expect(list).toHaveBeenCalledTimes(2))
+    expect(list).toHaveBeenLastCalledWith("t", 1, 20, filters)
+  })
+
+  it("通常の一覧では、ブックマークを外しても投稿は残す", async () => {
+    list.mockResolvedValue(bookmarkedPage())
+    ;(api.posts.unbookmark as jest.Mock).mockResolvedValue(undefined)
+    const { result } = renderHook(() => usePosts("t", true))
+    await waitFor(() => expect(result.current.posts).toHaveLength(2))
+
+    await act(async () => {
+      await result.current.toggleBookmark("1")
+    })
+    expect(result.current.posts).toHaveLength(2)
+    expect(result.current.bookmarkedPostIds).toEqual(["2"])
   })
 })

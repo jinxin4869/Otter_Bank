@@ -8,7 +8,7 @@ const NO_FILTERS: PostListFilters = {}
 
 // 新着順で条件なし（新しい投稿は必ず先頭に来る）
 const hasNoFilters = (f: PostListFilters) =>
-  !f.q && !f.category && !f.categories?.length && (f.sort ?? "latest") === "latest"
+  !f.q && !f.category && !f.categories?.length && !f.bookmarked && (f.sort ?? "latest") === "latest"
 
 // 掲示板の投稿一覧と、それに対する操作（ページング・いいね・ブックマーク・作成・更新・削除・閲覧数）。
 // 検索・絞り込み・並び替えは filters としてサーバーに渡し、変わったら 1 ページ目から取り直す。
@@ -109,8 +109,18 @@ export function usePosts(token: string | null, isAuthenticated: boolean, filters
     const isBookmarked = bookmarkedPostIds.includes(postId)
     try {
       if (isBookmarked) {
+        const requestId = requestIdRef.current
         await api.posts.unbookmark(token, postId)
         setBookmarkedPostIds((prev) => prev.filter((id) => id !== postId))
+        // ブックマーク一覧を見ているときは、外した投稿を一覧からも消す（待つ間にタブを変えていたら何もしない）
+        if (filters.bookmarked && requestId === requestIdRef.current) {
+          if (currentPage < totalPages) {
+            // 続きのページがあると、サーバー側で 1 件詰まった分だけ次のページが 1 件ずれて取りこぼすので取り直す
+            void fetchPosts()
+          } else {
+            setPosts((prev) => prev.filter((post) => post.id !== postId))
+          }
+        }
         toast.success("ブックマークを削除しました")
       } else {
         await api.posts.bookmark(token, postId)
@@ -120,7 +130,7 @@ export function usePosts(token: string | null, isAuthenticated: boolean, filters
     } catch {
       toast.error("操作に失敗しました")
     }
-  }, [token, bookmarkedPostIds])
+  }, [token, bookmarkedPostIds, filters.bookmarked, currentPage, totalPages, fetchPosts])
 
   /** 作成に成功したら true（呼び出し元はダイアログを閉じる） */
   const createPost = useCallback(async (title: string, content: string, categories: string[]) => {
