@@ -12,6 +12,7 @@ class User < ApplicationRecord
   has_many :likes, dependent: :destroy
   has_many :bookmarks, dependent: :destroy
   has_many :budgets, dependent: :destroy
+  has_many :refresh_tokens, dependent: :delete_all # 外部キーがあるため退会時に先に消す
 
   # 貯金関連のアソシエーション（transactions の中から income タイプを取得）
   has_many :savings, -> { where(transaction_type: 'income') }, class_name: 'Transaction'
@@ -97,6 +98,12 @@ class User < ApplicationRecord
 
   def clear_password_reset_token!
     update_columns(reset_password_token: nil, reset_password_sent_at: nil)
+  end
+
+  # パスワードのリセット・変更後に、全端末のリフレッシュトークンを失効させる。
+  # 漏れたトークンでログインし続けられないようにするため。戻り値は件数
+  def revoke_all_refresh_tokens!
+    refresh_tokens.where(revoked: false).update_all(revoked: true, updated_at: Time.current)
   end
 
   private

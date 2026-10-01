@@ -48,13 +48,16 @@ class ApplicationController < ActionController::API
   end
 
   def write_refresh_token_cookie(token)
-    cookies[:refresh_token] = {
-      value: token,
-      httponly: true,
-      secure: Rails.env.production?,
-      same_site: Rails.env.production? ? :none : :lax,
-      expires: 14.days.from_now
-    }
+    cookies[:refresh_token] = refresh_token_cookie_attributes.merge(value: token, expires: 14.days.from_now)
+  end
+
+  # 削除の Set-Cookie にも発行時と同じ属性を付ける（本番はクロスサイトなので SameSite=None; Secure が無いと無視されうる）
+  def delete_refresh_token_cookie
+    cookies.delete(:refresh_token, refresh_token_cookie_attributes)
+  end
+
+  def refresh_token_cookie_attributes
+    { httponly: true, secure: Rails.env.production?, same_site: Rails.env.production? ? :none : :lax }
   end
 
   # 認証不要のアクションは各コントローラーで skip_before_action :authorize_request, only: [...] を指定する
