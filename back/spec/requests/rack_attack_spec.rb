@@ -3,6 +3,13 @@
 require 'rails_helper'
 
 RSpec.describe 'Rack::Attack レート制限', type: :request do
+  # Rack::Attack は「現在時刻 ÷ 期間」で回数の区切りを決めるため、連続リクエストが分（時）の
+  # 境目をまたぐと回数が 2 つに分かれ、上限を超えても 429 にならずテストがまれに落ちる。
+  # 時刻を固定して、すべてのリクエストを同じ区切りで数えさせる
+  around do |example|
+    travel_to(Time.zone.local(2026, 1, 1, 12, 30, 30)) { example.run }
+  end
+
   before do
     Rack::Attack.enabled = true
     Rack::Attack.cache.store = ActiveSupport::Cache::MemoryStore.new
