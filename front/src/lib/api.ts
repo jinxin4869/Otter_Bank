@@ -20,7 +20,7 @@ type RegisterParams = {
   password_confirmation: string
 }
 
-export type CreateTransactionParams = {
+export type TransactionParams = {
   amount: number
   transaction_type: "income" | "expense"
   category: string
@@ -131,9 +131,17 @@ export const api = {
       apiRequest<{ transactions: ApiTransaction[] }>('/transactions', { token }),
 
     /** 取引を作成する */
-    create: (token: string, params: CreateTransactionParams) =>
+    create: (token: string, params: TransactionParams) =>
       apiRequest<{ transaction: ApiTransaction; newly_unlocked_achievements: ApiNewlyUnlockedAchievement[] }>('/transactions', {
         method: 'POST',
+        token,
+        body: { transaction: params },
+      }),
+
+    /** 取引を更新する */
+    update: (token: string, id: string, params: TransactionParams) =>
+      apiRequest<{ transaction: ApiTransaction; newly_unlocked_achievements: ApiNewlyUnlockedAchievement[] }>(`/transactions/${id}`, {
+        method: 'PATCH',
         token,
         body: { transaction: params },
       }),

@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor } from "@testing-library/react"
+import { render, screen, fireEvent, waitFor, within } from "@testing-library/react"
 import type { ReactNode } from "react"
 import DashboardPage from "@/app/dashboard/page"
 import { api } from "@/lib/api"
@@ -30,9 +30,22 @@ jest.mock("@/hooks/useAchievements", () => ({
   useAchievements: () => ({ achievements: [], achievementSummary: summary, refetch }),
 }))
 jest.mock("@/lib/api", () => ({
-  api: { transactions: { list: jest.fn(), create: jest.fn(), delete: jest.fn() } },
+  api: { transactions: { list: jest.fn(), create: jest.fn(), update: jest.fn(), delete: jest.fn() } },
 }))
 jest.mock("@/components/tutorial", () => ({ Tutorial: () => null }))
+// 日付の選択は Radix の Popover + カレンダー操作になるため、固定日を選ぶボタンに差し替える
+jest.mock("@/components/ui/popover", () => ({
+  Popover: ({ children }: { children: ReactNode }) => <>{children}</>,
+  PopoverTrigger: ({ children }: { children: ReactNode }) => <>{children}</>,
+  PopoverContent: ({ children }: { children: ReactNode }) => <>{children}</>,
+}))
+jest.mock("@/components/ui/calendar", () => ({
+  Calendar: ({ onSelect }: { onSelect: (d: Date) => void }) => (
+    <button type="button" onClick={() => onSelect(new Date(2020, 0, 15))}>
+      2020-01-15 を選ぶ
+    </button>
+  ),
+}))
 jest.mock("@/components/achievement-unlock-modal", () => ({ AchievementUnlockModal: () => null }))
 // Radix の Select は jsdom で操作しづらいため、ネイティブの select に差し替える
 jest.mock("@/components/ui/select", () => ({
@@ -50,6 +63,7 @@ jest.mock("@/components/ui/select", () => ({
 
 const create = api.transactions.create as jest.Mock
 const list = api.transactions.list as jest.Mock
+const update = api.transactions.update as jest.Mock
 
 const apiTransaction = {
   id: 1, amount: 500, description: "", transaction_type: "expense", category: "food",
@@ -134,5 +148,97 @@ describe("DashboardPage 未ログイン時の遷移", () => {
     render(<DashboardPage />)
     await new Promise((resolve) => setTimeout(resolve, 0))
     expect(push).not.toHaveBeenCalledWith("/login")
+  })
+})
+
+describe("DashboardPage 取引の編集", () => {
+  // 表示中の期間（今月）に入るよう、今日の日付の取引にする
+  const today = new Date()
+  const pad = (n: number) => String(n).padStart(2, "0")
+  const todayStr = `${today.getFullYear()}-${pad(today.getMonth() + 1)}-${pad(today.getDate())}`
+  const existing = { ...apiTransaction, id: 7, amount: 500, date: todayStr }
+
+  beforeEach(() => {
+    refetch.mockReset()
+    update.mockReset()
+    list.mockReset()
+    list.mockResolvedValue({ transactions: [existing] })
+    summary = null
+    jest.spyOn(console, "error").mockImplementation(() => {})
+  })
+
+  afterEach(() => jest.restoreAllMocks())
+
+  const openEditDialog = async () => {
+    render(<DashboardPage />)
+    fireEvent.click(await screen.findByRole("button", { name: /を編集$/ }))
+    return screen.findByRole("dialog")
+  }
+
+  it("編集ダイアログに現在の値が入り、保存すると PATCH して一覧を更新する", async () => {
+    update.mockResolvedValue({
+      transaction: { ...existing, amount: 1200 },
+      newly_unlocked_achievements: [],
+    })
+    const dialog = await openEditDialog()
+    const amountInput = dialog.querySelector("#edit-amount") as HTMLInputElement
+    expect(amountInput.value).toBe("500")
+
+    fireEvent.change(amountInput, { target: { value: "1200" } })
+    fireEvent.click(screen.getByRole("button", { name: "保存" }))
+
+    await waitFor(() =>
+      expect(update).toHaveBeenCalledWith("test-token", "7", {
+        amount: 1200,
+        transaction_type: "expense",
+        category: "food",
+        description: "",
+        date: todayStr,
+      })
+    )
+    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull())
+    // 一覧の行が新しい金額に置き換わる（収支カードにも同じ金額が出るので、編集ボタンのある行の中で探す）
+    const row = screen.getByRole("button", { name: /を編集$/ }).parentElement!
+    expect(within(row).getByText("-1,200 円")).toBeInTheDocument()
+  })
+
+  it("編集・削除ボタンは行ごとに区別できる名前を持つ", async () => {
+    render(<DashboardPage />)
+    const [month, day] = [today.getMonth() + 1, today.getDate()]
+    expect(await screen.findByRole("button", { name: `${month}月${day}日の食費を編集` })).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: `${month}月${day}日の食費を削除` })).toBeInTheDocument()
+  })
+
+  it("表示中の期間の外へ日付を移したら、そのことをトーストで伝える", async () => {
+    update.mockImplementation(async (_t: string, _id: string, params: { date: string }) => ({
+      transaction: { ...existing, date: params.date },
+      newly_unlocked_achievements: [],
+    }))
+    const { toast } = jest.requireMock("sonner") as { toast: { success: jest.Mock } }
+    toast.success.mockClear()
+    const dialog = await openEditDialog()
+
+    fireEvent.click(within(dialog).getByRole("button", { name: "2020-01-15 を選ぶ" }))
+    fireEvent.click(within(dialog).getByRole("button", { name: "保存" }))
+
+    await waitFor(() => expect(update).toHaveBeenCalledWith("test-token", "7", expect.objectContaining({ date: "2020-01-15" })))
+    expect(toast.success).toHaveBeenCalledWith("取引を更新しました", { description: "表示中の期間の外に移動しました" })
+  })
+
+  it("更新に失敗したらダイアログを閉じない", async () => {
+    update.mockRejectedValue(new Error("サーバーエラー"))
+    await openEditDialog()
+    fireEvent.click(screen.getByRole("button", { name: "保存" }))
+
+    await waitFor(() => expect(update).toHaveBeenCalled())
+    expect(screen.getByRole("dialog")).toBeInTheDocument()
+  })
+
+  it("更新で実績が解除されたら silent で再取得する", async () => {
+    update.mockResolvedValue({ transaction: existing, newly_unlocked_achievements: [unlocked] })
+    await openEditDialog()
+    fireEvent.click(screen.getByRole("button", { name: "保存" }))
+
+    await waitFor(() => expect(refetch).toHaveBeenCalledWith({ silent: true }))
   })
 })
