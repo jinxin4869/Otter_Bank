@@ -9,6 +9,7 @@ RSpec.describe Contact, type: :model do
   it { should validate_presence_of(:subject) }
   it { should validate_inclusion_of(:subject).in_array(Contact::SUBJECT_LABELS.keys) }
   it { should validate_presence_of(:message) }
+  it { should validate_length_of(:message).is_at_most(5_000) }
 
   describe 'メールアドレスのバリデーション' do
     it '正しい形式のメールアドレスは有効' do

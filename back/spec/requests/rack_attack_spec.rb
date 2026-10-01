@@ -62,4 +62,34 @@ RSpec.describe 'Rack::Attack レート制限', type: :request do
       expect(response.status).not_to eq(429)
     end
   end
+
+  describe '掲示板の投稿・コメント' do
+    let(:user) { create(:user) }
+    let(:headers) { { 'Authorization' => "Bearer #{JsonWebToken.encode(user_id: user.id)}" } }
+    let(:post_params) { { post: { title: 'タイトル', content: '本文' } } }
+
+    it '投稿は 1 分間に 10 回を超えると 429 を返す' do
+      11.times { post '/api/v1/posts', params: post_params, headers: headers, env: { 'REMOTE_ADDR' => '4.4.4.1' } }
+      expect(response.status).to eq(429)
+    end
+
+    it '投稿は制限回数以内なら通常どおり作成できる' do
+      10.times { post '/api/v1/posts', params: post_params, headers: headers, env: { 'REMOTE_ADDR' => '4.4.4.2' } }
+      expect(response).to have_http_status(:created)
+    end
+
+    it 'コメントは 1 分間に 10 回を超えると 429 を返す' do
+      target = create(:post)
+      11.times do
+        post "/api/v1/posts/#{target.id}/comments", params: { comment: { content: 'コメント' } }, headers: headers,
+                                                    env: { 'REMOTE_ADDR' => '4.4.4.3' }
+      end
+      expect(response.status).to eq(429)
+    end
+
+    it '投稿の閲覧（GET）は制限の対象外' do
+      11.times { get '/api/v1/posts', env: { 'REMOTE_ADDR' => '4.4.4.4' } }
+      expect(response).to have_http_status(:ok)
+    end
+  end
 end

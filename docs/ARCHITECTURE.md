@@ -154,7 +154,8 @@ contacts                       (ユーザーと非連携)
 | CI（GitHub Actions） | back: Brakeman / RuboCop / RSpec（PostgreSQL サービス）、front: ESLint / tsc / Jest / next build |
 | pre-commit | husky + lint-staged（RuboCop・ESLint --fix） |
 | 依存更新 | Dependabot |
-| レート制限 | `login/ip` 5回/分、`signup/ip` 10回/時、`password_reset/ip` 5回/時、`contact/ip` 3回/時、`OAuth/ip` 10回/分 |
+| レート制限 | `login/ip` 5回/分、`signup/ip` 10回/時、`password_reset/ip` 5回/時、`contact/ip` 3回/時、`posts/ip` `comments/ip` 各 10回/分、`OAuth/ip` 10回/分 |
+| 文字数上限 | 投稿のタイトル 100・本文 5,000、コメント 1,000、お問い合わせ内容 5,000（モデルの `*_MAX_LENGTH` と `front/src/lib/text-limits.ts` を揃える） |
 | 監視 | UptimeRobot が `GET /up` を 5 分ごとに叩く（Render のスリープ防止。落ちたときはメールで通知）。ほかに `GET /api/v1/health`。エラートラッキングなし |
 
 ---
