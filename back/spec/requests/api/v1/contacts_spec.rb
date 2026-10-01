@@ -66,6 +66,11 @@ RSpec.describe 'Api::V1::Contacts', type: :request do
         expect(response).to have_http_status(:unprocessable_content)
       end
 
+      it 'メッセージが 5,000 文字を超える場合は422を返す' do
+        post '/api/v1/contacts', params: { contact: valid_params[:contact].merge(message: 'あ' * 5_001) }
+        expect(response).to have_http_status(:unprocessable_content)
+      end
+
       it 'メッセージが空の場合は422を返す' do
         post '/api/v1/contacts', params: { contact: valid_params[:contact].merge(message: '') }
         expect(response).to have_http_status(:unprocessable_content)

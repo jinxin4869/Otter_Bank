@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { BOARD_CATEGORIES, getCategoryColor } from "./board-constants"
+import { POST_CONTENT_MAX_LENGTH, POST_TITLE_MAX_LENGTH } from "@/lib/text-limits"
 
 type CreatePostModalProps = {
   isOpen: boolean
@@ -91,7 +92,7 @@ export default function CreatePostModal({
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="投稿のタイトルを入力"
-              maxLength={100}
+              maxLength={POST_TITLE_MAX_LENGTH}
             />
             {titleError && <p className="text-sm text-destructive">{titleError}</p>}
           </div>
@@ -120,6 +121,7 @@ export default function CreatePostModal({
               onChange={(e) => setContent(e.target.value)}
               placeholder="投稿の内容を入力"
               rows={8}
+              maxLength={POST_CONTENT_MAX_LENGTH}
             />
             {contentError && <p className="text-sm text-destructive">{contentError}</p>}
           </div>

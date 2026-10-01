@@ -7,6 +7,11 @@ module Api
 
       before_action :set_transaction, only: %i[update destroy]
 
+      # 1 回の一覧で返す上限。画面は表示中の期間（日・月・年）ごとに取るので通常は届かない。
+      # 超えたときは has_more で知らせる（合計の summary は期間全体で計算する）
+      MAX_TRANSACTIONS = 500
+      MONTHLY_SUMMARY_MAX_MONTHS = 24
+
       def index
         @transactions = current_api_v1_user.transactions.order(date: :desc, created_at: :desc)
 
@@ -23,14 +28,32 @@ module Api
         total_income = summary_amounts['income'] || 0
         total_expense = summary_amounts['expense'] || 0
 
+        # 上限 + 1 件取り、超えたかどうかを判定する
+        records = @transactions.limit(MAX_TRANSACTIONS + 1).to_a
+        has_more = records.size > MAX_TRANSACTIONS
+
         render json: {
-          transactions: @transactions,
+          transactions: records.first(MAX_TRANSACTIONS),
+          has_more: has_more,
           summary: {
             total_income: total_income,
             total_expense: total_expense,
             balance: total_income - total_expense
           }
         }
+      end
+
+      # GET /api/v1/transactions/monthly_summary?months=6
+      # 今月を含む直近 months か月（既定 6・最大 24）の収入・支出を古い月から順に返す。取引の無い月も 0 で返す
+      def monthly_summary
+        months = (params[:months].presence || 6).to_i.clamp(1, MONTHLY_SUMMARY_MAX_MONTHS)
+        first_month = Date.current.beginning_of_month << (months - 1)
+        sums = current_api_v1_user.transactions
+                                  .where(date: first_month..Date.current.end_of_month)
+                                  .group(Arel.sql("to_char(date, 'YYYY-MM')"), :transaction_type)
+                                  .sum(:amount)
+
+        render json: Array.new(months) { |i| month_summary_json(first_month >> i, sums) }
       end
 
       def create
@@ -45,8 +68,11 @@ module Api
       end
 
       def update
+        was_income = @transaction.income?
         if @transaction.update(transaction_params)
-          newly_unlocked = with_achievement_tracking { update_achievements_for_transaction(@transaction) }
+          newly_unlocked = with_achievement_tracking do
+            update_achievements_for_transaction(@transaction, was_income: was_income)
+          end
           render json: { transaction: @transaction, newly_unlocked_achievements: newly_unlocked }
         else
           render json: { errors: @transaction.errors.full_messages }, status: :unprocessable_content
@@ -56,7 +82,7 @@ module Api
       def destroy
         was_income = @transaction.income?
         @transaction.destroy
-        update_milestone_achievements_after_destroy if was_income
+        update_achievements_after_income_destroy if was_income
         head :no_content
       end
 
@@ -72,14 +98,23 @@ module Api
         params.expect(transaction: %i[amount transaction_type category description date])
       end
 
-      # 取引の登録・更新後に実績を更新する
-      def update_achievements_for_transaction(transaction)
+      # 取引の無い月と型を揃えるため、金額は数値（float）で返す
+      def month_summary_json(month, sums)
+        key = month.strftime('%Y-%m')
+        { month: key, income: sums.fetch([key, 'income'], 0).to_f, expense: sums.fetch([key, 'expense'], 0).to_f }
+      end
+
+      # 取引の登録・更新後に実績を更新する。was_income は更新前に収入だったか（登録時は false）
+      def update_achievements_for_transaction(transaction, was_income: false)
         service = AchievementService.new(current_api_v1_user)
 
         if transaction.income?
           service.update_savings_achievements(transaction.amount) # マイルストーンの更新も含む
           # 投資カテゴリの取引で investment_debut 実績を解除する
           service.update_special_achievements(:investment_debut) if transaction.category == 'investment'
+        elsif was_income
+          # 収入から支出に変えると貯金額が減るので、マイルストーンの進捗を下げる
+          service.update_milestone_achievements
         end
 
         # income/expense どちらの取引でもストリークを再計算する
@@ -92,10 +127,11 @@ module Api
         Rails.logger.error "実績更新エラー: #{e.message}"
       end
 
-      # 収入取引の削除後にマイルストーン実績を再計算する
-      def update_milestone_achievements_after_destroy
+      # 収入取引の削除後に、貯金額と連続日数に基づく実績を再計算する
+      def update_achievements_after_income_destroy
         service = AchievementService.new(current_api_v1_user)
         service.update_milestone_achievements
+        service.update_streak_achievements(current_api_v1_user.current_streak)
       rescue StandardError => e
         Rails.logger.error "実績更新エラー（削除後）: #{e.message}"
       end

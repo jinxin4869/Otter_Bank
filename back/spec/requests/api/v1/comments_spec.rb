@@ -84,6 +84,12 @@ RSpec.describe 'Api::V1::Comments', type: :request do
       post "/api/v1/posts/#{post_record.id}/comments", params: { comment: { content: '' } }, headers: headers
       expect(response).to have_http_status(:unprocessable_content)
     end
+
+    it 'content が 1,000 文字を超えると422を返す' do
+      post "/api/v1/posts/#{post_record.id}/comments", params: { comment: { content: 'あ' * 1_001 } },
+                                                       headers: headers
+      expect(response).to have_http_status(:unprocessable_content)
+    end
   end
 
   describe 'PATCH /api/v1/posts/:post_id/comments/:id' do

@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { format } from "date-fns"
 import { ja } from "date-fns/locale"
 import { Wallet, ArrowUpCircle, ArrowDownCircle, Loader2, Trophy } from "lucide-react"
@@ -20,9 +21,10 @@ import { useTransactions } from "@/hooks/useTransactions"
 import { cn } from "@/lib/utils"
 import { getFinancialMood, type FinancialMood } from "@/lib/otter-mood"
 import { TIER_CONFIG } from "@/lib/tier"
-import { filterByPeriod, summarize, shiftPeriod, type PeriodView } from "@/lib/transaction-period"
-import type { CreateTransactionParams } from "@/lib/api"
+import { filterByPeriod, summarize, shiftPeriod, periodRange, type PeriodView } from "@/lib/transaction-period"
+import type { TransactionParams } from "@/lib/api"
 import type { NewlyUnlockedAchievement } from "@/types/achievement"
+import type { Transaction } from "@/types/transaction"
 import TransactionForm from "./_components/transaction-form"
 import TransactionList from "./_components/transaction-list"
 
@@ -53,16 +55,24 @@ const VIEW_TITLE_FORMAT: Record<PeriodView, string> = {
 export default function DashboardPage() {
   const [currentView, setCurrentView] = useState<PeriodView>("month")
   const [currentDate, setCurrentDate] = useState<Date>(new Date())
-  const [otterMood, setOtterMood] = useState<FinancialMood>("neutral")
   const [celebratingSignal, setCelebratingSignal] = useState(0)
   const [achievementQueue, setAchievementQueue] = useState<NewlyUnlockedAchievement[]>([])
+  const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null)
   const router = useRouter()
-  const { user, token, isLoading: authIsLoading, isAuthenticated } = useAuth()
+  const { user, token, isLoading: authIsLoading, isAuthenticated, hasLoggedOut } = useAuth()
   const { achievements, achievementSummary, refetch: refetchAchievements } = useAchievements()
-  const { transactions, isLoading: isDataLoading, addTransaction, deleteTransaction } = useTransactions(
-    token,
-    isAuthenticated
-  )
+  // 表示中の期間（日・月・年）の取引だけを取得する
+  const range = useMemo(() => periodRange(currentView, currentDate), [currentView, currentDate])
+  const {
+    transactions,
+    hasMore,
+    summary: periodSummary,
+    isLoading: isDataLoading,
+    monthlySummary,
+    addTransaction,
+    updateTransaction,
+    deleteTransaction,
+  } = useTransactions(token, isAuthenticated, range)
 
   const currentAchievement = achievementQueue[0] ?? null
 
@@ -75,9 +85,6 @@ export default function DashboardPage() {
     return daysSinceSignIn >= 7
   }, [user])
 
-  // 表示 mood の優先順位: excited（実績解除直後） > sleeping（長期未ログイン） > 財務状況
-  const displayMood: OtterMood =
-    celebratingSignal > 0 ? "excited" : isSleeping ? "sleeping" : otterMood
 
   const handleAchievementClose = useCallback(() => {
     setAchievementQueue((prev) => prev.slice(1))
@@ -93,16 +100,21 @@ export default function DashboardPage() {
   )
 
   useEffect(() => {
-    if (!authIsLoading && !isAuthenticated) {
+    // 自分でログアウトした場合は useAuth がトップへ移動させるので、ここでは /login へ飛ばさない
+    if (!authIsLoading && !isAuthenticated && !hasLoggedOut) {
       router.push("/login")
     }
-  }, [authIsLoading, isAuthenticated, router])
+  }, [authIsLoading, isAuthenticated, hasLoggedOut, router])
 
-  // 今月の収支でカワウソの気分を決める（判定は lib/otter-mood.ts）
-  useEffect(() => {
-    const { income, expense } = summarize(filterByPeriod(transactions, "month", new Date()))
-    setOtterMood(getFinancialMood(income, expense))
-  }, [transactions])
+  // 今月の収支でカワウソの気分を決める（判定は lib/otter-mood.ts）。表示中の期間に関係なく今月で見るため、月ごとの集計を使う
+  const otterMood = useMemo<FinancialMood>(() => {
+    const thisMonth = monthlySummary.find((m) => m.month === format(new Date(), "yyyy-MM"))
+    return thisMonth ? getFinancialMood(thisMonth.income, thisMonth.expense) : "neutral"
+  }, [monthlySummary])
+
+  // 表示 mood の優先順位: excited（実績解除直後） > sleeping（長期未ログイン） > 財務状況
+  const displayMood: OtterMood =
+    celebratingSignal > 0 ? "excited" : isSleeping ? "sleeping" : otterMood
 
   // 実績解除の高揚状態は一定時間で解除し、通常の mood に戻す
   // カウンター方式にすることで連続解除時も毎回タイマーが再起動される
@@ -112,30 +124,52 @@ export default function DashboardPage() {
     return () => clearTimeout(timer)
   }, [celebratingSignal])
 
+  // 登録・更新で新たに解除された実績を知らせる
+  const celebrateUnlocked = useCallback(
+    (newlyUnlocked: NewlyUnlockedAchievement[]) => {
+      if (newlyUnlocked.length === 0) return
+      newlyUnlocked.forEach((ach) => {
+        toast.success(`実績解除: ${ach.title}`, { description: ach.description })
+      })
+      setAchievementQueue((prev) => [...prev, ...newlyUnlocked])
+      setCelebratingSignal((n) => n + 1)
+      // 解除で成長ステージが変わる可能性があるため、表示を変えずに再取得する
+      void refetchAchievements({ silent: true })
+    },
+    [refetchAchievements]
+  )
+
   const handleSubmit = useCallback(
-    async (params: CreateTransactionParams) => {
+    async (params: TransactionParams) => {
       const newlyUnlocked = await addTransaction(params)
       if (newlyUnlocked === null) return false
-
-      if (newlyUnlocked.length > 0) {
-        newlyUnlocked.forEach((ach) => {
-          toast.success(`実績解除: ${ach.title}`, { description: ach.description })
-        })
-        setAchievementQueue((prev) => [...prev, ...newlyUnlocked])
-        setCelebratingSignal((n) => n + 1)
-        // 解除で成長ステージが変わる可能性があるため、表示を変えずに再取得する
-        void refetchAchievements({ silent: true })
-      }
+      celebrateUnlocked(newlyUnlocked)
       return true
     },
-    [addTransaction, refetchAchievements]
+    [addTransaction, celebrateUnlocked]
+  )
+
+  const handleUpdate = useCallback(
+    async (params: TransactionParams) => {
+      if (!editingTransaction) return false
+      const newlyUnlocked = await updateTransaction(editingTransaction.id, params)
+      if (newlyUnlocked === null) return false
+      // 日付を変えて表示中の期間から外れると一覧から消えるので、消えた理由を伝える
+      const movedOut = filterByPeriod([{ ...editingTransaction, date: params.date }], currentView, currentDate).length === 0
+      toast.success("取引を更新しました", movedOut ? { description: "表示中の期間の外に移動しました" } : undefined)
+      setEditingTransaction(null)
+      celebrateUnlocked(newlyUnlocked)
+      return true
+    },
+    [editingTransaction, updateTransaction, celebrateUnlocked, currentView, currentDate]
   )
 
   const filteredTransactions = useMemo(
     () => filterByPeriod(transactions, currentView, currentDate),
     [transactions, currentView, currentDate]
   )
-  const { income: totalIncome, expense: totalExpense, balance } = summarize(filteredTransactions)
+  // 合計はサーバーが期間全体で出した値を使う（件数上限で一覧が切られても正しい）。取得中・変更直後は一覧から計算する
+  const { income: totalIncome, expense: totalExpense, balance } = periodSummary ?? summarize(filteredTransactions)
 
   if (authIsLoading) {
     return (
@@ -154,6 +188,24 @@ export default function DashboardPage() {
   return (
     <div className="p-4 md:p-6 lg:p-8 space-y-8">
       <AchievementUnlockModal achievement={currentAchievement} onClose={handleAchievementClose} />
+
+      <Dialog
+        open={editingTransaction !== null}
+        onOpenChange={(open) => {
+          if (!open) setEditingTransaction(null)
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>取引を編集</DialogTitle>
+            <DialogDescription>金額・種別・カテゴリー・日付を直せます。実績の進捗も再計算されます。</DialogDescription>
+          </DialogHeader>
+          {editingTransaction && (
+            // key で取引ごとにフォームを作り直し、初期値を確実に入れ替える
+            <TransactionForm key={editingTransaction.id} initialTransaction={editingTransaction} onSubmit={handleUpdate} />
+          )}
+        </DialogContent>
+      </Dialog>
       <Tutorial />
 
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -242,7 +294,17 @@ export default function DashboardPage() {
             <CardTitle>取引履歴</CardTitle>
           </CardHeader>
           <CardContent>
-            <TransactionList transactions={filteredTransactions} isLoading={isDataLoading} onDelete={deleteTransaction} />
+            {hasMore && (
+              <p role="status" className="mb-3 text-sm text-muted-foreground">
+                この期間の取引が多いため、新しいものから一部だけを表示しています。日別・月別に切り替えると全件を確認できます。
+              </p>
+            )}
+            <TransactionList
+              transactions={filteredTransactions}
+              isLoading={isDataLoading}
+              onEdit={setEditingTransaction}
+              onDelete={deleteTransaction}
+            />
           </CardContent>
         </Card>
 
@@ -300,7 +362,7 @@ export default function DashboardPage() {
             <CardTitle>月次推移</CardTitle>
           </CardHeader>
           <CardContent className="h-[300px]">
-            <MonthlyTrend transactions={transactions} />
+            <MonthlyTrend data={monthlySummary} />
           </CardContent>
         </Card>
       </div>

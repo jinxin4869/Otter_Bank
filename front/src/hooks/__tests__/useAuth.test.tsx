@@ -1,5 +1,7 @@
 import { renderHook, waitFor, act } from "@testing-library/react"
+import { toast } from "sonner"
 import { useAuth } from "@/hooks/useAuth"
+import { AUTH_STATE_CHANGED_EVENT } from "@/lib/api-client"
 
 // API のベース URL（getApiUrl は NODE_ENV=test では NEXT_PUBLIC_API_URL を読む）
 process.env.NEXT_PUBLIC_API_URL = "http://localhost:3000"
@@ -64,7 +66,7 @@ describe("useAuth", () => {
     expect(localStorage.getItem("authToken")).toBeNull()
   })
 
-  it("logout で認証情報を削除しログイン画面へ遷移する", async () => {
+  it("logout で認証情報を削除し、トーストを出してトップページへ遷移する", async () => {
     localStorage.setItem("authToken", "valid-token")
     localStorage.setItem("isLoggedIn", "true")
     mockFetch({ ok: true, json: async () => ({ user: { id: 1, email: "a@b.c", username: "a" } }) })
@@ -79,7 +81,125 @@ describe("useAuth", () => {
     expect(result.current.isAuthenticated).toBe(false)
     expect(localStorage.getItem("authToken")).toBeNull()
     expect(localStorage.getItem("isLoggedIn")).toBeNull()
-    expect(pushMock).toHaveBeenCalledWith("/login")
+    expect(result.current.hasLoggedOut).toBe(true)
+    expect(toast.success).toHaveBeenCalledWith("ログアウトしました")
+    expect(pushMock).toHaveBeenCalledWith("/")
+    expect(pushMock).not.toHaveBeenCalledWith("/login")
+  })
+})
+
+describe("useAuth（退会）", () => {
+  const verifiedUser = { id: 1, email: "dev@example.com", username: "devuser" }
+  const originalFetch = global.fetch
+
+  beforeEach(() => {
+    localStorage.clear()
+    jest.clearAllMocks()
+    jest.spyOn(console, "error").mockImplementation(() => {})
+    localStorage.setItem("authToken", "access-token")
+  })
+
+  afterEach(() => {
+    global.fetch = originalFetch
+    jest.restoreAllMocks()
+  })
+
+  const mockApi = (deleteResponse: { ok: boolean; status: number; body?: unknown }) => {
+    global.fetch = jest.fn(async (url: string, init?: RequestInit) => {
+      if (String(url).endsWith("/user") && init?.method === "DELETE") {
+        return { ok: deleteResponse.ok, status: deleteResponse.status, json: async () => deleteResponse.body ?? {} }
+      }
+      return { ok: true, status: 200, json: async () => ({ user: verifiedUser }) }
+    }) as unknown as typeof fetch
+  }
+
+  it("退会に成功したら認証情報を消し、ログアウト API は呼ばずにトップへ移動する", async () => {
+    mockApi({ ok: true, status: 204 })
+    const { result } = renderHook(() => useAuth())
+    await waitFor(() => expect(result.current.isAuthenticated).toBe(true))
+
+    let ok = false
+    await act(async () => {
+      ok = await result.current.deleteAccount()
+    })
+
+    expect(ok).toBe(true)
+    const calls = (global.fetch as jest.Mock).mock.calls
+    const deleteCall = calls.find(([url, init]) => String(url).endsWith("/user") && init?.method === "DELETE")
+    // リフレッシュトークンの Cookie を消す応答を受け取れるよう credentials を付ける
+    expect(deleteCall?.[1]?.credentials).toBe("include")
+    expect(calls.some(([url]) => String(url).endsWith("/sessions"))).toBe(false)
+    expect(result.current.isAuthenticated).toBe(false)
+    expect(result.current.hasLoggedOut).toBe(true)
+    expect(localStorage.getItem("authToken")).toBeNull()
+    expect(toast.success).toHaveBeenCalledWith("退会しました。ご利用ありがとうございました")
+    expect(pushMock).toHaveBeenCalledWith("/")
+  })
+
+  it("退会に失敗したらエラーを知らせ、ログイン状態を保つ", async () => {
+    mockApi({ ok: false, status: 500, body: { error: "サーバーエラー" } })
+    const { result } = renderHook(() => useAuth())
+    await waitFor(() => expect(result.current.isAuthenticated).toBe(true))
+
+    let ok = true
+    await act(async () => {
+      ok = await result.current.deleteAccount()
+    })
+
+    expect(ok).toBe(false)
+    expect(toast.error).toHaveBeenCalledWith("退会できませんでした", expect.anything())
+    expect(result.current.isAuthenticated).toBe(true)
+    expect(localStorage.getItem("authToken")).toBe("access-token")
+  })
+})
+
+describe("useAuth（refreshUser）", () => {
+  const originalFetch = global.fetch
+
+  beforeEach(() => {
+    localStorage.clear()
+    jest.clearAllMocks()
+    jest.spyOn(console, "error").mockImplementation(() => {})
+    localStorage.setItem("authToken", "access-token")
+  })
+
+  afterEach(() => {
+    global.fetch = originalFetch
+    jest.restoreAllMocks()
+  })
+
+  it("取り直したユーザー情報で表示を更新する", async () => {
+    let username = "before"
+    global.fetch = jest.fn(async () => ({
+      ok: true,
+      status: 200,
+      json: async () => ({ user: { id: 1, email: "a@b.c", username } }),
+    })) as unknown as typeof fetch
+    const { result } = renderHook(() => useAuth())
+    await waitFor(() => expect(result.current.user?.username).toBe("before"))
+
+    username = "after"
+    await act(async () => {
+      await result.current.refreshUser()
+    })
+    expect(result.current.user?.username).toBe("after")
+  })
+
+  it("通信に失敗しても表示中のユーザーを消さない", async () => {
+    global.fetch = jest.fn(async () => ({
+      ok: true,
+      status: 200,
+      json: async () => ({ user: { id: 1, email: "a@b.c", username: "otter" } }),
+    })) as unknown as typeof fetch
+    const { result } = renderHook(() => useAuth())
+    await waitFor(() => expect(result.current.isAuthenticated).toBe(true))
+
+    global.fetch = jest.fn().mockRejectedValue(new TypeError("Failed to fetch")) as unknown as typeof fetch
+    await act(async () => {
+      await result.current.refreshUser()
+    })
+    expect(result.current.isAuthenticated).toBe(true)
+    expect(result.current.user?.username).toBe("otter")
   })
 })
 
@@ -145,6 +265,38 @@ describe("useAuth（複数インスタンス間の認証状態の共有）", () 
     })
 
     await waitFor(() => expect(header.result.current.isAuthenticated).toBe(false))
+    // 受け取った側も「自分でログアウトした」と分かる（ログイン必須ページが /login へ飛ばさないため）
+    expect(header.result.current.hasLoggedOut).toBe(true)
+  })
+
+  it("API 呼び出し中のセッション切れは、自分でのログアウトとして扱わない", async () => {
+    localStorage.setItem("authToken", "access-token")
+    const page = renderHook(() => useAuth())
+    await waitFor(() => expect(page.result.current.isAuthenticated).toBe(true))
+
+    act(() => {
+      window.dispatchEvent(new CustomEvent(AUTH_STATE_CHANGED_EVENT, { detail: { expired: true } }))
+    })
+
+    await waitFor(() => expect(page.result.current.isAuthenticated).toBe(false))
+    expect(page.result.current.hasLoggedOut).toBe(false)
+  })
+
+  it("ログアウト後に再びログインしたら hasLoggedOut は戻る", async () => {
+    localStorage.setItem("authToken", "access-token")
+    const { result } = renderHook(() => useAuth())
+    await waitFor(() => expect(result.current.isAuthenticated).toBe(true))
+
+    await act(async () => {
+      await result.current.logout()
+    })
+    expect(result.current.hasLoggedOut).toBe(true)
+
+    await act(async () => {
+      await result.current.login("new-token", "dev@example.com")
+    })
+    expect(result.current.isAuthenticated).toBe(true)
+    expect(result.current.hasLoggedOut).toBe(false)
   })
 
   it("検証中にログアウトされたら、遅れて返った検証結果で認証済みに戻らない", async () => {

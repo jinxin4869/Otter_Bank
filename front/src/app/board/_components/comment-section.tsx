@@ -21,6 +21,7 @@ import { ThumbsUp, Send, Trash2 } from "lucide-react"
 import { type Comment } from "@/types/post"
 import { getUserInitial } from "./board-constants"
 import { cn } from "@/lib/utils"
+import { COMMENT_MAX_LENGTH } from "@/lib/text-limits"
 
 type CommentSectionProps = {
   comments: Comment[]
@@ -69,6 +70,7 @@ function CommentSection({
               onChange={(e) => setContent(e.target.value)}
               placeholder="コメントを入力..."
               rows={3}
+              maxLength={COMMENT_MAX_LENGTH}
               className="text-foreground"
             />
             <div className="flex justify-end mt-2">

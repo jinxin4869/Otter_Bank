@@ -13,7 +13,9 @@ class Contact < ApplicationRecord
     'feature' => '機能リクエスト',
     'other' => 'その他'
   }.freeze
+  # 文字数の上限（画面の maxLength は front/src/lib/text-limits.ts と揃える）
+  MESSAGE_MAX_LENGTH = 5_000
 
   validates :subject, presence: true, inclusion: { in: SUBJECT_LABELS.keys }
-  validates :message, presence: true
+  validates :message, presence: true, length: { maximum: MESSAGE_MAX_LENGTH }
 end
