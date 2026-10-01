@@ -5,6 +5,7 @@ import Image from "next/image"
 import { cn } from "@/lib/utils"
 import { TIER_CONFIG, TierIcon } from "@/lib/tier"
 import type { AchievementTier } from "@/types/achievement"
+import BadgeEffect from "./badge-effect"
 
 type AchievementImageProps = {
   imageUrl: string | null
@@ -32,15 +33,20 @@ export default function AchievementImage({ imageUrl, title, tier, unlocked }: Ac
     )
   }
 
+  // バッジは円形メダルの正方形画像。エフェクトの位置もバッジ基準の % なので、正方形の枠に収めて中央に置く
   return (
-    <Image
-      src={imageUrl}
-      alt={title}
-      fill
-      sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 25vw"
-      style={{ objectFit: "cover" }}
-      className={cn("rounded-md", lockedClass)}
-      onError={() => setFailed(true)}
-    />
+    <div className="relative mx-auto aspect-square h-full">
+      <BadgeEffect tier={tier} unlocked={unlocked}>
+        <Image
+          src={imageUrl}
+          alt={title}
+          fill
+          sizes="(max-width: 640px) 60vw, (max-width: 1280px) 30vw, 15vw"
+          style={{ objectFit: "contain" }}
+          className={lockedClass || undefined}
+          onError={() => setFailed(true)}
+        />
+      </BadgeEffect>
+    </div>
   )
 }

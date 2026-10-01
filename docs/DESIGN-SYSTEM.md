@@ -153,7 +153,7 @@
 | platinum | プラチナ | `#B39DDB` | purple 系 |
 
 - UI では `front/src/lib/tier.tsx` の `TIER_CONFIG` を唯一の定義とし、ティア色はこのファイルの外に書かない。ここだけは §2.4 の「パレット色の直書き禁止」の例外とする
-- 基準色（HEX）はバッジ画像などイラスト制作時に使う
+- 基準色（HEX）はバッジ画像（§5.4）などイラスト制作時に使う
 
 ### 2.6 マスコット・イラスト用カラー
 
@@ -222,6 +222,36 @@ UI トークンとは別に管理し、イラスト制作時のみ使う。コ�
 | `AchievementUnlockModal` | `components/achievement-unlock-modal.tsx` | 実績解除の演出 |
 | `ExpensePieChart` / `MonthlyTrend` | `components/` | recharts。ページ側で `next/dynamic({ ssr: false })` |
 | `Tutorial` | `components/tutorial.tsx` | 初回ガイド |
+| `AchievementImage` / `BadgeEffect` | `app/collection/_components/` | 実績バッジの表示と gold・platinum のエフェクト（§5.4） |
+
+### 5.4 実績バッジ
+
+全 20 種。デザインの一覧は [design/badges/otter_bank_badges_preview.html](design/badges/otter_bank_badges_preview.html)（ブラウザで開くだけで見られる。オフライン可）。
+
+| ファイル | 場所 | 用途 |
+|---|---|---|
+| バッジ画像（PNG 512×512） | `front/public/achievements/<key>.png` | アプリで表示する。`AchievementService` の `image_url` と同じパス |
+| バッジの原本（SVG） | `docs/design/badges/svg/` | 修正・書き出し用の原本。アプリでは読み込まない |
+| ティアの空の枠（SVG・PNG） | `docs/design/badges/svg/frame_<tier>.svg` / `png/` | 新しいバッジを作るときの土台 |
+
+- 形はティアで決まる（bronze・silver は丸いメダル、gold は星とリボン付き、platinum はギザギザの縁・宝石・リボン付き）。全バッジ共通のカワウソ要素として外周の下に肉球のシールを置く
+- 線と色は §2.5 のティア基準色と §2.6 のイラスト用カラーに合わせる
+- 正方形の画像なので `objectFit: "contain"` で表示し、正方形の枠に収めて中央に置く（`cover` だと円の端が切れる）
+- 未達成は `opacity-60 grayscale`。画像が無い・読み込めないときはティア色のパネル + `TierIcon` に切り替える
+- 新しい実績を足すときは、SVG 原本 → PNG 書き出しを `public/achievements/` に置き、`image_url` を同じパスにする
+
+**エフェクト（`BadgeEffect`）** — PNG には焼き込まず、獲得済みの gold・platinum にだけアプリ側で重ねる。
+
+| ティア | 演出 |
+|---|---|
+| gold | 光の帯がメダルを横切る（3.2s）+ 星 3 個がまたたく |
+| platinum | gold の演出（星は 5 個）+ 背後で後光がゆっくり回る（14s） |
+
+- bronze・silver と未達成には付けない
+- `prefers-reduced-motion` では動きを止め、星は出したままにする
+- platinum の後光は画像の外に少しはみ出す。親要素に `overflow: hidden` を付けない
+- CSS は `badge-effect.module.css`（CSS Modules）。位置の % はバッジ画像に対する値
+- エフェクトの色（星・後光・光の帯）はイラストの一部として §2.6 のイラスト用カラーとティア基準色を直接書く。§2.4 の直書き禁止の例外で、トークンにはしない
 
 ## 6. カワウソ（マスコット）
 
@@ -247,7 +277,7 @@ UI トークンとは別に管理し、イラスト制作時のみ使う。コ�
 | 入力エラー | `.animate-shake`（0.5s） |
 | ローディング | `Loader2` + `animate-spin` |
 
-- 1 回の演出は 1 秒以内。ループするのはローディングのみ
+- 1 回の演出は 1 秒以内。ループするのはローディングと、獲得済みの gold・platinum バッジのエフェクト（§5.4）のみ
 - `prefers-reduced-motion` のユーザーには `motion-safe:` / `motion-reduce:` で演出を抑える
 
 ## 8. 状態の表現
