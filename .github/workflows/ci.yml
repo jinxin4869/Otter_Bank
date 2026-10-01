@@ -20,8 +20,10 @@ jobs:
         id: filter
         with:
           filters: |
+            # CI の設定自体を変えたときも、バックエンドのジョブ（Docker ビルドを含む）で確かめる
             backend:
               - 'back/**'
+              - '.github/workflows/ci.yml'
             frontend:
               - 'front/**'
 
@@ -129,3 +131,61 @@ jobs:
           RAILS_ENV: test
           DATABASE_URL: postgres://postgres:postgres@localhost:5432/otter_bank_test
         run: bundle exec rspec --format documentation
+
+  # 本番で使う Docker イメージをビルドし、production 設定で起動できるかを確かめる。
+  # 必須の環境変数（ENV.fetch）の追加・Dockerfile・production でだけ読む initializer の変更は
+  # RSpec（RAILS_ENV=test）では検出できず、マージ後の Render のデプロイで初めて落ちるため
+  build_backend:
+    needs: changes
+    if: ${{ needs.changes.outputs.backend == 'true' }}
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: --health-cmd="pg_isready" --health-interval=10s --health-timeout=5s --health-retries=3
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Build production image
+        run: docker build -f back/Dockerfile -t otter-bank-api:ci back
+
+      # 値はダミー。production.rb や initializers で必須の環境変数（ENV.fetch）を足したら、render.yaml とここにも足す
+      - name: Boot with production settings
+        run: |
+          docker run -d --name api --network host \
+            -e DATABASE_URL=postgres://postgres:postgres@localhost:5432/otter_bank_production \
+            -e SECRET_KEY_BASE=ci-dummy-secret-key-base-0123456789abcdef0123456789abcdef \
+            -e JWT_SECRET=ci-dummy-jwt-secret \
+            -e SMTP_ADDRESS=smtp.example.com \
+            -e SMTP_USERNAME=ci \
+            -e SMTP_PASSWORD=ci \
+            -e MAILER_FROM=ci@example.com \
+            -e FRONTEND_URL=https://example.com \
+            -e PORT=3000 \
+            otter-bank-api:ci ./bin/rails server
+          # エントリポイントが db:prepare（空の DB へのマイグレーション）を済ませてから puma が立ち上がる。
+          # force_ssl のため、HTTPS 経由を示すヘッダーを付けて /up を叩く
+          for _ in $(seq 1 60); do
+            if curl -fsS -H 'X-Forwarded-Proto: https' http://localhost:3000/up > /dev/null; then
+              echo "API booted with production settings"
+              exit 0
+            fi
+            if [ "$(docker inspect -f '{{.State.Running}}' api)" != "true" ]; then
+              break
+            fi
+            sleep 2
+          done
+          docker logs api
+          exit 1
+
+      - name: Stop container
+        if: always()
+        run: docker rm -f api || true

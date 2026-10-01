@@ -152,7 +152,7 @@ contacts                       (ユーザーと非連携)
 
 | 項目 | 内容 |
 |---|---|
-| CI（GitHub Actions） | back: Brakeman / RuboCop / RSpec（PostgreSQL サービス）、front: ESLint / tsc / Jest / next build |
+| CI（GitHub Actions） | back: Brakeman / RuboCop / RSpec（PostgreSQL サービス）/ 本番 Docker イメージのビルドと production 設定での起動確認、front: ESLint / tsc / Jest / next build |
 | pre-commit | husky + lint-staged（RuboCop・ESLint --fix） |
 | 依存更新 | Dependabot |
 | レート制限 | `login/ip` 5回/分、`signup/ip` 10回/時、`password_reset/ip` 5回/時、`contact/ip` 3回/時、`posts/ip` `comments/ip` 各 10回/分、`OAuth/ip` 10回/分 |
