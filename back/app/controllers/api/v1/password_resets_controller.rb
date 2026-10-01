@@ -35,6 +35,7 @@ module Api
 
           user.clear_password_reset_token!
           user.revoke_all_refresh_tokens!
+          user.confirm_email! # リセットのリンクを開けた＝アドレスの持ち主なので、確認済みにする
           true
         end
 

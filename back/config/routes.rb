@@ -14,6 +14,8 @@ Rails.application.routes.draw do
       get 'auth/google/callback', to: 'auth#google_callback'
       post 'auth/reset-password', to: 'password_resets#request_reset'
       post 'auth/reset-password/confirm', to: 'password_resets#confirm_reset'
+      post 'auth/confirm-email', to: 'email_confirmations#confirm'
+      post 'auth/confirm-email/resend', to: 'email_confirmations#resend'
 
       # 家計簿管理
       resources :transactions, only: %i[index create update destroy] do # 取引関連

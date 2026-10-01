@@ -48,6 +48,19 @@ RSpec.describe 'Rack::Attack レート制限', type: :request do
     end
   end
 
+  describe 'メールアドレスの確認 (POST /api/v1/auth/confirm-email)' do
+    let(:env) { { 'REMOTE_ADDR' => '6.6.6.6' } }
+
+    it '確認と送り直しを合わせて 1 時間に 10 回を超えると 429 を返す' do
+      5.times { post '/api/v1/auth/confirm-email/resend', params: { email: 'a@example.com' }, env: env }
+      5.times { post '/api/v1/auth/confirm-email', params: { token: 'x' }, env: env }
+      expect(response.status).not_to eq(429)
+
+      post '/api/v1/auth/confirm-email', params: { token: 'x' }, env: env
+      expect(response.status).to eq(429)
+    end
+  end
+
   describe 'パスワードリセット (POST /api/v1/auth/reset-password)' do
     it 'リセットメールの送信は 1 時間に 5 回を超えると 429 を返す' do
       6.times do

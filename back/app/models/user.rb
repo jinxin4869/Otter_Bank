@@ -23,6 +23,40 @@ class User < ApplicationRecord
 
   after_create :setup_initial_achievements # ユーザー作成時に初期実績を生成
 
+  # メールアドレスを確認しないままでもログインできる期間。過ぎたら確認するまでログインできない
+  EMAIL_CONFIRMATION_GRACE_PERIOD = 7.days
+  # 確認しないままのアカウントを残しておく期間。過ぎたら rake users:purge_unconfirmed で削除する
+  UNCONFIRMED_RETENTION_PERIOD = 30.days
+
+  # 確認メールのリンクに載せるトークン。メールアドレスが変わると無効になる
+  generates_token_for :email_confirmation, expires_in: 24.hours do
+    email
+  end
+
+  scope :unconfirmed_past_retention, lambda {
+    where(email_confirmed_at: nil).where(created_at: ...UNCONFIRMED_RETENTION_PERIOD.ago)
+  }
+
+  def email_confirmed?
+    email_confirmed_at.present?
+  end
+
+  # 確認せずにログインできる期限（確認済みなら nil）
+  def email_confirmation_deadline
+    return nil if email_confirmed?
+
+    created_at + EMAIL_CONFIRMATION_GRACE_PERIOD
+  end
+
+  # 確認しないまま期限を過ぎたか。過ぎていればログイン・API の利用を止める
+  def email_confirmation_expired?
+    !email_confirmed? && email_confirmation_deadline.past?
+  end
+
+  def confirm_email!
+    update_column(:email_confirmed_at, Time.current) unless email_confirmed?
+  end
+
   # OAuthアカウントのみかどうか
   def oauth_only?
     oauth_providers.any? && password_digest.blank?
@@ -38,6 +72,7 @@ class User < ApplicationRecord
 
   # OAuthからユーザーを作成または検索
   def self.find_or_create_from_oauth(auth)
+    # omniauth-google-oauth2 は Google が確認済みのアドレスだけを info.email に入れる（未確認なら nil）
     return nil unless auth&.info&.email
 
     # 既存のOAuthプロバイダーをチェック
@@ -48,13 +83,16 @@ class User < ApplicationRecord
     # 既存のユーザーをメールアドレスで検索
     user = User.find_by(email: auth.info.email)
 
-    unless user
+    if user
+      user.take_over_by_verified_owner! unless user.email_confirmed?
+    else
       username = generate_username_from_email(auth.info.email)
 
       user = User.new(
         email: auth.info.email,
         username: username,
-        name: auth.info.name || username
+        name: auth.info.name || username,
+        email_confirmed_at: Time.current # Google が確認済みのアドレスなので確認済みにする
       )
 
       user.save!(validate: false)
@@ -77,6 +115,17 @@ class User < ApplicationRecord
   rescue StandardError => e
     Rails.logger.error "OAuth 予期しないエラー: #{e.message}"
     nil
+  end
+
+  # 未確認のアカウントは、アドレスの持ち主ではない人が先に登録した可能性がある。
+  # Google がアドレスの持ち主だと確認したので、先に設定されたパスワードと全端末のログインを無効にしてから確認済みにする
+  # （そのままつなぐと、先に登録した人がパスワードで持ち主の家計データを見られてしまう）。
+  # 発行済みのアクセストークンは失効できないため、有効期限（30 分）までは使われうる
+  def take_over_by_verified_owner!
+    transaction do
+      update_columns(password_digest: nil, email_confirmed_at: Time.current)
+      revoke_all_refresh_tokens!
+    end
   end
 
   TOKEN_EXPIRY_HOURS = 2

@@ -5,6 +5,12 @@ FactoryBot.define do
     sequence(:username) { |n| "testuser#{n}" }
     sequence(:email) { |n| "test#{n}@example.com" }
     password { 'password123' }
+    email_confirmed_at { Time.current }
+
+    # メールアドレスを確認していないユーザー
+    trait :unconfirmed do
+      email_confirmed_at { nil }
+    end
 
     # 初期実績の自動生成をスキップしたい場合に使用
     trait :without_achievements do

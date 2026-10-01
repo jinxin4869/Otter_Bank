@@ -42,9 +42,18 @@ class ApplicationController < ActionController::API
     nil
   end
 
-  # 自分のユーザー情報として返す JSON。admin はフロントが管理者用の削除メニューを出すために使う
+  # 自分のユーザー情報として返す JSON。admin はフロントが管理者用の削除メニューを出すために使う。
+  # email_confirmed / email_confirmation_deadline はフロントが確認を促すバナーを出すために使う
   def user_json(user)
-    { id: user.id, email: user.email, username: user.username, name: user.name, admin: user.admin }
+    { id: user.id, email: user.email, username: user.username, name: user.name, admin: user.admin,
+      email_confirmed: user.email_confirmed?, email_confirmation_deadline: user.email_confirmation_deadline }
+  end
+
+  # 確認しないまま期限を過ぎたユーザーには、確認するまで使わせない。
+  # code はフロントが確認メールを送り直す画面を出すために使う
+  def render_email_unconfirmed
+    render json: { error: 'メールアドレスの確認が済んでいません。届いたメールのリンクから確認してください', code: 'email_unconfirmed' },
+           status: :forbidden
   end
 
   # 管理者が他人の投稿・コメントを削除したときの記録（後から誰が何を消したか追えるように ID だけ残す）
@@ -78,6 +87,7 @@ class ApplicationController < ActionController::API
       if token
         @current_user = user_from_token!(token)
         Rails.logger.info "Current user set: #{Rails.env.development? ? @current_user.id : '[MASKED]'}"
+        render_email_unconfirmed if @current_user.email_confirmation_expired?
       else
         Rails.logger.error 'Authorization token not provided' if Rails.env.development?
         render json: { error: '認証トークンが指定されていません', code: 'missing_header' }, status: :unauthorized

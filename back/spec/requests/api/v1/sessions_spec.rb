@@ -70,6 +70,36 @@ RSpec.describe 'Api::V1::Sessions', type: :request do
         expect(json['code']).to eq('invalid_credentials')
       end
     end
+
+    context 'メールアドレスを確認していないとき' do
+      let(:user) { create(:user, :unconfirmed, password: password) }
+
+      it '期限内ならログインできる' do
+        post '/api/v1/sessions', params: { email: user.email, password: password }
+        expect(response).to have_http_status(:ok)
+      end
+
+      it '期限を過ぎたら 403 と email_unconfirmed コードを返し、トークンを発行しない' do
+        user
+        travel_to(8.days.from_now) do
+          expect do
+            post '/api/v1/sessions', params: { email: user.email, password: password }
+          end.not_to change(RefreshToken, :count)
+          expect(response).to have_http_status(:forbidden)
+          expect(response.parsed_body['code']).to eq('email_unconfirmed')
+          expect(response.parsed_body['token']).to be_nil
+        end
+      end
+
+      it '期限を過ぎていてもパスワードが違えば、確認状態を知らせず 401 を返す' do
+        user
+        travel_to(8.days.from_now) do
+          post '/api/v1/sessions', params: { email: user.email, password: 'wrongpassword' }
+          expect(response).to have_http_status(:unauthorized)
+          expect(response.parsed_body['code']).to eq('invalid_credentials')
+        end
+      end
+    end
   end
 
   describe 'DELETE /api/v1/sessions' do

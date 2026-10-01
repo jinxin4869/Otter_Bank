@@ -26,6 +26,12 @@ class Rack::Attack
     req.ip if req.post? && req.path.start_with?('/api/v1/auth/reset-password')
   end
 
+  # メールアドレスの確認・確認メールの送り直しのレート制限（IPごとに1時間10回まで）。確認メールの大量送信を防ぐ。
+  # 確認と送り直しを合算するので、同じ IP から複数人が使う場合も考えてリセットより緩めにする
+  throttle('email_confirmation/ip', limit: 10, period: 1.hour) do |req|
+    req.ip if req.post? && req.path.start_with?('/api/v1/auth/confirm-email')
+  end
+
   # お問い合わせのレート制限（IPごとに1時間3回まで）
   throttle('contact/ip', limit: 3, period: 1.hour) do |req|
     req.ip if req.post? && req.path == '/api/v1/contacts'
