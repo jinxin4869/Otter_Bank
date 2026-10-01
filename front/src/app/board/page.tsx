@@ -15,6 +15,7 @@ import { useAuth } from "@/hooks/useAuth"
 import { usePosts } from "@/hooks/usePosts"
 import { useComments } from "@/hooks/useComments"
 import { type Post } from "@/types/post"
+import type { PostListFilters } from "@/lib/api"
 import { BOARD_CATEGORIES, SORT_OPTIONS, getCategoryColor } from "./_components/board-constants"
 import { TIER_CONFIG, isAchievementTier } from "@/lib/tier"
 import PostList from "./_components/post-list"
@@ -22,10 +23,39 @@ import PostDetailDialog from "./_components/post-detail-dialog"
 import CreatePostModal from "./_components/create-post-modal"
 import EditPostModal from "./_components/edit-post-modal"
 
+const SEARCH_DEBOUNCE_MS = 300
+
 export default function BoardPage() {
   const router = useRouter()
   const { user, token, isLoading: authIsLoading, isAuthenticated, hasLoggedOut } = useAuth()
   const searchParams = useSearchParams()
+
+  // 表示状態（検索・タブ・カテゴリ・並び替えはサーバーに渡し、全投稿を対象にする）
+  const [activeTab, setActiveTab] = useState("all")
+  const [searchTerm, setSearchTerm] = useState("")
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("")
+  const [sortOption, setSortOption] = useState("latest")
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([])
+
+  // 1 文字打つごとに取り直さないよう、入力が止まってから検索する
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearchTerm(searchTerm.trim()), SEARCH_DEBOUNCE_MS)
+    return () => clearTimeout(timer)
+  }, [searchTerm])
+
+  const postFilters = useMemo<PostListFilters>(() => {
+    const term = debouncedSearchTerm.toLowerCase()
+    return {
+      q: debouncedSearchTerm || undefined,
+      // 「投資」などカテゴリ名での検索も、そのカテゴリの投稿として拾う（保存値は "investment" など）
+      searchCategories: term
+        ? BOARD_CATEGORIES.filter((cat) => cat.label.toLowerCase().includes(term)).map((cat) => cat.value)
+        : undefined,
+      category: activeTab === "all" ? undefined : activeTab,
+      categories: selectedCategories.length > 0 ? selectedCategories : undefined,
+      sort: sortOption,
+    }
+  }, [debouncedSearchTerm, activeTab, selectedCategories, sortOption])
   const {
     posts,
     likedPostIds,
@@ -43,7 +73,7 @@ export default function BoardPage() {
     incrementViews,
     incrementCommentCount,
     decrementCommentCount,
-  } = usePosts(token, isAuthenticated)
+  } = usePosts(token, isAuthenticated, postFilters)
   const { likedCommentIds, fetchComments, addComment, deleteComment, toggleCommentLike, commentsFor } =
     useComments(token)
   const isAdmin = user?.isAdmin ?? false
@@ -54,12 +84,6 @@ export default function BoardPage() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [isFilterDialogOpen, setIsFilterDialogOpen] = useState(false)
   const [isPostDetailDialogOpen, setIsPostDetailDialogOpen] = useState(false)
-
-  // 表示状態
-  const [activeTab, setActiveTab] = useState("all")
-  const [searchTerm, setSearchTerm] = useState("")
-  const [sortOption, setSortOption] = useState("latest")
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([])
 
   // 操作対象の投稿
   const [editingPost, setEditingPost] = useState<Post | null>(null)
@@ -96,43 +120,6 @@ export default function BoardPage() {
     setShareInitialCategories(["experience"])
     setIsNewPostDialogOpen(true)
   }, [searchParams])
-
-  // 検索・タブ・カテゴリ・並び替えを適用した表示用の一覧
-  const filteredPosts = useMemo(() => {
-    let filtered = [...posts]
-    if (searchTerm) {
-      const term = searchTerm.toLowerCase()
-      filtered = filtered.filter(
-        (post) =>
-          post.title.toLowerCase().includes(term) ||
-          post.content.toLowerCase().includes(term) ||
-          post.author.toLowerCase().includes(term) ||
-          post.category.some((category) =>
-            BOARD_CATEGORIES.find((cat) => cat.value === category)?.label.toLowerCase().includes(term)
-          )
-      )
-    }
-    if (activeTab !== "all") {
-      filtered = filtered.filter((post) => post.category.includes(activeTab))
-    }
-    if (selectedCategories.length > 0) {
-      filtered = filtered.filter((post) =>
-        post.category.some((category) => selectedCategories.includes(category))
-      )
-    }
-    switch (sortOption) {
-      case "latest":
-        filtered.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-        break
-      case "popular":
-        filtered.sort((a, b) => b.likes - a.likes)
-        break
-      case "comments":
-        filtered.sort((a, b) => b.comments - a.comments)
-        break
-    }
-    return filtered
-  }, [posts, searchTerm, activeTab, selectedCategories, sortOption])
 
   const handleAddPost = useCallback(async (title: string, content: string, categories: string[]) => {
     if (await createPost(title, content, categories)) setIsNewPostDialogOpen(false)
@@ -261,7 +248,7 @@ export default function BoardPage() {
 
         <TabsContent value="all" className="mt-6">
           <PostList
-            posts={filteredPosts}
+            posts={posts}
             isLoading={isPostsLoading}
             likedPostIds={likedPostIds}
             bookmarkedPostIds={bookmarkedPostIds}
@@ -279,7 +266,7 @@ export default function BoardPage() {
         {BOARD_CATEGORIES.map((category) => (
           <TabsContent key={category.value} value={category.value} className="mt-6">
             <PostList
-              posts={filteredPosts}
+              posts={posts}
               isLoading={isPostsLoading}
               likedPostIds={likedPostIds}
               bookmarkedPostIds={bookmarkedPostIds}
@@ -301,7 +288,7 @@ export default function BoardPage() {
             <Button
               variant="outline"
               onClick={loadMore}
-              disabled={isLoadingMore}
+              disabled={isLoadingMore || isPostsLoading}
               className="min-w-32"
             >
               {isLoadingMore ? (

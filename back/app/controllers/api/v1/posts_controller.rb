@@ -16,7 +16,7 @@ module Api
         page = params[:page].to_i.clamp(1, Float::INFINITY).to_i
         per  = params[:per].to_i.zero? ? PER_PAGE : params[:per].to_i.clamp(1, 100)
 
-        scope       = Post.includes(:user, :categories).order(created_at: :desc)
+        scope       = filtered_posts.includes(:user, :categories)
         total_count = scope.count
         @posts      = scope.limit(per).offset((page - 1) * per)
         total_pages = (total_count.to_f / per).ceil
@@ -103,6 +103,23 @@ module Api
       end
 
       private
+
+      # 一覧の検索・カテゴリ絞り込み・並び替え（読み込み済みの範囲ではなく全投稿が対象）
+      def filtered_posts
+        scope = Post.all
+        term = params[:q].to_s.strip.first(Post::SEARCH_TERM_MAX_LENGTH)
+        scope = scope.search(term, string_list(:search_categories)) if term.present?
+        scope = scope.in_categories(params[:category].to_s) if params[:category].present?
+        categories = string_list(:categories)
+        scope = scope.in_categories(categories) if categories.any?
+        scope.sorted_by(params[:sort])
+      end
+
+      # 配列パラメーター（categories[]=a&categories[]=b）を文字列の配列にする。不正な形は空として扱う
+      def string_list(key)
+        value = params[key]
+        value.is_a?(Array) ? value.map(&:to_s).compact_blank : []
+      end
 
       def set_post_with_associations
         load_post(params.expect(:id), Post.includes(:user, :categories))

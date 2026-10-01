@@ -111,7 +111,7 @@ Rack::Attack（レート制限）→ Rack::Cors → ApplicationController#author
 |---|---|
 | 認証 | `POST /users` `GET/PATCH/DELETE /user` `POST/DELETE /sessions` `GET /auth/verify` `POST /auth/refresh` `GET /auth/google(/callback)` `POST /auth/reset-password(/confirm)` |
 | 家計 | `/transactions`（一覧は `start_date` `end_date` で期間を指定し、上限 500 件・超えたら `has_more`。+ `GET /transactions/monthly_summary?months=6`）`/savings_goals` `/budgets`（+ `GET /budgets/current`）`/achievements` |
-| 掲示板 | `/posts`（+ `increment_views` `like` `unlike`）`/posts/:id/comments`（+ `like` `unlike`）`/posts/:id/bookmark` |
+| 掲示板 | `/posts`（+ `increment_views` `like` `unlike`）`/posts/:id/comments`（+ `like` `unlike`）`/posts/:id/bookmark`。`GET /posts` は `page` `per` `q` `search_categories[]` `category` `categories[]` `sort`（latest / popular / comments）を受け、全投稿を対象に検索・並び替えてからページングする |
 | その他 | `POST /contacts` `GET /health` |
 
 すべて `/api/v1` 配下。正確な一覧は `bin/rails routes` を正とする。
