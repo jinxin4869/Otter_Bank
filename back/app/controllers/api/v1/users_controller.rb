@@ -40,7 +40,9 @@ module Api
           end
         end
 
-        if @current_user.update(update_user_params)
+        if update_user_and_revoke_sessions
+          # 他の端末は締め出し、操作中のこの端末だけ新しいトークンでログインを保つ
+          issue_refresh_token_for(@current_user) if @current_user.saved_change_to_password_digest?
           render json: user_json(@current_user)
         else
           render json: { errors: @current_user.errors.full_messages }, status: :unprocessable_content
@@ -60,6 +62,16 @@ module Api
 
       def update_user_params
         params.expect(user: %i[username email name password password_confirmation])
+      end
+
+      # パスワードが変わったなら必ず全端末のセッションも失効しているよう、1 トランザクションで更新する
+      def update_user_and_revoke_sessions
+        User.transaction do
+          next false unless @current_user.update(update_user_params)
+
+          @current_user.revoke_all_refresh_tokens! if @current_user.saved_change_to_password_digest?
+          true
+        end
       end
 
       def changing_credentials?

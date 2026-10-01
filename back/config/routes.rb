@@ -8,7 +8,6 @@ Rails.application.routes.draw do
       resource :user, only: %i[show update destroy]
       post 'sessions', to: 'sessions#create'
       delete 'sessions', to: 'sessions#destroy'
-      post 'guest_sessions', to: 'guest_sessions#create'
       get 'auth/verify', to: 'auth#verify'
       post 'auth/refresh', to: 'auth#refresh'
       get 'auth/google', to: 'auth#google'
