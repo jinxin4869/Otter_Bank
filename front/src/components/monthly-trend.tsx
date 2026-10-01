@@ -1,7 +1,7 @@
 "use client"
 
 import React from "react"
-import { format, subMonths, startOfMonth, endOfMonth, parseISO } from "date-fns"
+import { format, parseISO } from "date-fns"
 import { ja } from "date-fns/locale"
 import {
   ResponsiveContainer,
@@ -15,44 +15,22 @@ import {
   Legend,
 } from "recharts"
 
-import type { Transaction } from "@/types/transaction"
+import type { MonthlySummary } from "@/types/transaction"
 
 type MonthlyTrendProps = {
-  transactions: Transaction[]
+  // 直近の月ごとの収支（古い月から。サーバーの monthly_summary が取引の無い月も 0 で返す）
+  data: MonthlySummary[]
 }
 
-function MonthlyTrend({ transactions }: MonthlyTrendProps) {
-  const today = new Date()
-  const lastSixMonthsData = Array.from({ length: 6 })
-    .map((_, i) => {
-      const targetMonthDate = subMonths(today, 5 - i) // 5ヶ月前から現在までの6ヶ月分
-      const monthStart = startOfMonth(targetMonthDate)
-      const monthEnd = endOfMonth(targetMonthDate)
+function MonthlyTrend({ data }: MonthlyTrendProps) {
+  const chartData = data.map((m) => ({
+    month: format(parseISO(`${m.month}-01`), "M月", { locale: ja }), // x軸ラベル
+    income: m.income,
+    expense: m.expense,
+    balance: m.income - m.expense,
+  }))
 
-      const monthTransactions = transactions.filter((t) => {
-        const tDate = parseISO(t.date)
-        return tDate >= monthStart && tDate <= monthEnd
-      })
-
-      const income = monthTransactions
-        .filter((t) => t.type === "income")
-        .reduce((sum, t) => sum + t.amount, 0)
-
-      const expense = monthTransactions
-        .filter((t) => t.type === "expense")
-        .reduce((sum, t) => sum + t.amount, 0)
-
-      return {
-        month: format(monthStart, "M月", { locale: ja }), // x軸ラベル
-        monthkey: format(monthStart, "yyyy-MM"), // 月のキー
-        income,
-        expense,
-        balance: income - expense,
-      }
-    })
-    .sort((a, b) => a.monthkey.localeCompare(b.monthkey)) // 月の順にソート
-
-  if (transactions.length === 0 || lastSixMonthsData.every(d => d.income === 0 && d.expense === 0)) {
+  if (chartData.every((d) => d.income === 0 && d.expense === 0)) {
     return (
       <div className="flex items-center justify-center h-full text-muted-foreground">
         表示できる取引データがありません
@@ -88,7 +66,7 @@ function MonthlyTrend({ transactions }: MonthlyTrendProps) {
   return (
     <ResponsiveContainer width="100%" height="100%">
       <ComposedChart
-        data={lastSixMonthsData}
+        data={chartData}
         margin={{
           top: 20,
           right: 30,

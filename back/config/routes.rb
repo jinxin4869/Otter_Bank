@@ -16,7 +16,11 @@ Rails.application.routes.draw do
       post 'auth/reset-password/confirm', to: 'password_resets#confirm_reset'
 
       # 家計簿管理
-      resources :transactions, only: %i[index create update destroy] # 取引関連
+      resources :transactions, only: %i[index create update destroy] do # 取引関連
+        collection do
+          get :monthly_summary # 月ごとの収入・支出（ダッシュボードの月次推移・カワウソの気分）
+        end
+      end
       resources :savings_goals, only: %i[index create update destroy] # 貯金目標関連
       resources :achievements, only: %i[index show] # 実績関連（進捗はサーバー側の判定でのみ変わる）
       resources :budgets, only: %i[index create update] do # 予算関連（削除不可・update で上書き運用）

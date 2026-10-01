@@ -1,4 +1,4 @@
-import { filterByPeriod, summarize, shiftPeriod } from "@/lib/transaction-period"
+import { filterByPeriod, summarize, shiftPeriod, periodRange } from "@/lib/transaction-period"
 import type { Transaction } from "@/types/transaction"
 
 const tx = (id: string, date: string, type: "income" | "expense", amount: number): Transaction => ({
@@ -36,5 +36,15 @@ describe("shiftPeriod", () => {
     expect(shiftPeriod(base, "day", "next")).toEqual(new Date(2026, 9, 1))
     expect(shiftPeriod(base, "month", "prev")).toEqual(new Date(2026, 7, 30))
     expect(shiftPeriod(base, "year", "next")).toEqual(new Date(2027, 8, 30))
+  })
+})
+
+describe("periodRange", () => {
+  const current = new Date(2024, 1, 15) // 2024-02-15（うるう年）
+
+  it("日・月・年の初日と末日を yyyy-MM-dd で返す", () => {
+    expect(periodRange("day", current)).toEqual({ startDate: "2024-02-15", endDate: "2024-02-15" })
+    expect(periodRange("month", current)).toEqual({ startDate: "2024-02-01", endDate: "2024-02-29" })
+    expect(periodRange("year", current)).toEqual({ startDate: "2024-01-01", endDate: "2024-12-31" })
   })
 })

@@ -214,6 +214,60 @@ RSpec.describe 'Api::V1::Transactions', type: :request do
     end
   end
 
+  describe 'GET /api/v1/transactions の件数上限' do
+    before { stub_const('Api::V1::TransactionsController::MAX_TRANSACTIONS', 2) }
+
+    it '上限を超えると上限件数だけ返して has_more を true にし、合計は期間全体で出す' do
+      create_list(:transaction, 3, user: user, amount: 100, transaction_type: :expense, date: Date.current)
+      get '/api/v1/transactions', headers: headers
+      json = response.parsed_body
+      expect(json['transactions'].length).to eq(2)
+      expect(json['has_more']).to be true
+      expect(json['summary']['total_expense'].to_f).to eq(300.0)
+    end
+
+    it '上限以内なら has_more は false' do
+      create_list(:transaction, 2, user: user, date: Date.current)
+      get '/api/v1/transactions', headers: headers
+      expect(response.parsed_body['has_more']).to be false
+    end
+  end
+
+  describe 'GET /api/v1/transactions/monthly_summary' do
+    before do
+      travel_to Date.new(2026, 9, 15)
+      create(:transaction, user: user, amount: 3000, transaction_type: :income, date: Date.new(2026, 9, 1))
+      create(:transaction, user: user, amount: 500, transaction_type: :expense, date: Date.new(2026, 9, 30))
+      create(:transaction, user: user, amount: 800, transaction_type: :expense, date: Date.new(2026, 7, 10))
+      create(:transaction, user: user, amount: 9999, transaction_type: :income, date: Date.new(2026, 3, 31)) # 範囲外
+      create(:transaction, user: create(:user), amount: 7777, transaction_type: :income, date: Date.new(2026, 9, 1))
+    end
+
+    it '今月を含む直近 6 か月の収入・支出を古い月から返し、取引の無い月も 0 で返す' do
+      get '/api/v1/transactions/monthly_summary', headers: headers
+      expect(response).to have_http_status(:ok)
+      json = response.parsed_body
+      expect(json.pluck('month')).to eq(%w[2026-04 2026-05 2026-06 2026-07 2026-08 2026-09])
+      # 取引の有無で型が変わらないよう、金額は数値で返す
+      expect(json.last).to include('income' => 3000.0, 'expense' => 500.0)
+      expect(json.find { |m| m['month'] == '2026-07' }['expense']).to eq(800.0)
+      expect(json.find { |m| m['month'] == '2026-05' }).to include('income' => 0.0, 'expense' => 0.0)
+    end
+
+    it 'months で月数を変えられ、上限は 24 か月' do
+      get '/api/v1/transactions/monthly_summary', params: { months: 2 }, headers: headers
+      expect(response.parsed_body.pluck('month')).to eq(%w[2026-08 2026-09])
+
+      get '/api/v1/transactions/monthly_summary', params: { months: 100 }, headers: headers
+      expect(response.parsed_body.length).to eq(24)
+    end
+
+    it '未認証ではアクセスできない' do
+      get '/api/v1/transactions/monthly_summary'
+      expect(response).to have_http_status(:unauthorized)
+    end
+  end
+
   describe 'PATCH /api/v1/transactions/:id - 実績連携' do
     let!(:income_transaction) do
       create(:transaction, user: user, amount: 1000, transaction_type: :income, description: '給料', category: '給与',

@@ -30,7 +30,9 @@ jest.mock("@/hooks/useAchievements", () => ({
   useAchievements: () => ({ achievements: [], achievementSummary: summary, refetch }),
 }))
 jest.mock("@/lib/api", () => ({
-  api: { transactions: { list: jest.fn(), create: jest.fn(), update: jest.fn(), delete: jest.fn() } },
+  api: {
+    transactions: { list: jest.fn(), create: jest.fn(), update: jest.fn(), delete: jest.fn(), monthlySummary: jest.fn() },
+  },
 }))
 jest.mock("@/components/tutorial", () => ({ Tutorial: () => null }))
 // 日付の選択は Radix の Popover + カレンダー操作になるため、固定日を選ぶボタンに差し替える
@@ -64,6 +66,7 @@ jest.mock("@/components/ui/select", () => ({
 const create = api.transactions.create as jest.Mock
 const list = api.transactions.list as jest.Mock
 const update = api.transactions.update as jest.Mock
+const monthlySummary = api.transactions.monthlySummary as jest.Mock
 
 const apiTransaction = {
   id: 1, amount: 500, description: "", transaction_type: "expense", category: "food",
@@ -181,6 +184,8 @@ describe("DashboardPage 取引の編集", () => {
       newly_unlocked_achievements: [],
     })
     const dialog = await openEditDialog()
+    // 更新後は表示中の期間を取り直すので、サーバーも更新後の値を返すようにする
+    list.mockResolvedValue({ transactions: [{ ...existing, amount: 1200 }] })
     const amountInput = dialog.querySelector("#edit-amount") as HTMLInputElement
     expect(amountInput.value).toBe("500")
 
@@ -240,5 +245,58 @@ describe("DashboardPage 取引の編集", () => {
     fireEvent.click(screen.getByRole("button", { name: "保存" }))
 
     await waitFor(() => expect(refetch).toHaveBeenCalledWith({ silent: true }))
+  })
+})
+
+describe("DashboardPage 期間ごとの取得", () => {
+  const today = new Date()
+  const pad = (n: number) => String(n).padStart(2, "0")
+  const thisMonth = `${today.getFullYear()}-${pad(today.getMonth() + 1)}`
+
+  beforeEach(() => {
+    list.mockReset()
+    monthlySummary.mockReset()
+    list.mockResolvedValue({ transactions: [], has_more: false })
+    monthlySummary.mockResolvedValue([])
+    summary = null
+  })
+
+  it("表示中の月の初日から末日までを指定して取得する", async () => {
+    render(<DashboardPage />)
+    await waitFor(() => expect(list).toHaveBeenCalled())
+    const [, range] = list.mock.calls[0]
+    expect(range.startDate).toBe(`${thisMonth}-01`)
+    expect(range.endDate.startsWith(thisMonth)).toBe(true)
+  })
+
+  it("前の月へ移ると、その月を取得する", async () => {
+    render(<DashboardPage />)
+    await waitFor(() => expect(list).toHaveBeenCalledTimes(1))
+    fireEvent.click(screen.getByRole("button", { name: "前へ" }))
+    await waitFor(() => expect(list).toHaveBeenCalledTimes(2))
+    expect(list.mock.calls[1][1].startDate).not.toBe(`${thisMonth}-01`)
+  })
+
+  it("カワウソの気分は、表示中の期間ではなく今月の集計で決める", async () => {
+    monthlySummary.mockResolvedValue([{ month: thisMonth, income: 1000, expense: 5000 }])
+    render(<DashboardPage />)
+    expect(await screen.findByAltText("心配しているカワウソ")).toBeInTheDocument()
+  })
+
+  it("合計カードは、件数上限で切られた一覧ではなくサーバーの期間全体の合計を使う", async () => {
+    list.mockResolvedValue({
+      transactions: [],
+      has_more: true,
+      summary: { total_income: "250000.0", total_expense: "12345.0", balance: "237655.0" },
+    })
+    render(<DashboardPage />)
+    expect(await screen.findByText("250,000 円")).toBeInTheDocument()
+    expect(screen.getByText("12,345 円")).toBeInTheDocument()
+  })
+
+  it("件数上限で一部しか受け取れなかったときは、そのことを表示する", async () => {
+    list.mockResolvedValue({ transactions: [], has_more: true })
+    render(<DashboardPage />)
+    expect(await screen.findByRole("status")).toHaveTextContent("一部だけを表示しています")
   })
 })
