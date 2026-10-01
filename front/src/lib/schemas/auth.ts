@@ -43,3 +43,28 @@ export type LoginFormValues = z.infer<typeof loginSchema>
 export type RegisterFormValues = z.infer<typeof registerSchema>
 export type ResetPasswordFormValues = z.infer<typeof resetPasswordSchema>
 export type ContactFormValues = z.infer<typeof contactSchema>
+
+// 設定画面: プロフィール（ユーザー名はサーバーの検証と同じ 3〜20 文字）
+export const profileSchema = z.object({
+  username: z
+    .string()
+    .trim()
+    .min(3, "ユーザー名は3文字以上で入力してください")
+    .max(20, "ユーザー名は20文字以内で入力してください"),
+  name: z.string().trim(),
+})
+
+// 設定画面: パスワード変更（現在のパスワードが必要）
+export const changePasswordSchema = z
+  .object({
+    currentPassword: z.string().min(1, "現在のパスワードを入力してください"),
+    password: z.string().min(8, "パスワードは8文字以上で入力してください"),
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "パスワードが一致しません",
+    path: ["confirmPassword"],
+  })
+
+export type ProfileFormValues = z.infer<typeof profileSchema>
+export type ChangePasswordFormValues = z.infer<typeof changePasswordSchema>

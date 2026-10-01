@@ -166,6 +166,17 @@ RSpec.describe 'Api::V1::Users', type: :request do
       expect(User.exists?(user.id)).to be false
     end
 
+    it '家計データ・投稿もまとめて削除し、リフレッシュトークンの Cookie も消す' do
+      create(:transaction, user: user)
+      create(:post, user: user)
+      cookies[:refresh_token] = RefreshToken.generate_for(user).token
+
+      expect { delete '/api/v1/user', headers: headers }
+        .to change(Transaction, :count).by(-1).and change(Post, :count).by(-1)
+      expect(response).to have_http_status(:no_content)
+      expect(Array(response.headers['Set-Cookie']).join("\n")).to match(/refresh_token=;/)
+    end
+
     it 'リフレッシュトークンを持つユーザーも削除でき、トークンも消える' do
       RefreshToken.generate_for(user)
       expect { delete '/api/v1/user', headers: headers }.to change(RefreshToken, :count).by(-1)

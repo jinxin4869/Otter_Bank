@@ -12,7 +12,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Sun, Moon, Menu, LogIn, LogOut, UserPlus, Home, BookOpen, MessageSquare, UserCircle, Award, Palette, Check } from "lucide-react"
+import { Sun, Moon, Menu, LogIn, LogOut, UserPlus, Home, BookOpen, MessageSquare, UserCircle, Award, Settings, Palette, Check } from "lucide-react"
 import Image from "next/image"
 import { usePathname } from 'next/navigation'
 import { useEffect, useState } from "react"
@@ -50,6 +50,7 @@ export default function Header() {
     { href: "/collection", label: "実績", icon: <Award className="mr-2 h-4 w-4" /> },
     { href: "/board", label: "掲示板", icon: <MessageSquare className="mr-2 h-4 w-4" /> },
     ...commonLinks,
+    { href: "/settings", label: "設定", icon: <Settings className="mr-2 h-4 w-4" /> },
   ];
 
   const navLinks = isAuthenticated ? loggedInLinks : loggedOutLinks;
