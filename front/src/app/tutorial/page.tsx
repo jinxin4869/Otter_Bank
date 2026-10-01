@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import Image from "next/image"
 import { useAuth } from "@/hooks/useAuth"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -13,20 +14,7 @@ import {
   MessageCircle,
   Sparkles,
   CheckCircle2,
-  BarChart3,
 } from 'lucide-react'
-
-// プレースホルダーコンポーネントを追加
-const ImagePlaceholder = ({ icon: Icon, title, className = "" }: {
-  icon: React.ElementType,
-  title: string,
-  className?: string
-}) => (
-  <div className={`relative aspect-video w-full rounded-lg overflow-hidden border bg-muted/50 flex flex-col items-center justify-center ${className}`}>
-    <Icon className="h-16 w-16 text-muted-foreground/60 mb-2" />
-    <p className="text-sm text-muted-foreground/80 font-medium">{title}</p>
-  </div>
-)
 
 const tutorialSteps = [
   {
@@ -34,7 +22,7 @@ const tutorialSteps = [
     icon: <Wallet className="h-6 w-6 text-primary" />,
     title: "マイページの使い方",
     description: "家計簿の記録と分析を行うメインページです。",
-    altText: "マイページプレビュー",
+    image: { src: "/otter_smartphone.png", alt: "スマホで家計簿をつけるカワウソ" },
     features: [
       "収入と支出を記録できます。",
       "カテゴリー別に支出を分類できます。",
@@ -59,7 +47,7 @@ const tutorialSteps = [
     icon: <Trophy className="h-6 w-6 text-primary" />,
     title: "図鑑の使い方",
     description: "貯金や継続利用などの目標を達成すると、特別な実績が解放されます。",
-    altText: "図鑑プレビュー",
+    image: { src: "/otter_excited.png", alt: "実績を解除して大喜びするカワウソ" },
     features: [
       "実績カテゴリー: 貯金、節約、継続、特別。",
       "貯金額に応じた実績や、支出削減に関する実績などがあります。",
@@ -79,7 +67,7 @@ const tutorialSteps = [
     icon: <MessageCircle className="h-6 w-6 text-primary" />,
     title: "掲示板の使い方",
     description: "お金の管理や貯金のコツ、投資の経験などを共有できるコミュニティです。",
-    altText: "掲示板プレビュー",
+    image: { src: "/otter_together.png", alt: "通帳とコインを持って並ぶ2匹のカワウソ" },
     features: [
       "経験や質問を投稿できます。",
       "カテゴリーでトピックを整理できます。",
@@ -103,7 +91,6 @@ const tutorialSteps = [
     icon: <Sparkles className="h-6 w-6 text-primary" />,
     title: "Otter Bankの主な特徴",
     description: "楽しく続けられる、新しいお金管理体験を提供します。",
-    altText: "アプリ特徴概要",
     features: [
       "ゲーム感覚の金融マネジメント: 貯金するほどカワウソが喜び、様々な実績を解放できます。",
       "わかりやすい収支分析: グラフやチャートで支出パターンを可視化し、お金の流れを直感的に把握できます。",
@@ -167,18 +154,18 @@ export default function TutorialPage() {
               })}
             </div>
           ) : (
-            // 各ステップのプレビュー枠（画面画像の代わりにアイコンのプレースホルダーを表示する）
-            <div className="relative aspect-video w-full rounded-lg overflow-hidden border">
-              <ImagePlaceholder
-                icon={
-                  stepData.id === "dashboard" ? BarChart3 :
-                  stepData.id === "collection" ? Trophy :
-                  stepData.id === "board" ? MessageCircle :
-                  Sparkles
-                }
-                title={stepData.altText || 'プレビュー画像'}
-              />
-            </div>
+            // 各ステップの内容を表すカワウソのイラスト
+            stepData.image && (
+              <div className="relative aspect-video w-full rounded-lg overflow-hidden border bg-muted/50">
+                <Image
+                  src={stepData.image.src}
+                  alt={stepData.image.alt}
+                  fill
+                  sizes="(max-width: 768px) 100vw, 720px"
+                  className="object-contain p-4"
+                />
+              </div>
+            )
           )}
 
           {stepData.id !== "features" && stepData.features && (

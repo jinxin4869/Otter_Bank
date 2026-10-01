@@ -83,6 +83,13 @@ export default function LoginPage() {
     <div className="flex min-h-screen flex-col items-center justify-center p-4">
       <Card className="w-full max-w-md">
         <CardHeader>
+          <Image
+            src="/otter_security.png"
+            alt="鍵付きの盾を持つカワウソ"
+            width={112}
+            height={112}
+            className="mx-auto"
+          />
           <CardTitle className="text-2xl text-center">ログイン</CardTitle>
           <CardDescription className="text-center">アカウントにログインしてください</CardDescription>
         </CardHeader>
