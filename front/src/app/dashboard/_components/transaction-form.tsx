@@ -2,9 +2,9 @@
 
 import type React from "react"
 import { useState } from "react"
-import { format } from "date-fns"
+import { format, parseISO } from "date-fns"
 import { ja } from "date-fns/locale"
-import { CalendarIcon, PlusCircle } from "lucide-react"
+import { CalendarIcon, PlusCircle, Save } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -13,20 +13,30 @@ import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { cn } from "@/lib/utils"
 import { categoriesFor } from "@/lib/transaction-categories"
-import type { CreateTransactionParams } from "@/lib/api"
+import type { TransactionParams } from "@/lib/api"
+import type { Transaction } from "@/types/transaction"
 
 type TransactionFormProps = {
-  // 登録に成功したら true を返す。成功時だけフォームを初期化する
-  onSubmit: (params: CreateTransactionParams) => Promise<boolean>
+  // 登録・更新に成功したら true を返す。新規登録では成功時だけフォームを初期化する
+  onSubmit: (params: TransactionParams) => Promise<boolean>
+  // 渡すと編集モード（初期値を入れ、送信後も入力を残す）
+  initialTransaction?: Transaction
 }
 
-export default function TransactionForm({ onSubmit }: TransactionFormProps) {
-  const [amount, setAmount] = useState("")
+export default function TransactionForm({ onSubmit, initialTransaction }: TransactionFormProps) {
+  const isEditing = initialTransaction !== undefined
+  const [amount, setAmount] = useState(initialTransaction ? String(initialTransaction.amount) : "")
   const [amountError, setAmountError] = useState<string | null>(null)
-  const [type, setType] = useState<"income" | "expense">("expense")
-  const [category, setCategory] = useState("")
-  const [description, setDescription] = useState("")
-  const [date, setDate] = useState<Date>(new Date())
+  const [type, setType] = useState<"income" | "expense">(initialTransaction?.type ?? "expense")
+  const [category, setCategory] = useState(initialTransaction?.category ?? "")
+  const [description, setDescription] = useState(initialTransaction?.description ?? "")
+  // "yyyy-MM-dd" を new Date() に渡すと UTC として解釈され日付がずれうるため、parseISO でローカル日付にする
+  const [date, setDate] = useState<Date>(() =>
+    initialTransaction?.date ? parseISO(initialTransaction.date) : new Date()
+  )
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  // 編集ダイアログは新規フォームと同じ画面に出るので、label と input を結ぶ id が重複しないようにする
+  const fieldId = (name: string) => (isEditing ? `edit-${name}` : name)
 
   const validateAmount = (value: string) => {
     if (!value) {
@@ -54,14 +64,20 @@ export default function TransactionForm({ onSubmit }: TransactionFormProps) {
     e.preventDefault()
     if (!amount || !category || !validateAmount(amount)) return
 
-    const ok = await onSubmit({
-      amount: Number.parseFloat(amount.replace(/,/g, "")),
-      transaction_type: type,
-      category,
-      description,
-      date: format(date, "yyyy-MM-dd"),
-    })
-    if (!ok) return
+    setIsSubmitting(true)
+    let ok = false
+    try {
+      ok = await onSubmit({
+        amount: Number.parseFloat(amount.replace(/,/g, "")),
+        transaction_type: type,
+        category,
+        description,
+        date: format(date, "yyyy-MM-dd"),
+      })
+    } finally {
+      setIsSubmitting(false)
+    }
+    if (!ok || isEditing) return
 
     setAmount("")
     setAmountError(null)
@@ -72,9 +88,9 @@ export default function TransactionForm({ onSubmit }: TransactionFormProps) {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="amount">金額</Label>
+        <Label htmlFor={fieldId("amount")}>金額</Label>
         <Input
-          id="amount"
+          id={fieldId("amount")}
           type="text"
           placeholder="1000"
           value={amount}
@@ -91,6 +107,7 @@ export default function TransactionForm({ onSubmit }: TransactionFormProps) {
           <Button
             type="button"
             variant={type === "expense" ? "default" : "outline"}
+            aria-pressed={type === "expense"}
             className={cn("flex-1", type === "expense" && "bg-expense hover:bg-expense/90 text-white")}
             onClick={() => {
               setType("expense")
@@ -102,6 +119,7 @@ export default function TransactionForm({ onSubmit }: TransactionFormProps) {
           <Button
             type="button"
             variant={type === "income" ? "default" : "outline"}
+            aria-pressed={type === "income"}
             className={cn("flex-1", type === "income" && "bg-income hover:bg-income/90 text-white")}
             onClick={() => {
               setType("income")
@@ -114,9 +132,9 @@ export default function TransactionForm({ onSubmit }: TransactionFormProps) {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="category">カテゴリー</Label>
+        <Label htmlFor={fieldId("category")}>カテゴリー</Label>
         <Select value={category} onValueChange={setCategory} required>
-          <SelectTrigger className="w-full">
+          <SelectTrigger id={fieldId("category")} className="w-full">
             <SelectValue placeholder="カテゴリーを選択" />
           </SelectTrigger>
           <SelectContent position="item-aligned" align="start" side="bottom" sideOffset={5}>
@@ -137,9 +155,9 @@ export default function TransactionForm({ onSubmit }: TransactionFormProps) {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="description">詳細 (任意)</Label>
+        <Label htmlFor={fieldId("description")}>詳細 (任意)</Label>
         <Input
-          id="description"
+          id={fieldId("description")}
           placeholder="取引の詳細"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
@@ -161,9 +179,9 @@ export default function TransactionForm({ onSubmit }: TransactionFormProps) {
         </Popover>
       </div>
 
-      <Button type="submit" className="w-full" disabled={!!amountError}>
-        <PlusCircle className="mr-2 h-4 w-4" />
-        追加
+      <Button type="submit" className="w-full" disabled={!!amountError || isSubmitting}>
+        {isEditing ? <Save className="mr-2 h-4 w-4" /> : <PlusCircle className="mr-2 h-4 w-4" />}
+        {isEditing ? "保存" : "追加"}
       </Button>
     </form>
   )

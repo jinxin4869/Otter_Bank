@@ -101,4 +101,11 @@ RSpec.describe 'Api::V1::Sessions', type: :request do
       expect(response.cookies['refresh_token']).to be_blank
     end
   end
+
+  describe 'POST /api/v1/guest_sessions' do
+    it '共有ゲストアカウントの入口は削除済みで 404 を返し、ゲストユーザーも作られない' do
+      expect { post '/api/v1/guest_sessions' }.not_to change(User, :count)
+      expect(response).to have_http_status(:not_found)
+    end
+  end
 end

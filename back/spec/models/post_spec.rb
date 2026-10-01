@@ -11,6 +11,14 @@ RSpec.describe Post, type: :model do
   # バリデーションのテスト
   it { should validate_presence_of(:title) }
   it { should validate_presence_of(:content) }
+  it { should validate_length_of(:title).is_at_most(100) }
+  it { should validate_length_of(:content).is_at_most(5_000) }
+
+  it '文字数超過のエラーは日本語で返る' do
+    post = build(:post, title: 'あ' * 101)
+    post.validate
+    expect(post.errors.full_messages).to include('タイトルは100文字以内で入力してください')
+  end
 
   # 基本的な属性のテスト
   describe 'attributes' do

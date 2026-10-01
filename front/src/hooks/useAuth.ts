@@ -58,9 +58,13 @@ export const useAuth = () => {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [token, setToken] = useState<string | null>(null);
+  // 自分でログアウトした（期限切れ・未ログインとは区別する）。ログイン必須ページが /login へ飛ばさないために使う
+  const [hasLoggedOut, setHasLoggedOut] = useState(false);
 
-  const notifyAuthStateChanged = useCallback(() => {
-    window.dispatchEvent(new CustomEvent(AUTH_STATE_CHANGED_EVENT, { detail: { source: instanceRef.current } }));
+  const notifyAuthStateChanged = useCallback((extra: { loggedOut?: boolean } = {}) => {
+    window.dispatchEvent(
+      new CustomEvent(AUTH_STATE_CHANGED_EVENT, { detail: { source: instanceRef.current, ...extra } })
+    );
   }, []);
 
   const applySession = useCallback((result: SessionResult) => {
@@ -70,6 +74,7 @@ export const useAuth = () => {
       case "authenticated":
         setUser(result.user);
         setToken(result.token);
+        setHasLoggedOut(false);
         localStorage.setItem("isLoggedIn", "true");
         return;
       case "unavailable":
@@ -108,8 +113,15 @@ export const useAuth = () => {
     // useAuth は呼び出しごとに状態を持つため、他のインスタンス（ログイン画面など）の
     // ログイン・ログアウトをヘッダー等へ反映するためにイベントで再検証する
     const handleAuthStateChanged = (event: Event) => {
-      const detail = (event as CustomEvent<{ source?: unknown; expired?: boolean }>).detail;
+      const detail = (event as CustomEvent<{ source?: unknown; expired?: boolean; loggedOut?: boolean }>).detail;
       if (detail?.source === instanceRef.current) return;
+      // 他のインスタンス（ヘッダーなど）で自分でログアウトした。ログイン必須ページが /login へ飛ばさないよう区別する
+      if (detail?.loggedOut) {
+        setUser(null);
+        setToken(null);
+        setHasLoggedOut(true);
+        return;
+      }
       // API 呼び出し中の更新失敗。再検証しても同じ結果なので、そのままセッション終了として扱う
       if (detail?.expired) {
         applySession({ kind: "rejected", expired: true });
@@ -131,6 +143,8 @@ export const useAuth = () => {
   }, [checkAuth, applySession]);
 
   const login = useCallback(async (accessToken: string, email?: string) => {
+    // 検証の結果（失敗を含む）を待たずに、ログアウト済みの印は外す
+    setHasLoggedOut(false);
     localStorage.setItem("authToken", accessToken);
     localStorage.setItem("isLoggedIn", "true");
     if (email) {
@@ -142,26 +156,63 @@ export const useAuth = () => {
     notifyAuthStateChanged();
   }, [applySession, notifyAuthStateChanged]);
 
+  // 自分の操作でセッションを終える（ログアウト・退会）。ログイン必須ページが /login へ飛ばさないよう印を立て、
+  // ログインフォームではなくトップ（ログイン・新規登録の導線あり）へ戻す
+  const endSession = useCallback((message: string) => {
+    clearAuthStorage();
+    setUser(null);
+    setToken(null);
+    setHasLoggedOut(true);
+    notifyAuthStateChanged({ loggedOut: true });
+    toast.success(message);
+    router.push("/");
+  }, [notifyAuthStateChanged, router]);
+
   const logout = useCallback(async () => {
     try {
       await api.auth.logout(localStorage.getItem("authToken"));
     } catch (error) {
       console.error("[Auth] ログアウトエラー:", error);
     } finally {
-      clearAuthStorage();
-      setUser(null);
-      setToken(null);
-      notifyAuthStateChanged();
-      router.push("/login");
+      endSession("ログアウトしました");
     }
-  }, [notifyAuthStateChanged, router]);
+  }, [endSession]);
+
+  /** 退会（アカウントと家計データの削除）。成功したらセッションを終えてトップへ。失敗はトーストで知らせて false */
+  const deleteAccount = useCallback(async (): Promise<boolean> => {
+    if (!token) return false;
+    try {
+      await api.user.destroy(token);
+    } catch (error) {
+      console.error("[Auth] 退会エラー:", error);
+      toast.error("退会できませんでした", {
+        description: error instanceof Error ? error.message : "時間をおいて再度お試しください",
+      });
+      return false;
+    }
+    // サーバー側でトークンごと消えているので、ログアウト API は呼ばない
+    endSession("退会しました。ご利用ありがとうございました");
+    return true;
+  }, [token, endSession]);
+
+  // プロフィールを更新したあと、表示中のユーザー情報を取り直す。
+  // 取り直しに失敗しても（一時的な通信障害など）更新自体は済んでいるので、表示中のユーザーは消さない
+  const refreshUser = useCallback(async () => {
+    const current = localStorage.getItem("authToken");
+    if (!current) return;
+    const result = await resolveSession(current);
+    if (result.kind === "authenticated") applySession(result);
+  }, [applySession]);
 
   return {
     user,
     token,
     isLoading,
     isAuthenticated: !!user && !!token,
+    hasLoggedOut,
     login,
     logout,
+    deleteAccount,
+    refreshUser,
   };
 };
