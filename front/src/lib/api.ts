@@ -263,6 +263,10 @@ export const api = {
           body: { comment: { content } },
         }),
 
+      /** コメントを削除する（本人か管理者） */
+      delete: (token: string, postId: string, commentId: string) =>
+        apiRequest<void>(`/posts/${postId}/comments/${commentId}`, { method: 'DELETE', token }),
+
       /** コメントにいいねする */
       like: (token: string, postId: string, commentId: string) =>
         apiRequest<void>(`/posts/${postId}/comments/${commentId}/like`, {

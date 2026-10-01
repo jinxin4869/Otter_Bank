@@ -48,7 +48,7 @@ describe("useAuth", () => {
 
     expect(result.current.isAuthenticated).toBe(true)
     // API のレスポンスはキャメルケースの内部型に変換して保持する
-    expect(result.current.user).toEqual({ ...user, name: undefined, lastSignInAt: null })
+    expect(result.current.user).toEqual({ ...user, name: undefined, lastSignInAt: null, isAdmin: false })
     expect(result.current.token).toBe("valid-token")
     expect(localStorage.getItem("isLoggedIn")).toBe("true")
   })

@@ -9,4 +9,9 @@ class Comment < ApplicationRecord
   CONTENT_MAX_LENGTH = 1_000
 
   validates :content, presence: true, length: { maximum: CONTENT_MAX_LENGTH }
+
+  # 削除できるのはコメントの投稿者本人か管理者。編集は本人のみ
+  def deletable_by?(user)
+    user_id == user.id || user.admin?
+  end
 end

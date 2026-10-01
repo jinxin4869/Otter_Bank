@@ -45,6 +45,11 @@ class Post < ApplicationRecord
   validates :content, presence: true, length: { maximum: CONTENT_MAX_LENGTH }
 
   # メソッド
+  # 削除できるのは投稿者本人か管理者（荒らし対策で運営が消せるようにする）。編集は本人のみ
+  def deletable_by?(user)
+    user_id == user.id || user.admin?
+  end
+
   def increment_views!
     increment!(:views_count)
   end

@@ -4,7 +4,21 @@ describe("parseAuthUser", () => {
   it("認証 API のユーザーをキャメルケースへ変換する", () => {
     expect(
       parseAuthUser({ id: 1, email: "dev@example.com", username: "devuser", name: null, last_sign_in_at: "2026-09-01T00:00:00Z" })
-    ).toEqual({ id: 1, email: "dev@example.com", username: "devuser", name: undefined, lastSignInAt: "2026-09-01T00:00:00Z" })
+    ).toEqual({
+      id: 1,
+      email: "dev@example.com",
+      username: "devuser",
+      name: undefined,
+      lastSignInAt: "2026-09-01T00:00:00Z",
+      isAdmin: false,
+    })
+  })
+
+  it("admin が true のときだけ管理者として扱う", () => {
+    const base = { id: 1, email: "a@b.c", username: "abc" }
+    expect(parseAuthUser({ ...base, admin: true })?.isAdmin).toBe(true)
+    expect(parseAuthUser({ ...base, admin: "true" })?.isAdmin).toBe(false)
+    expect(parseAuthUser(base)?.isAdmin).toBe(false)
   })
 
   it("{ user: ... } で包まれたレスポンスも受け付ける", () => {
