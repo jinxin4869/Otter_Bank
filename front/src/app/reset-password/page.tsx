@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import Link from "next/link"
+import Image from "next/image"
 import { ArrowLeft, CheckCircle2, Loader2 } from "lucide-react"
 import { api } from "@/lib/api"
 
@@ -43,6 +44,13 @@ export default function ResetPassword() {
     <div className="container mx-auto flex items-center justify-center min-h-screen py-8">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
+          <Image
+            src="/otter/scene/reminder.png"
+            alt="カレンダーを持ってベルを鳴らすカワウソ"
+            width={112}
+            height={112}
+            className="mx-auto"
+          />
           <CardTitle className="text-2xl font-bold">パスワードをリセット</CardTitle>
           <CardDescription>
             登録時に使用したメールアドレスを入力してください。パスワードリセット用のリンクをお送りします。

@@ -83,6 +83,13 @@ export default function LoginPage() {
     <div className="flex min-h-screen flex-col items-center justify-center p-4">
       <Card className="w-full max-w-md">
         <CardHeader>
+          <Image
+            src="/otter/scene/security.png"
+            alt="鍵付きの盾を持つカワウソ"
+            width={112}
+            height={112}
+            className="mx-auto"
+          />
           <CardTitle className="text-2xl text-center">ログイン</CardTitle>
           <CardDescription className="text-center">アカウントにログインしてください</CardDescription>
         </CardHeader>
@@ -159,7 +166,7 @@ export default function LoginPage() {
               {isGoogleLoading ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               ) : (
-                <Image src="/Google.svg" alt="Google" width={20} height={20} className="mr-2" />
+                <Image src="/icons/google.svg" alt="Google" width={20} height={20} className="mr-2" />
               )}
               Googleでログイン
             </Button>

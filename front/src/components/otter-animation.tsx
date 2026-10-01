@@ -96,7 +96,7 @@ export default function OtterAnimation({ mood, customMessage, growthStage }: Ott
         )}
       >
         <Image
-          src={`/otter_${mood}.png`}
+          src={`/otter/mood/${mood}.png`}
           alt={MOOD_ALT[mood]}
           fill
           className={cn("object-contain transition-all duration-300", isAnimating && "scale-110")}

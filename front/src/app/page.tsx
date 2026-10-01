@@ -45,28 +45,31 @@ export default function Home() {
 
           <div className="relative h-[500px] hidden md:block">
             <div className="absolute rounded-xl opacity-20 dark:opacity-60 dark:border" />
-            <div className="absolute -left-12 bottom-0 w-96 h-80">
+            <div className="absolute left-0 bottom-0 w-80 h-80 z-10">
               <Image
-                src="/otter_bank.svg"
-                alt="コインと貯金箱を持つカワウソ"
+                src="/otter/scene/budget_check.png"
+                alt="タブレットで家計のグラフを確かめるカワウソ"
                 fill
+                sizes="320px"
                 className="object-contain"
               />
             </div>
-            <div className="absolute right-0 top-20 w-80 h-80 rotate-6">
+            <div className="absolute right-0 top-6 w-72 h-72 rotate-6">
               <Image
-                src="/otter_umbrella.png"
-                alt="傘をさすカワウソ"
+                src="/otter/scene/umbrella.png"
+                alt="傘をさして雨の中を歩くカワウソ"
                 fill
-                className="object-contain rounded-2xl shadow-2xl border"
+                sizes="288px"
+                className="object-contain rounded-2xl shadow-2xl border bg-card p-4"
               />
             </div>
-            <div className="absolute right-20 bottom-10 w-64 h-64 -rotate-3">
+            <div className="absolute right-24 bottom-0 w-60 h-60 -rotate-3">
               <Image
-                src="/otter_mathtest.svg"
-                alt="計算するカワウソ"
+                src="/otter/scene/receipts.png"
+                alt="レシートを整理するカワウソ"
                 fill
-                className="object-contain rounded-2xl shadow-xl border"
+                sizes="240px"
+                className="object-contain rounded-2xl shadow-xl border bg-card p-4"
               />
             </div>
           </div>
@@ -273,7 +276,7 @@ export default function Home() {
                         </button>
                         <div className="shrink-0 w-full h-full relative">
                           <Image
-                            src="/app-top.png"
+                            src="/screenshots/app-top.png"
                             alt="Otter Bank のダッシュボード画面"
                             fill
                             className="object-cover rounded-lg border"
@@ -295,9 +298,10 @@ export default function Home() {
                   </div>
                   <div className="absolute -bottom-20 right-20 w-40 h-40 z-10">
                     <Image
-                      src="/otter_logo.svg"
-                      alt="笑顔のカワウソ"
+                      src="/otter/scene/report.png"
+                      alt="家計のレポートを見せてくれるカワウソ"
                       fill
+                      sizes="160px"
                       className="object-contain animate-bounce dark:drop-shadow-lg"
                     />
                   </div>
@@ -462,16 +466,14 @@ export default function Home() {
                     </Button>
                   </div>
                 </div>
-                <div className="relative rounded-xl overflow-hidden h-64 md:h-auto bg-linear-to-br from-primary/10 to-primary/5 border">
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <Image
-                      src="/otter_glasses.svg"
-                      alt="笑顔のカワウソ"
-                      width={300}
-                      height={300}
-                      className="object-contain dark:drop-shadow-lg"
-                    />
-                  </div>
+                <div className="relative rounded-xl overflow-hidden h-64 md:h-auto md:min-h-64 bg-linear-to-br from-primary/10 to-primary/5 border">
+                  <Image
+                    src="/otter/scene/together.png"
+                    alt="通帳とコインを持って並ぶ2匹のカワウソ"
+                    fill
+                    sizes="(max-width: 768px) 100vw, 40vw"
+                    className="object-contain p-4 dark:drop-shadow-lg"
+                  />
                 </div>
               </div>
             </CardContent>
