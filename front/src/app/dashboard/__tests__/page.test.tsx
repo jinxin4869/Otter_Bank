@@ -6,17 +6,26 @@ import { api } from "@/lib/api"
 const refetch = jest.fn()
 let summary: { growthStage: { stage: string } } | null = null
 
-jest.mock("next/navigation", () => ({ useRouter: () => ({ push: jest.fn() }) }))
+const push = jest.fn()
+jest.mock("next/navigation", () => ({ useRouter: () => ({ push }) }))
 jest.mock("next/dynamic", () => () => () => null)
 jest.mock("sonner", () => ({ toast: { success: jest.fn(), error: jest.fn() } }))
-jest.mock("@/hooks/useAuth", () => ({
-  useAuth: () => ({
-    user: { lastSignInAt: null },
-    token: "test-token",
-    isLoading: false,
-    isAuthenticated: true,
-  }),
-}))
+type AuthState = {
+  user: { lastSignInAt: null } | null
+  token: string | null
+  isLoading: boolean
+  isAuthenticated: boolean
+  hasLoggedOut: boolean
+}
+const signedIn: AuthState = {
+  user: { lastSignInAt: null },
+  token: "test-token",
+  isLoading: false,
+  isAuthenticated: true,
+  hasLoggedOut: false,
+}
+let authState: AuthState = signedIn
+jest.mock("@/hooks/useAuth", () => ({ useAuth: () => authState }))
 jest.mock("@/hooks/useAchievements", () => ({
   useAchievements: () => ({ achievements: [], achievementSummary: summary, refetch }),
 }))
@@ -113,6 +122,32 @@ describe("DashboardPage 実績解除後の再取得", () => {
     const { container } = render(<DashboardPage />)
     await waitFor(() => expect(list).toHaveBeenCalled())
     expect(container.querySelector("[data-growth-stage]")).toBeNull()
+  })
+})
+
+describe("DashboardPage 未ログイン時の遷移", () => {
+  const signedOut = { user: null, token: null, isLoading: false, isAuthenticated: false }
+
+  beforeEach(() => {
+    push.mockReset()
+    list.mockReset()
+  })
+
+  afterEach(() => {
+    authState = signedIn
+  })
+
+  it("未ログインで来たらログイン画面へ移動する", async () => {
+    authState = { ...signedOut, hasLoggedOut: false }
+    render(<DashboardPage />)
+    await waitFor(() => expect(push).toHaveBeenCalledWith("/login"))
+  })
+
+  it("自分でログアウトした直後はログイン画面へ移動しない（遷移先は useAuth がトップにする）", async () => {
+    authState = { ...signedOut, hasLoggedOut: true }
+    render(<DashboardPage />)
+    await new Promise((resolve) => setTimeout(resolve, 0))
+    expect(push).not.toHaveBeenCalledWith("/login")
   })
 })
 

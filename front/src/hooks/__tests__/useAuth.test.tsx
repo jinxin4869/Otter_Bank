@@ -1,5 +1,7 @@
 import { renderHook, waitFor, act } from "@testing-library/react"
+import { toast } from "sonner"
 import { useAuth } from "@/hooks/useAuth"
+import { AUTH_STATE_CHANGED_EVENT } from "@/lib/api-client"
 
 // API のベース URL（getApiUrl は NODE_ENV=test では NEXT_PUBLIC_API_URL を読む）
 process.env.NEXT_PUBLIC_API_URL = "http://localhost:3000"
@@ -64,7 +66,7 @@ describe("useAuth", () => {
     expect(localStorage.getItem("authToken")).toBeNull()
   })
 
-  it("logout で認証情報を削除しログイン画面へ遷移する", async () => {
+  it("logout で認証情報を削除し、トーストを出してトップページへ遷移する", async () => {
     localStorage.setItem("authToken", "valid-token")
     localStorage.setItem("isLoggedIn", "true")
     mockFetch({ ok: true, json: async () => ({ user: { id: 1, email: "a@b.c", username: "a" } }) })
@@ -79,7 +81,10 @@ describe("useAuth", () => {
     expect(result.current.isAuthenticated).toBe(false)
     expect(localStorage.getItem("authToken")).toBeNull()
     expect(localStorage.getItem("isLoggedIn")).toBeNull()
-    expect(pushMock).toHaveBeenCalledWith("/login")
+    expect(result.current.hasLoggedOut).toBe(true)
+    expect(toast.success).toHaveBeenCalledWith("ログアウトしました")
+    expect(pushMock).toHaveBeenCalledWith("/")
+    expect(pushMock).not.toHaveBeenCalledWith("/login")
   })
 })
 
@@ -145,6 +150,38 @@ describe("useAuth（複数インスタンス間の認証状態の共有）", () 
     })
 
     await waitFor(() => expect(header.result.current.isAuthenticated).toBe(false))
+    // 受け取った側も「自分でログアウトした」と分かる（ログイン必須ページが /login へ飛ばさないため）
+    expect(header.result.current.hasLoggedOut).toBe(true)
+  })
+
+  it("API 呼び出し中のセッション切れは、自分でのログアウトとして扱わない", async () => {
+    localStorage.setItem("authToken", "access-token")
+    const page = renderHook(() => useAuth())
+    await waitFor(() => expect(page.result.current.isAuthenticated).toBe(true))
+
+    act(() => {
+      window.dispatchEvent(new CustomEvent(AUTH_STATE_CHANGED_EVENT, { detail: { expired: true } }))
+    })
+
+    await waitFor(() => expect(page.result.current.isAuthenticated).toBe(false))
+    expect(page.result.current.hasLoggedOut).toBe(false)
+  })
+
+  it("ログアウト後に再びログインしたら hasLoggedOut は戻る", async () => {
+    localStorage.setItem("authToken", "access-token")
+    const { result } = renderHook(() => useAuth())
+    await waitFor(() => expect(result.current.isAuthenticated).toBe(true))
+
+    await act(async () => {
+      await result.current.logout()
+    })
+    expect(result.current.hasLoggedOut).toBe(true)
+
+    await act(async () => {
+      await result.current.login("new-token", "dev@example.com")
+    })
+    expect(result.current.isAuthenticated).toBe(true)
+    expect(result.current.hasLoggedOut).toBe(false)
   })
 
   it("検証中にログアウトされたら、遅れて返った検証結果で認証済みに戻らない", async () => {

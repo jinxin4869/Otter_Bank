@@ -60,7 +60,7 @@ export default function DashboardPage() {
   const [achievementQueue, setAchievementQueue] = useState<NewlyUnlockedAchievement[]>([])
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null)
   const router = useRouter()
-  const { user, token, isLoading: authIsLoading, isAuthenticated } = useAuth()
+  const { user, token, isLoading: authIsLoading, isAuthenticated, hasLoggedOut } = useAuth()
   const { achievements, achievementSummary, refetch: refetchAchievements } = useAchievements()
   const { transactions, isLoading: isDataLoading, addTransaction, updateTransaction, deleteTransaction } =
     useTransactions(token, isAuthenticated)
@@ -94,10 +94,11 @@ export default function DashboardPage() {
   )
 
   useEffect(() => {
-    if (!authIsLoading && !isAuthenticated) {
+    // 自分でログアウトした場合は useAuth がトップへ移動させるので、ここでは /login へ飛ばさない
+    if (!authIsLoading && !isAuthenticated && !hasLoggedOut) {
       router.push("/login")
     }
-  }, [authIsLoading, isAuthenticated, router])
+  }, [authIsLoading, isAuthenticated, hasLoggedOut, router])
 
   // 今月の収支でカワウソの気分を決める（判定は lib/otter-mood.ts）
   useEffect(() => {
