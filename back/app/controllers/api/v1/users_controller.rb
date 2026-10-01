@@ -12,6 +12,7 @@ module Api
       def create
         user = User.new(user_params)
         if user.save
+          send_email_confirmation(user)
           token = issue_tokens_for(user)
           render json: {
             status: 'success',
@@ -57,6 +58,13 @@ module Api
       end
 
       private
+
+      # 確認しなくても期限までは使え、送り直しもできるので、送れなくても登録は失敗させない
+      def send_email_confirmation(user)
+        UserMailer.email_confirmation(user).deliver_later
+      rescue StandardError => e
+        Rails.logger.error "確認メールの送信予約に失敗 user_id=#{user.id}: #{e.class}"
+      end
 
       def user_params
         params.expect(user: %i[username email password password_confirmation])

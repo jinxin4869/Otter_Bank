@@ -29,6 +29,19 @@ RSpec.describe 'Api::V1::Users', type: :request do
       expect(response.parsed_body['token']).to be_present
     end
 
+    it '登録したユーザーは未確認で、確認メールを送る' do
+      expect do
+        post '/api/v1/users', params: valid_params
+      end.to have_enqueued_mail(UserMailer, :email_confirmation)
+      expect(User.find_by(email: 'new@example.com').email_confirmed?).to be false
+    end
+
+    it '登録に失敗したときは確認メールを送らない' do
+      expect do
+        post '/api/v1/users', params: { user: { username: 'ab', email: 'new@example.com', password: 'short' } }
+      end.not_to have_enqueued_mail(UserMailer, :email_confirmation)
+    end
+
     it '登録時に admin を送っても管理者にはならない' do
       post '/api/v1/users', params: { user: valid_params[:user].merge(admin: true) }
       expect(response).to have_http_status(:created)
@@ -54,6 +67,34 @@ RSpec.describe 'Api::V1::Users', type: :request do
     it '未認証ではアクセスできない' do
       get '/api/v1/user'
       expect(response).to have_http_status(:unauthorized)
+    end
+
+    context 'メールアドレスを確認していないとき' do
+      let(:user) { create(:user, :unconfirmed) }
+
+      it '期限内なら確認状態と期限を返す' do
+        get '/api/v1/user', headers: headers
+        expect(response).to have_http_status(:ok)
+        json = response.parsed_body
+        expect(json['email_confirmed']).to be false
+        expect(Time.zone.parse(json['email_confirmation_deadline'])).to be_within(1.second).of(user.created_at + 7.days)
+      end
+
+      it '期限を過ぎたら 403 と email_unconfirmed コードを返す' do
+        user # 期限の起点（登録時刻）を先に作る
+        travel_to(8.days.from_now) do
+          get '/api/v1/user', headers: headers
+          expect(response).to have_http_status(:forbidden)
+          expect(response.parsed_body['code']).to eq('email_unconfirmed')
+        end
+      end
+    end
+
+    it '確認済みなら email_confirmed が true で期限は null' do
+      get '/api/v1/user', headers: headers
+      json = response.parsed_body
+      expect(json['email_confirmed']).to be true
+      expect(json['email_confirmation_deadline']).to be_nil
     end
   end
 

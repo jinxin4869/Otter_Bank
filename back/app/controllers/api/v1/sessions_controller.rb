@@ -24,6 +24,9 @@ module Api
         end
 
         if user.authenticate(password.to_s)
+          # パスワードが合っているときだけ知らせる（合っていないのに知らせると、登録有無と確認状態が分かってしまう）
+          return render_email_unconfirmed if user.email_confirmation_expired?
+
           Rails.logger.info "Authentication successful for user: #{user.id}" if Rails.env.development?
           user.track_sign_in! # sleeping mood 判定用に前回/今回のサインイン時刻を記録
           token = issue_tokens_for(user)

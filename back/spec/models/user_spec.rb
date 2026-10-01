@@ -215,4 +215,105 @@ RSpec.describe User, type: :model do
       expect(user.current_sign_in_at).to be_within(1.second).of(Time.current)
     end
   end
+
+  describe 'メールアドレスの確認' do
+    let(:user) { create(:user, :unconfirmed) }
+
+    it '確認前は未確認で、期限は登録から 7 日後' do
+      expect(user.email_confirmed?).to be false
+      expect(user.email_confirmation_deadline).to be_within(1.second).of(user.created_at + 7.days)
+    end
+
+    it '期限までは email_confirmation_expired? が false、過ぎたら true' do
+      travel_to(user.created_at + 7.days - 1.minute) { expect(user.email_confirmation_expired?).to be false }
+      travel_to(user.created_at + 7.days + 1.minute) { expect(user.email_confirmation_expired?).to be true }
+    end
+
+    it '確認済みなら期限を過ぎても止めない' do
+      confirmed = create(:user)
+      travel_to(confirmed.created_at + 30.days) { expect(confirmed.email_confirmation_expired?).to be false }
+      expect(confirmed.email_confirmation_deadline).to be_nil
+    end
+
+    it '#confirm_email! で確認済みになり、2 回目では確認時刻を変えない' do
+      user.confirm_email!
+      confirmed_at = user.reload.email_confirmed_at
+      expect(confirmed_at).to be_present
+
+      travel_to(1.day.from_now) { user.confirm_email! }
+      expect(user.reload.email_confirmed_at).to eq(confirmed_at)
+    end
+
+    it '確認トークンからユーザーを引ける' do
+      token = user.generate_token_for(:email_confirmation)
+      expect(described_class.find_by_token_for(:email_confirmation, token)).to eq(user)
+    end
+
+    it '確認トークンは 24 時間で無効になる' do
+      token = user.generate_token_for(:email_confirmation)
+      travel_to(25.hours.from_now) do
+        expect(described_class.find_by_token_for(:email_confirmation, token)).to be_nil
+      end
+    end
+
+    it 'メールアドレスが変わると確認トークンは無効になる' do
+      token = user.generate_token_for(:email_confirmation)
+      user.update!(email: 'changed@example.com')
+      expect(described_class.find_by_token_for(:email_confirmation, token)).to be_nil
+    end
+  end
+
+  describe '.unconfirmed_past_retention' do
+    it '確認しないまま 30 日を過ぎたユーザーだけを返す' do
+      old_unconfirmed = travel_to(31.days.ago) { create(:user, :unconfirmed) }
+      travel_to(31.days.ago) { create(:user) } # 確認済み
+      create(:user, :unconfirmed) # 30 日以内
+
+      expect(described_class.unconfirmed_past_retention).to contain_exactly(old_unconfirmed)
+    end
+  end
+
+  describe '.find_or_create_from_oauth' do
+    let(:email) { 'owner@example.com' }
+    let(:auth) do
+      OmniAuth::AuthHash.new(provider: 'google_oauth2', uid: 'google-uid-1', info: { email: email, name: 'Owner' })
+    end
+
+    it '新しく作ったユーザーは確認済みにする' do
+      user = described_class.find_or_create_from_oauth(auth)
+      expect(user.email_confirmed?).to be true
+    end
+
+    it 'Google が確認していないアドレス（info.email が空）ではユーザーを返さない' do
+      auth.info.email = nil
+      expect(described_class.find_or_create_from_oauth(auth)).to be_nil
+    end
+
+    context '同じアドレスの未確認アカウントがある（他人が先に登録した可能性がある）とき' do
+      let!(:existing) { create(:user, :unconfirmed, email: email, password: 'attacker-pass') }
+
+      it 'パスワードを消し、全端末のログインを無効にして、確認済みにしてからつなぐ' do
+        refresh_token = RefreshToken.generate_for(existing)
+
+        user = described_class.find_or_create_from_oauth(auth)
+
+        expect(user).to eq(existing)
+        existing.reload
+        expect(existing.password_digest).to be_nil
+        expect(existing.authenticate('attacker-pass')).to be false
+        expect(existing.email_confirmed?).to be true
+        expect(refresh_token.reload.revoked).to be true
+        expect(existing.oauth_providers.pluck(:uid)).to eq(['google-uid-1'])
+      end
+    end
+
+    context '同じアドレスの確認済みアカウントがあるとき' do
+      let!(:existing) { create(:user, email: email, password: 'owner-pass') }
+
+      it 'パスワードを残したままつなぐ' do
+        expect(described_class.find_or_create_from_oauth(auth)).to eq(existing)
+        expect(existing.reload.authenticate('owner-pass')).to be_truthy
+      end
+    end
+  end
 end

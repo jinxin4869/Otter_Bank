@@ -21,4 +21,25 @@ RSpec.describe UserMailer, type: :mailer do
       expect(mail.html_part.body.decoded).to include(token)
     end
   end
+
+  describe '#email_confirmation' do
+    let(:user) { create(:user, :unconfirmed, email: 'confirm@example.com') }
+    let(:mail) { described_class.email_confirmation(user) }
+
+    it '宛先がユーザーのメールアドレスで、件名が確認のお願いである' do
+      expect(mail.to).to eq([user.email])
+      expect(mail.subject).to eq('【獺獺銀行】メールアドレスの確認のお願い')
+    end
+
+    it '本文の確認 URL のトークン（URL エンコード済み）を戻すとユーザーを引ける' do
+      encoded = mail.text_part.body.decoded[%r{/confirm-email/(\S+)}, 1]
+      expect(encoded).to match(/\A[A-Za-z0-9%\-_.~]+\z/) # パスに入れても区切られない
+      expect(User.find_by_token_for(:email_confirmation, CGI.unescape(encoded))).to eq(user)
+      expect(mail.html_part.body.decoded).to include("/confirm-email/#{encoded}")
+    end
+
+    it '本文にログインできなくなる期限を含む' do
+      expect(mail.text_part.body.decoded).to include(I18n.l(user.email_confirmation_deadline, format: :long))
+    end
+  end
 end

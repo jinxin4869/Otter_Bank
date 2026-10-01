@@ -31,6 +31,8 @@ module Api
         end
 
         user = user_from_token!(token)
+        return render_email_unconfirmed if user.email_confirmation_expired?
+
         # last_sign_in_at は sleeping mood 判定に使う前回サインイン時刻
         render json: user_json(user).merge(last_sign_in_at: user.last_sign_in_at), status: :ok
       rescue JWT::ExpiredSignature
@@ -65,6 +67,11 @@ module Api
           end
 
           user = refresh_token.user
+          if user.email_confirmation_expired?
+            render_email_unconfirmed
+            raise ActiveRecord::Rollback
+          end
+
           user.track_sign_in! # アプリ再訪も「サインイン」とみなし、前回来訪時刻を更新する
           refresh_token.revoke!
           new_token = JsonWebToken.encode(user_id: user.id)

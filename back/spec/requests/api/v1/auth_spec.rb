@@ -69,9 +69,44 @@ RSpec.describe 'Api::V1::Auths', type: :request do
     end
   end
 
+  describe 'GET /api/v1/auth/verify（メールアドレスを確認していないユーザー）' do
+    let(:user) { create(:user, :unconfirmed) }
+    let(:headers) { { 'Authorization' => "Bearer #{JsonWebToken.encode(user_id: user.id)}" } }
+
+    it '期限内なら確認状態と期限を返す' do
+      get '/api/v1/auth/verify', headers: headers
+      expect(response).to have_http_status(:ok)
+      expect(response.parsed_body).to include('email_confirmed' => false)
+      expect(response.parsed_body['email_confirmation_deadline']).to be_present
+    end
+
+    it '期限を過ぎたら 403 と email_unconfirmed コードを返す' do
+      user
+      travel_to(8.days.from_now) do
+        get '/api/v1/auth/verify', headers: headers
+        expect(response).to have_http_status(:forbidden)
+        expect(response.parsed_body['code']).to eq('email_unconfirmed')
+      end
+    end
+  end
+
   describe 'POST /api/v1/auth/refresh' do
     let(:user) { create(:user) }
     let!(:refresh_token) { RefreshToken.generate_for(user) }
+
+    context 'メールアドレスを確認しないまま期限を過ぎたとき' do
+      let(:user) { create(:user, :unconfirmed) }
+
+      it '403 と email_unconfirmed コードを返し、新しいトークンを発行しない' do
+        travel_to(8.days.from_now) do
+          cookies[:refresh_token] = refresh_token.token
+          expect { post '/api/v1/auth/refresh' }.not_to change(RefreshToken, :count)
+          expect(response).to have_http_status(:forbidden)
+          expect(response.parsed_body['code']).to eq('email_unconfirmed')
+          expect(refresh_token.reload.revoked).to be false
+        end
+      end
+    end
 
     it '有効なリフレッシュトークンで新しいアクセストークンを返す' do
       cookies[:refresh_token] = refresh_token.token
