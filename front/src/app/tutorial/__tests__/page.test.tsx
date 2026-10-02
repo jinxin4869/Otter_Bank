@@ -9,12 +9,12 @@ jest.mock("@/hooks/useAuth", () => ({ useAuth: jest.fn() }))
 
 const mockUseAuth = useAuth as jest.Mock
 
-// 「次へ」を押して最後のステップまで進める
+// 「次へ」を押して最後のステップまで進める（ボタン名が変わっても止まるよう回数に上限を設ける）
 const goToLastStep = () => {
-  let next = screen.queryByRole("button", { name: /次へ/ })
-  while (next) {
+  for (let i = 0; i < 20; i++) {
+    const next = screen.queryByRole("button", { name: /次へ/ })
+    if (!next) return
     fireEvent.click(next)
-    next = screen.queryByRole("button", { name: /次へ/ })
   }
 }
 
