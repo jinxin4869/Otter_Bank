@@ -5,14 +5,14 @@ import Link from "next/link"
 import { useParams } from "next/navigation"
 import { AlertCircle, CheckCircle2, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import ResendConfirmationForm from "@/components/resend-confirmation-form"
 import { useAuth } from "@/hooks/useAuth"
 import { api } from "@/lib/api"
 import { decodeUrlToken } from "@/lib/url-token"
 
-export default function ConfirmEmailPage() {
+// メールアドレス変更の確認メールのリンクの開き先。開くと新しいアドレスへ切り替わる
+export default function ConfirmEmailChangePage() {
   const { token } = useParams<{ token: string }>()
   const { isAuthenticated, isLoading: authIsLoading, refreshUser } = useAuth()
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading")
@@ -26,15 +26,15 @@ export default function ConfirmEmailPage() {
 
     const confirm = async () => {
       try {
-        await api.auth.confirmEmail(decodeUrlToken(token))
+        await api.auth.confirmEmailChange(decodeUrlToken(token))
       } catch (error) {
-        console.error("メールアドレスの確認エラー:", error)
-        setErrorMessage(error instanceof Error ? error.message : "確認に失敗しました")
+        console.error("メールアドレス変更の確認エラー:", error)
+        setErrorMessage(error instanceof Error ? error.message : "変更に失敗しました")
         setStatus("error")
         return
       }
       setStatus("success")
-      // ログイン中ならヘッダーのバナーを消すため、ユーザー情報を取り直す（未ログインなら何もしない）
+      // ログイン中なら表示中のアドレスを新しいものにするため、ユーザー情報を取り直す（未ログインなら何もしない）
       await refreshUser()
     }
 
@@ -45,12 +45,7 @@ export default function ConfirmEmailPage() {
     <div className="flex min-h-screen flex-col items-center justify-center p-4">
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle className="text-2xl text-center">メールアドレスの確認</CardTitle>
-          {status === "error" && (
-            <CardDescription className="text-center">
-              確認メールを送り直して、新しいリンクからもう一度お試しください
-            </CardDescription>
-          )}
+          <CardTitle className="text-2xl text-center">メールアドレスの変更</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           {status === "loading" && (
@@ -64,12 +59,12 @@ export default function ConfirmEmailPage() {
               <Alert className="border-primary/30 bg-accent">
                 <CheckCircle2 className="h-4 w-4 text-primary" />
                 <AlertDescription className="text-accent-foreground">
-                  メールアドレスを確認しました。ありがとうございます。
+                  メールアドレスを変更しました。次回から新しいアドレスでログインしてください。
                 </AlertDescription>
               </Alert>
               {!authIsLoading && (
                 <Button asChild className="w-full">
-                  {isAuthenticated ? <Link href="/dashboard">マイページへ</Link> : <Link href="/login">ログインする</Link>}
+                  {isAuthenticated ? <Link href="/settings">設定へ戻る</Link> : <Link href="/login">ログインする</Link>}
                 </Button>
               )}
             </>
@@ -81,7 +76,11 @@ export default function ConfirmEmailPage() {
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>{errorMessage}</AlertDescription>
               </Alert>
-              <ResendConfirmationForm />
+              {!authIsLoading && (
+                <Button asChild variant="outline" className="w-full">
+                  {isAuthenticated ? <Link href="/settings">設定へ戻る</Link> : <Link href="/login">ログインする</Link>}
+                </Button>
+              )}
             </>
           )}
         </CardContent>
