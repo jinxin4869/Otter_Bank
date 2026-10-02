@@ -55,6 +55,7 @@ describe("useAuth", () => {
       isAdmin: false,
       emailConfirmed: true,
       emailConfirmationDeadline: null,
+      unconfirmedEmail: null,
     })
     expect(result.current.token).toBe("valid-token")
     expect(localStorage.getItem("isLoggedIn")).toBe("true")

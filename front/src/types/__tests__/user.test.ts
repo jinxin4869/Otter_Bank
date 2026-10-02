@@ -13,7 +13,14 @@ describe("parseAuthUser", () => {
       isAdmin: false,
       emailConfirmed: true,
       emailConfirmationDeadline: null,
+      unconfirmedEmail: null,
     })
+  })
+
+  it("確認待ちの新しいメールアドレスを読む", () => {
+    expect(parseAuthUser({ id: 1, email: "a@b.c", username: "abc", unconfirmed_email: "new@b.c" })?.unconfirmedEmail).toBe(
+      "new@b.c"
+    )
   })
 
   it("メールアドレスの確認状態と期限を読む", () => {

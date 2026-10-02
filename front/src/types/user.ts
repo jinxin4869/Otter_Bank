@@ -8,6 +8,7 @@ export type AuthUser = {
   isAdmin: boolean // 運営（他人の投稿・コメントを削除できる）。表示の出し分けだけに使い、権限の判定はサーバーが行う
   emailConfirmed: boolean // メールアドレスを確認済みか。未確認なら確認を促すバナーを出す
   emailConfirmationDeadline: string | null // 確認せずにログインできる期限（確認済みなら null）
+  unconfirmedEmail: string | null // 変更を申請し、確認待ちの新しいメールアドレス（無ければ null）
 }
 
 /**
@@ -31,5 +32,6 @@ export function parseAuthUser(data: unknown): AuthUser | null {
     emailConfirmed: raw.email_confirmed !== false,
     emailConfirmationDeadline:
       typeof raw.email_confirmation_deadline === "string" ? raw.email_confirmation_deadline : null,
+    unconfirmedEmail: typeof raw.unconfirmed_email === "string" ? raw.unconfirmed_email : null,
   }
 }

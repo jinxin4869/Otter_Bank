@@ -80,4 +80,71 @@ RSpec.describe 'Api::V1::EmailConfirmations', type: :request do
       expect(response).to have_http_status(:ok)
     end
   end
+
+  describe 'POST /api/v1/auth/confirm-email-change' do
+    let(:user) { create(:user, email: 'before@example.com', unconfirmed_email: 'after@example.com') }
+    let(:token) { user.generate_token_for(:email_change) }
+
+    it '有効なトークンで新しいアドレスへ切り替え、確認済みにする（ログインしていなくてもよい）' do
+      user.update_columns(email_confirmed_at: nil)
+      post '/api/v1/auth/confirm-email-change', params: { token: token }
+
+      expect(response).to have_http_status(:ok)
+      user.reload
+      expect(user.email).to eq('after@example.com')
+      expect(user.unconfirmed_email).to be_nil
+      expect(user.email_confirmed?).to be true
+    end
+
+    it '不正なトークンでは 422 を返し、アドレスは変えない' do
+      post '/api/v1/auth/confirm-email-change', params: { token: 'invalid-token' }
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(response.parsed_body['error']).to eq('確認リンクが無効または期限切れです。設定画面からもう一度変更してください。')
+      expect(user.reload.email).to eq('before@example.com')
+    end
+
+    it '24 時間を過ぎたトークンでは 422 を返す' do
+      token
+      travel_to(25.hours.from_now) do
+        post '/api/v1/auth/confirm-email-change', params: { token: token }
+        expect(response).to have_http_status(:unprocessable_content)
+      end
+      expect(user.reload.email).to eq('before@example.com')
+    end
+
+    it '別のアドレスへ申請し直したら、前の申請のリンクは使えない' do
+      old_token = token
+      user.update!(unconfirmed_email: 'other@example.com')
+
+      post '/api/v1/auth/confirm-email-change', params: { token: old_token }
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(user.reload.email).to eq('before@example.com')
+    end
+
+    it '申請のあとに他のユーザーがそのアドレスを使い始めていたら、切り替えずに 422 を返す' do
+      token
+      create(:user, email: 'after@example.com')
+
+      post '/api/v1/auth/confirm-email-change', params: { token: token }
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(response.parsed_body['error']).to eq('このメールアドレスはすでに使われているため変更できません。')
+      expect(user.reload.email).to eq('before@example.com')
+    end
+
+    it '申請のあとにパスワードをリセットしたら、申請中のリンクは使えない' do
+      token
+      user.update!(password: 'reset-pass-123', password_confirmation: 'reset-pass-123')
+
+      post '/api/v1/auth/confirm-email-change', params: { token: token }
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(user.reload.email).to eq('before@example.com')
+    end
+
+    it 'メールアドレスの確認用のトークンでは変更できない' do
+      post '/api/v1/auth/confirm-email-change', params: { token: user.generate_token_for(:email_confirmation) }
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(user.reload.email).to eq('before@example.com')
+    end
+  end
 end

@@ -72,5 +72,12 @@ export const changePasswordSchema = z
     path: ["confirmPassword"],
   })
 
+// 設定画面: メールアドレスの変更（現在のパスワードが必要）
+export const changeEmailSchema = z.object({
+  email: z.string().trim().email("有効なメールアドレスを入力してください"),
+  currentPassword: z.string().min(1, "現在のパスワードを入力してください"),
+})
+
 export type ProfileFormValues = z.infer<typeof profileSchema>
+export type ChangeEmailFormValues = z.infer<typeof changeEmailSchema>
 export type ChangePasswordFormValues = z.infer<typeof changePasswordSchema>

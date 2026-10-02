@@ -207,6 +207,62 @@ RSpec.describe 'Api::V1::Users', type: :request do
         patch '/api/v1/user', params: { user: { email: user.email, name: '表示名' } }, headers: headers
         expect(response).to have_http_status(:ok)
         expect(user.reload.name).to eq('表示名')
+        expect(user.unconfirmed_email).to be_nil
+      end
+    end
+
+    context 'メールアドレスの変更の申請' do
+      let(:user) do
+        create(:user, email: 'before@example.com', password: 'current-pass', password_confirmation: 'current-pass')
+      end
+      let(:change_params) { { user: { email: 'after@example.com', current_password: 'current-pass' } } }
+
+      it 'email はすぐには変えず、確認待ちの新しいアドレスとして返す' do
+        patch '/api/v1/user', params: change_params, headers: headers
+
+        expect(response).to have_http_status(:ok)
+        expect(response.parsed_body).to include('email' => 'before@example.com',
+                                                'unconfirmed_email' => 'after@example.com')
+        user.reload
+        expect(user.email).to eq('before@example.com')
+        expect(user.unconfirmed_email).to eq('after@example.com')
+        expect(user.email_confirmed?).to be true
+      end
+
+      it '新しいアドレスに確認メールを、今のアドレスにお知らせを送る' do
+        expect { patch '/api/v1/user', params: change_params, headers: headers }
+          .to have_enqueued_mail(UserMailer, :email_change_confirmation)
+          .and have_enqueued_mail(UserMailer, :email_change_requested)
+      end
+
+      it 'メールの送信予約に失敗しても申請は受け付ける' do
+        allow(UserMailer).to receive(:email_change_confirmation).and_raise(StandardError)
+        patch '/api/v1/user', params: change_params, headers: headers
+
+        expect(response).to have_http_status(:ok)
+        expect(user.reload.unconfirmed_email).to eq('after@example.com')
+      end
+
+      it '他のユーザーが使っているアドレスには変えられない' do
+        create(:user, email: 'after@example.com')
+
+        expect { patch '/api/v1/user', params: change_params, headers: headers }
+          .not_to have_enqueued_mail(UserMailer, :email_change_confirmation)
+        expect(response).to have_http_status(:unprocessable_content)
+        expect(response.parsed_body['errors']).to include('新しいメールアドレスはすでに存在します')
+        expect(user.reload.unconfirmed_email).to be_nil
+      end
+
+      it '形式が正しくないアドレスには変えられない' do
+        patch '/api/v1/user', params: { user: { email: 'not-an-email', current_password: 'current-pass' } },
+                              headers: headers
+        expect(response).to have_http_status(:unprocessable_content)
+        expect(user.reload.unconfirmed_email).to be_nil
+      end
+
+      it 'プロフィールの更新だけならメールは送らない' do
+        expect { patch '/api/v1/user', params: { user: { name: '表示名' } }, headers: headers }
+          .not_to have_enqueued_mail(UserMailer, :email_change_confirmation)
       end
     end
   end
