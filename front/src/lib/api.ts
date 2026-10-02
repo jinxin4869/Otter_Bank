@@ -56,6 +56,8 @@ const postListQuery = (page: number, per: number, filters: PostListFilters): str
 export type UpdateUserParams = {
   username?: string
   name?: string
+  // 新しいメールアドレス。確認メールのリンクを開くまでは変わらない（current_password が必要）
+  email?: string
   current_password?: string
   password?: string
   password_confirmation?: string
@@ -109,6 +111,27 @@ export const api = {
       publicApiRequest<{ message: string }>('/auth/reset-password/confirm', {
         method: 'POST',
         body: { token, password },
+      }),
+
+    /** 確認メールのリンクのトークンでメールアドレスを確認済みにする */
+    confirmEmail: (token: string) =>
+      publicApiRequest<{ message: string }>('/auth/confirm-email', {
+        method: 'POST',
+        body: { token },
+      }),
+
+    /** メールアドレス変更の確認メールのリンクのトークンで、新しいアドレスへ切り替える */
+    confirmEmailChange: (token: string) =>
+      publicApiRequest<{ message: string }>('/auth/confirm-email-change', {
+        method: 'POST',
+        body: { token },
+      }),
+
+    /** 確認メールを送り直す（登録の有無・確認済みかどうかにかかわらず同じ応答が返る） */
+    resendEmailConfirmation: (email: string) =>
+      publicApiRequest<{ message: string }>('/auth/confirm-email/resend', {
+        method: 'POST',
+        body: { email },
       }),
 
     /** JWT トークンを検証してユーザー情報を取得する（形式は parseAuthUser で検証する）。

@@ -44,6 +44,7 @@ module Api
         if update_user_and_revoke_sessions
           # 他の端末は締め出し、操作中のこの端末だけ新しいトークンでログインを保つ
           issue_refresh_token_for(@current_user) if @current_user.saved_change_to_password_digest?
+          send_email_change_mails(@current_user) if email_change_requested?
           render json: user_json(@current_user)
         else
           render json: { errors: @current_user.errors.full_messages }, status: :unprocessable_content
@@ -66,12 +67,32 @@ module Api
         Rails.logger.error "確認メールの送信予約に失敗 user_id=#{user.id}: #{e.class}"
       end
 
+      # 新しいアドレスには確認のリンクを、今のアドレスには変更の申請があったことを送る。
+      # 送れなくても申請はやり直せるので、更新は失敗させない
+      def send_email_change_mails(user)
+        UserMailer.email_change_confirmation(user).deliver_later
+        UserMailer.email_change_requested(user).deliver_later
+      rescue StandardError => e
+        Rails.logger.error "メールアドレス変更のメール送信予約に失敗 user_id=#{user.id}: #{e.class}"
+      end
+
       def user_params
         params.expect(user: %i[username email password password_confirmation])
       end
 
+      # メールアドレスは確認なしでは変えない。新しいアドレスは確認が済むまで unconfirmed_email に置く
+      # （確認せずに他人のアドレスへ変えておき、その人の Google ログインでつながるのを防ぐ）
       def update_user_params
-        params.expect(user: %i[username email name password password_confirmation])
+        @update_user_params ||= begin
+          attrs = params.expect(user: %i[username email name password password_confirmation])
+          new_email = attrs.delete(:email)
+          attrs[:unconfirmed_email] = new_email if new_email.present? && new_email != @current_user.email
+          attrs
+        end
+      end
+
+      def email_change_requested?
+        update_user_params.key?(:unconfirmed_email)
       end
 
       # パスワードが変わったなら必ず全端末のセッションも失効しているよう、1 トランザクションで更新する

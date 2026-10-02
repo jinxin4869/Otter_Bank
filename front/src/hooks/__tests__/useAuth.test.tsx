@@ -48,7 +48,15 @@ describe("useAuth", () => {
 
     expect(result.current.isAuthenticated).toBe(true)
     // API のレスポンスはキャメルケースの内部型に変換して保持する
-    expect(result.current.user).toEqual({ ...user, name: undefined, lastSignInAt: null, isAdmin: false })
+    expect(result.current.user).toEqual({
+      ...user,
+      name: undefined,
+      lastSignInAt: null,
+      isAdmin: false,
+      emailConfirmed: true,
+      emailConfirmationDeadline: null,
+      unconfirmedEmail: null,
+    })
     expect(result.current.token).toBe("valid-token")
     expect(localStorage.getItem("isLoggedIn")).toBe("true")
   })
@@ -64,6 +72,22 @@ describe("useAuth", () => {
     expect(result.current.isAuthenticated).toBe(false)
     expect(result.current.user).toBeNull()
     expect(localStorage.getItem("authToken")).toBeNull()
+  })
+
+  it("メールアドレスの確認期限を過ぎて拒否されたら、認証情報を消して確認が必要だと知らせる", async () => {
+    localStorage.setItem("authToken", "valid-token")
+    mockFetch({
+      ok: false,
+      status: 403,
+      json: async () => ({ error: "メールアドレスの確認が済んでいません", code: "email_unconfirmed" }),
+    })
+
+    const { result } = renderHook(() => useAuth())
+    await waitFor(() => expect(result.current.isLoading).toBe(false))
+
+    expect(result.current.isAuthenticated).toBe(false)
+    expect(localStorage.getItem("authToken")).toBeNull()
+    expect(toast.error).toHaveBeenCalledWith("メールアドレスの確認が必要です", expect.anything())
   })
 
   it("logout で認証情報を削除し、トーストを出してトップページへ遷移する", async () => {
@@ -200,6 +224,25 @@ describe("useAuth（refreshUser）", () => {
     })
     expect(result.current.isAuthenticated).toBe(true)
     expect(result.current.user?.username).toBe("otter")
+  })
+
+  it("取り直したら、ヘッダーなど他のインスタンスにも取り直してもらう（確認後にバナーを消すため）", async () => {
+    let emailConfirmed = false
+    global.fetch = jest.fn(async () => ({
+      ok: true,
+      status: 200,
+      json: async () => ({ user: { id: 1, email: "a@b.c", username: "otter", email_confirmed: emailConfirmed } }),
+    })) as unknown as typeof fetch
+    const header = renderHook(() => useAuth())
+    const page = renderHook(() => useAuth())
+    await waitFor(() => expect(header.result.current.user?.emailConfirmed).toBe(false))
+    await waitFor(() => expect(page.result.current.user?.emailConfirmed).toBe(false))
+
+    emailConfirmed = true
+    await act(async () => {
+      await page.result.current.refreshUser()
+    })
+    await waitFor(() => expect(header.result.current.user?.emailConfirmed).toBe(true))
   })
 })
 

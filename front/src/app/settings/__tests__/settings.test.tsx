@@ -2,6 +2,8 @@ import { render, screen, fireEvent, waitFor } from "@testing-library/react"
 import DeleteAccountSection from "../_components/delete-account-section"
 import ChangePasswordForm from "../_components/change-password-form"
 import ProfileForm from "../_components/profile-form"
+import ChangeEmailForm from "../_components/change-email-form"
+import { toast } from "sonner"
 import { api } from "@/lib/api"
 
 jest.mock("sonner", () => ({ toast: { success: jest.fn(), error: jest.fn() } }))
@@ -110,5 +112,52 @@ describe("ProfileForm", () => {
     expect(await screen.findByRole("alert")).toHaveTextContent("ユーザー名は3文字以上で入力してください")
     expect(screen.getByLabelText("ユーザー名")).toHaveAttribute("aria-invalid", "true")
     expect(update).not.toHaveBeenCalled()
+  })
+})
+
+describe("ChangeEmailForm", () => {
+  const update = api.user.update as jest.Mock
+  const onRequested = jest.fn()
+
+  beforeEach(() => {
+    update.mockReset()
+    onRequested.mockReset()
+    jest.mocked(toast.success).mockClear()
+  })
+
+  const fill = (email: string, password = "current-pass") => {
+    fireEvent.change(screen.getByLabelText("新しいメールアドレス"), { target: { value: email } })
+    fireEvent.change(screen.getByLabelText("現在のパスワード"), { target: { value: password } })
+    fireEvent.click(screen.getByRole("button", { name: "確認メールを送る" }))
+  }
+
+  it("新しいアドレスと現在のパスワードを送り、確認待ちのアドレスを取り直す", async () => {
+    update.mockResolvedValue({})
+    render(<ChangeEmailForm token="t" currentEmail="before@example.com" unconfirmedEmail={null} onRequested={onRequested} />)
+    fill("after@example.com")
+
+    await waitFor(() => expect(onRequested).toHaveBeenCalled())
+    expect(update).toHaveBeenCalledWith("t", { email: "after@example.com", current_password: "current-pass" })
+    expect(toast.success).toHaveBeenCalledWith("確認メールを送りました", expect.anything())
+  })
+
+  it("今と同じアドレスなら送らない", async () => {
+    render(<ChangeEmailForm token="t" currentEmail="before@example.com" unconfirmedEmail={null} onRequested={onRequested} />)
+    fill("before@example.com")
+
+    expect(await screen.findByText("現在のメールアドレスと同じです")).toBeInTheDocument()
+    expect(update).not.toHaveBeenCalled()
+  })
+
+  it("確認待ちのアドレスがあれば表示する", () => {
+    render(
+      <ChangeEmailForm
+        token="t"
+        currentEmail="before@example.com"
+        unconfirmedEmail="after@example.com"
+        onRequested={onRequested}
+      />
+    )
+    expect(screen.getByText(/after@example.com への変更を確認待ちです/)).toBeInTheDocument()
   })
 })

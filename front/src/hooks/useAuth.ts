@@ -20,7 +20,8 @@ const clearAuthStorage = () => {
 
 type SessionResult =
   | { kind: "authenticated"; user: AuthUser; token: string }
-  | { kind: "rejected"; expired: boolean } // サーバーが認証を拒否した（保存済みトークンを消す）
+  // サーバーが認証を拒否した（保存済みトークンを消す）。emailUnconfirmed はメールアドレスの確認期限を過ぎたため
+  | { kind: "rejected"; expired: boolean; emailUnconfirmed?: boolean }
   | { kind: "unavailable" } // ネットワーク障害など一時的な失敗（トークンは残し、次回の確認でやり直す）
   | { kind: "superseded" }; // 確認中にログアウト・再ログインされた（結果を使わない）
 
@@ -47,7 +48,9 @@ const resolveSession = async (accessToken: string): Promise<SessionResult> => {
   } catch (error) {
     if (isSuperseded(current)) return { kind: "superseded" };
     console.error("[Auth] 認証の確認に失敗しました:", error);
-    return error instanceof ApiError ? { kind: "rejected", expired: false } : { kind: "unavailable" };
+    return error instanceof ApiError
+      ? { kind: "rejected", expired: false, emailUnconfirmed: error.code === "email_unconfirmed" }
+      : { kind: "unavailable" };
   }
 };
 
@@ -90,6 +93,12 @@ export const useAuth = () => {
           toast.error("認証期限切れ", {
             id: "auth-expired",
             description: "認証期限が切れました。再度ログインしてください。",
+          });
+        }
+        if (result.emailUnconfirmed) {
+          toast.error("メールアドレスの確認が必要です", {
+            id: "email-unconfirmed",
+            description: "確認の期限を過ぎました。ログイン画面から確認メールを送り直せます。",
           });
         }
         return;
@@ -195,14 +204,17 @@ export const useAuth = () => {
     return true;
   }, [token, endSession]);
 
-  // プロフィールを更新したあと、表示中のユーザー情報を取り直す。
+  // プロフィールの更新・メールアドレスの確認のあと、表示中のユーザー情報を取り直す。
+  // ヘッダー（確認を促すバナー）など他のインスタンスにも取り直してもらう。
   // 取り直しに失敗しても（一時的な通信障害など）更新自体は済んでいるので、表示中のユーザーは消さない
   const refreshUser = useCallback(async () => {
     const current = localStorage.getItem("authToken");
     if (!current) return;
     const result = await resolveSession(current);
-    if (result.kind === "authenticated") applySession(result);
-  }, [applySession]);
+    if (result.kind !== "authenticated") return;
+    applySession(result);
+    notifyAuthStateChanged();
+  }, [applySession, notifyAuthStateChanged]);
 
   return {
     user,

@@ -47,7 +47,10 @@ export default function RegisterPage() {
       await login(responseData.token, data.email)
       localStorage.setItem("tutorialSeen", "false")
 
-      toast.success("登録完了", { description: "アカウントが正常に作成されました。" })
+      // 確認しなくても 7 日間は使えるので、登録はそのまま完了させ、確認メールを送ったことだけ知らせる
+      toast.success("登録完了", {
+        description: `${data.email} に確認メールを送りました。7日以内にメールのリンクから確認してください。`,
+      })
       router.push("/dashboard")
     } catch (error) {
       const message = error instanceof Error ? error.message : "登録中にエラーが発生しました。後でもう一度お試しください。"

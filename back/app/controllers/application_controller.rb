@@ -43,10 +43,12 @@ class ApplicationController < ActionController::API
   end
 
   # 自分のユーザー情報として返す JSON。admin はフロントが管理者用の削除メニューを出すために使う。
-  # email_confirmed / email_confirmation_deadline はフロントが確認を促すバナーを出すために使う
+  # email_confirmed / email_confirmation_deadline はフロントが確認を促すバナーを出すために使う。
+  # unconfirmed_email は設定画面で確認待ちの新しいアドレスを表示するために使う
   def user_json(user)
     { id: user.id, email: user.email, username: user.username, name: user.name, admin: user.admin,
-      email_confirmed: user.email_confirmed?, email_confirmation_deadline: user.email_confirmation_deadline }
+      email_confirmed: user.email_confirmed?, email_confirmation_deadline: user.email_confirmation_deadline,
+      unconfirmed_email: user.unconfirmed_email }
   end
 
   # 確認しないまま期限を過ぎたユーザーには、確認するまで使わせない。
