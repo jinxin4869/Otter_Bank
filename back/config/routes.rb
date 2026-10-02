@@ -16,6 +16,7 @@ Rails.application.routes.draw do
       post 'auth/reset-password/confirm', to: 'password_resets#confirm_reset'
       post 'auth/confirm-email', to: 'email_confirmations#confirm'
       post 'auth/confirm-email/resend', to: 'email_confirmations#resend'
+      post 'auth/confirm-email-change', to: 'email_confirmations#confirm_change'
 
       # 家計簿管理
       resources :transactions, only: %i[index create update destroy] do # 取引関連
