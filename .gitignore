@@ -14,3 +14,6 @@ REVIEW.md
 # エディタ設定（個人の環境依存のため追跡しない）
 .vscode/
 .idea/
+
+# Playwright MCP の操作ログ・スクリーンショット
+.playwright-mcp/
