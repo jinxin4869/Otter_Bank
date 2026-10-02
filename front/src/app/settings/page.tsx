@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useAuth } from "@/hooks/useAuth"
 import ProfileForm from "./_components/profile-form"
 import ChangePasswordForm from "./_components/change-password-form"
+import ChangeEmailForm from "./_components/change-email-form"
 import DeleteAccountSection from "./_components/delete-account-section"
 
 export default function SettingsPage() {
@@ -49,6 +50,23 @@ export default function SettingsPage() {
             initialUsername={user.username}
             initialName={user.name ?? ""}
             onSaved={refreshUser}
+          />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>メールアドレスの変更</CardTitle>
+          <CardDescription>
+            新しいアドレスに確認メールを送ります。メールのリンクを開くまでは、今のアドレス（{user.email}）のまま使えます
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <ChangeEmailForm
+            token={token}
+            currentEmail={user.email}
+            unconfirmedEmail={user.unconfirmedEmail}
+            onRequested={refreshUser}
           />
         </CardContent>
       </Card>
