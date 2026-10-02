@@ -263,6 +263,54 @@ RSpec.describe User, type: :model do
     end
   end
 
+  describe 'メールアドレスの変更（unconfirmed_email）' do
+    let(:user) { create(:user, email: 'before@example.com') }
+
+    it '形式が正しくない新しいアドレスは保存できない' do
+      expect(user.update(unconfirmed_email: 'not-an-email')).to be false
+    end
+
+    it '他のユーザーが使っているアドレスは申請できない' do
+      create(:user, email: 'taken@example.com')
+      expect(user.update(unconfirmed_email: 'taken@example.com')).to be false
+      expect(user.errors[:unconfirmed_email]).to be_present
+    end
+
+    it '変更のトークンは申請中のアドレスに結びつき、申請し直すと前のトークンは無効になる' do
+      user.update!(unconfirmed_email: 'after@example.com')
+      token = user.generate_token_for(:email_change)
+      expect(described_class.find_by_token_for(:email_change, token)).to eq(user)
+
+      user.update!(unconfirmed_email: 'other@example.com')
+      expect(described_class.find_by_token_for(:email_change, token)).to be_nil
+    end
+
+    describe '#confirm_email_change!' do
+      it '新しいアドレスへ切り替えて確認済みにし、申請を消す' do
+        user.update_columns(unconfirmed_email: 'after@example.com', email_confirmed_at: nil)
+
+        expect(user.confirm_email_change!).to be true
+        user.reload
+        expect(user.email).to eq('after@example.com')
+        expect(user.unconfirmed_email).to be_nil
+        expect(user.email_confirmed?).to be true
+      end
+
+      it '申請が無ければ何もせず false を返す' do
+        expect(user.confirm_email_change!).to be false
+        expect(user.reload.email).to eq('before@example.com')
+      end
+
+      it '他のユーザーが使い始めていたら切り替えず false を返す' do
+        user.update_columns(unconfirmed_email: 'after@example.com')
+        create(:user, email: 'after@example.com')
+
+        expect(user.confirm_email_change!).to be false
+        expect(user.reload.email).to eq('before@example.com')
+      end
+    end
+  end
+
   describe '.unconfirmed_past_retention' do
     it '確認しないまま 30 日を過ぎたユーザーだけを返す' do
       old_unconfirmed = travel_to(31.days.ago) { create(:user, :unconfirmed) }

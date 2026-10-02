@@ -16,6 +16,7 @@ ja:
       user:
         username: ユーザー名
         email: メールアドレス
+        unconfirmed_email: 新しいメールアドレス
         password: パスワード
         name: 名前
       transaction:
