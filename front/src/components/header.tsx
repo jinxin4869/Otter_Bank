@@ -17,11 +17,12 @@ import Image from "next/image"
 import { usePathname } from 'next/navigation'
 import { useEffect, useState } from "react"
 import { useAuth } from "@/hooks/useAuth"
+import EmailConfirmationBanner from "@/components/email-confirmation-banner"
 
 export default function Header() {
   const { theme, setTheme } = useTheme()
   const pathname = usePathname()
-  const { isAuthenticated, logout, isLoading } = useAuth()
+  const { isAuthenticated, user, logout, isLoading } = useAuth()
   const [mounted, setMounted] = useState(false)
   const logoHref = isAuthenticated ? "/dashboard" : "/";
 
@@ -70,112 +71,118 @@ export default function Header() {
   }
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border shadow-sm">
-      <div className="header-container flex h-16 items-center">
-        <Link href={logoHref} className="flex items-center gap-2">
-          <Image src="/brand/logo.png" alt="Otter Bank ロゴ" width={36} height={36} className="rounded-full transition-transform hover:scale-110" />
-          <span className="font-bold text-lg hidden sm:inline-block">Otter Bank</span>
-        </Link>
+    <>
+      <header className="sticky top-0 z-50 w-full border-b border-border shadow-sm">
+        <div className="header-container flex h-16 items-center">
+          <Link href={logoHref} className="flex items-center gap-2">
+            <Image src="/brand/logo.png" alt="Otter Bank ロゴ" width={36} height={36} className="rounded-full transition-transform hover:scale-110" />
+            <span className="font-bold text-lg hidden sm:inline-block">Otter Bank</span>
+          </Link>
 
-        {/* 中央のスペーサー */}
-        <div className="flex-1"></div>
+          {/* 中央のスペーサー */}
+          <div className="flex-1"></div>
 
-        {/* デスクトップ表示のナビゲーション - 完全に右寄せ */}
-        <nav className="hidden md:flex items-center gap-1 mr-4">
-          {navLinks.map(link => (
-            <Button
-              key={link.href}
-              variant={pathname === link.href ? "secondary" : "ghost"}
-              asChild
-              size="sm"
-              className="rounded-full px-3"
-            >
-              <Link href={link.href} className="flex items-center">
-                {link.icon}
-                {link.label}
-              </Link>
-            </Button>
-          ))}
-          {isAuthenticated && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="rounded-full px-3 hover:bg-destructive hover:text-destructive-foreground"
-              onClick={handleLogout}
-            >
-              <LogOut className="mr-2 h-4 w-4" />
-              ログアウト
-            </Button>
-          )}
-        </nav>
-
-        <div className="flex items-center gap-2 ml-2">
-          {/* モバイル表示のハンバーガーメニュー */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="icon" className="md:hidden rounded-full text-foreground">
-                <Menu className="h-5 w-5" />
-                <span className="sr-only">ナビゲーションを開く</span>
+          {/* デスクトップ表示のナビゲーション - 完全に右寄せ */}
+          <nav className="hidden md:flex items-center gap-1 mr-4">
+            {navLinks.map(link => (
+              <Button
+                key={link.href}
+                variant={pathname === link.href ? "secondary" : "ghost"}
+                asChild
+                size="sm"
+                className="rounded-full px-3"
+              >
+                <Link href={link.href} className="flex items-center">
+                  {link.icon}
+                  {link.label}
+                </Link>
               </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="md:hidden w-48">
-              <DropdownMenuLabel>メニュー</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              {navLinks.map(link => (
-                <DropdownMenuItem key={link.href} asChild>
-                  <Link href={link.href} className={cn("flex items-center", pathname === link.href && "bg-muted font-semibold")}>
-                    {link.icon}
-                    {link.label}
-                  </Link>
-                </DropdownMenuItem>
-              ))}
-              {isAuthenticated && (
-                <>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    variant="destructive"
-                    onClick={handleLogout}
-                    className="flex items-center"
-                  >
-                    <LogOut className="mr-2 h-4 w-4" />
-                    ログアウト
+            ))}
+            {isAuthenticated && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="rounded-full px-3 hover:bg-destructive hover:text-destructive-foreground"
+                onClick={handleLogout}
+              >
+                <LogOut className="mr-2 h-4 w-4" />
+                ログアウト
+              </Button>
+            )}
+          </nav>
+
+          <div className="flex items-center gap-2 ml-2">
+            {/* モバイル表示のハンバーガーメニュー */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="icon" className="md:hidden rounded-full text-foreground">
+                  <Menu className="h-5 w-5" />
+                  <span className="sr-only">ナビゲーションを開く</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="md:hidden w-48">
+                <DropdownMenuLabel>メニュー</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                {navLinks.map(link => (
+                  <DropdownMenuItem key={link.href} asChild>
+                    <Link href={link.href} className={cn("flex items-center", pathname === link.href && "bg-muted font-semibold")}>
+                      {link.icon}
+                      {link.label}
+                    </Link>
                   </DropdownMenuItem>
-                </>
-              )}
-            </DropdownMenuContent>
-          </DropdownMenu>
+                ))}
+                {isAuthenticated && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      variant="destructive"
+                      onClick={handleLogout}
+                      className="flex items-center"
+                    >
+                      <LogOut className="mr-2 h-4 w-4" />
+                      ログアウト
+                    </DropdownMenuItem>
+                  </>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
 
-          {/* テーマ変更ボタン */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="icon" className="rounded-full text-foreground">
-                <Palette className="h-5 w-5 transition-transform group-hover:rotate-12" />
-                <span className="sr-only">テーマを切り替える</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-40">
-              <DropdownMenuLabel className="px-2 py-1.5 text-sm font-semibold">背景色を選択</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={() => setTheme("light")}
-                className="flex items-center gap-2 px-2 py-1.5 text-sm rounded-sm cursor-pointer"
-              >
-                <Sun className="h-4 w-4 text-primary" />
-                ライト
-                {theme === "light" && <Check className="h-4 w-4 ml-auto text-primary" />}
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => setTheme("dark")}
-                className="flex items-center gap-2 px-2 py-1.5 text-sm rounded-sm cursor-pointer"
-              >
-                <Moon className="h-4 w-4 text-primary" />
-                ダーク
-                {theme === "dark" && <Check className="h-4 w-4 ml-auto text-primary" />}
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+            {/* テーマ変更ボタン */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="icon" className="rounded-full text-foreground">
+                  <Palette className="h-5 w-5 transition-transform group-hover:rotate-12" />
+                  <span className="sr-only">テーマを切り替える</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-40">
+                <DropdownMenuLabel className="px-2 py-1.5 text-sm font-semibold">背景色を選択</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={() => setTheme("light")}
+                  className="flex items-center gap-2 px-2 py-1.5 text-sm rounded-sm cursor-pointer"
+                >
+                  <Sun className="h-4 w-4 text-primary" />
+                  ライト
+                  {theme === "light" && <Check className="h-4 w-4 ml-auto text-primary" />}
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => setTheme("dark")}
+                  className="flex items-center gap-2 px-2 py-1.5 text-sm rounded-sm cursor-pointer"
+                >
+                  <Moon className="h-4 w-4 text-primary" />
+                  ダーク
+                  {theme === "dark" && <Check className="h-4 w-4 ml-auto text-primary" />}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
-      </div>
-    </header>
+      </header>
+      {/* メールアドレスが未確認なら確認を促す（ヘッダーの useAuth を使い、検証リクエストを増やさない） */}
+      {user && !user.emailConfirmed && (
+        <EmailConfirmationBanner email={user.email} deadline={user.emailConfirmationDeadline} />
+      )}
+    </>
   )
 }
