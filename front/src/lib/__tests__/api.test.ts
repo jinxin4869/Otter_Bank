@@ -73,6 +73,11 @@ describe("api.auth のメールアドレス確認", () => {
     expect(lastCall()).toEqual({ path: "/api/v1/auth/confirm-email", method: "POST", body: { token: "abc" } })
   })
 
+  it("confirmEmailChange はトークンを送る", async () => {
+    await api.auth.confirmEmailChange("abc")
+    expect(lastCall()).toEqual({ path: "/api/v1/auth/confirm-email-change", method: "POST", body: { token: "abc" } })
+  })
+
   it("resendEmailConfirmation はメールアドレスを送る", async () => {
     await api.auth.resendEmailConfirmation("otter@example.com")
     expect(lastCall()).toEqual({

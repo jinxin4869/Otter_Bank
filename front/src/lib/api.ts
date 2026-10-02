@@ -56,6 +56,8 @@ const postListQuery = (page: number, per: number, filters: PostListFilters): str
 export type UpdateUserParams = {
   username?: string
   name?: string
+  // 新しいメールアドレス。確認メールのリンクを開くまでは変わらない（current_password が必要）
+  email?: string
   current_password?: string
   password?: string
   password_confirmation?: string
@@ -114,6 +116,13 @@ export const api = {
     /** 確認メールのリンクのトークンでメールアドレスを確認済みにする */
     confirmEmail: (token: string) =>
       publicApiRequest<{ message: string }>('/auth/confirm-email', {
+        method: 'POST',
+        body: { token },
+      }),
+
+    /** メールアドレス変更の確認メールのリンクのトークンで、新しいアドレスへ切り替える */
+    confirmEmailChange: (token: string) =>
+      publicApiRequest<{ message: string }>('/auth/confirm-email-change', {
         method: 'POST',
         body: { token },
       }),
