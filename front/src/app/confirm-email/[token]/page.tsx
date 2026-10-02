@@ -36,14 +36,15 @@ export default function ConfirmEmailPage() {
     const confirm = async () => {
       try {
         await api.auth.confirmEmail(decodeToken(token))
-        setStatus("success")
-        // ログイン中ならヘッダーのバナーを消すため、ユーザー情報を取り直す（未ログインなら何もしない）
-        await refreshUser()
       } catch (error) {
         console.error("メールアドレスの確認エラー:", error)
         setErrorMessage(error instanceof Error ? error.message : "確認に失敗しました")
         setStatus("error")
+        return
       }
+      setStatus("success")
+      // ログイン中ならヘッダーのバナーを消すため、ユーザー情報を取り直す（未ログインなら何もしない）
+      await refreshUser()
     }
 
     void confirm()
