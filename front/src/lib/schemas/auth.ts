@@ -39,10 +39,16 @@ export const contactSchema = z.object({
     .max(CONTACT_MESSAGE_MAX_LENGTH, `お問い合わせ内容は${CONTACT_MESSAGE_MAX_LENGTH.toLocaleString()}文字以内で入力してください`),
 })
 
+// 確認メールの送り直し（確認ページ・ログイン画面）
+export const resendConfirmationSchema = z.object({
+  email: z.string().trim().email("有効なメールアドレスを入力してください"),
+})
+
 export type LoginFormValues = z.infer<typeof loginSchema>
 export type RegisterFormValues = z.infer<typeof registerSchema>
 export type ResetPasswordFormValues = z.infer<typeof resetPasswordSchema>
 export type ContactFormValues = z.infer<typeof contactSchema>
+export type ResendConfirmationFormValues = z.infer<typeof resendConfirmationSchema>
 
 // 設定画面: プロフィール（ユーザー名はサーバーの検証と同じ 3〜20 文字）
 export const profileSchema = z.object({
