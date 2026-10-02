@@ -132,6 +132,15 @@ RSpec.describe 'Api::V1::EmailConfirmations', type: :request do
       expect(user.reload.email).to eq('before@example.com')
     end
 
+    it '申請のあとにパスワードをリセットしたら、申請中のリンクは使えない' do
+      token
+      user.update!(password: 'reset-pass-123', password_confirmation: 'reset-pass-123')
+
+      post '/api/v1/auth/confirm-email-change', params: { token: token }
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(user.reload.email).to eq('before@example.com')
+    end
+
     it 'メールアドレスの確認用のトークンでは変更できない' do
       post '/api/v1/auth/confirm-email-change', params: { token: user.generate_token_for(:email_confirmation) }
       expect(response).to have_http_status(:unprocessable_content)

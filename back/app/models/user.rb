@@ -35,9 +35,11 @@ class User < ApplicationRecord
     email
   end
 
-  # メールアドレスの変更の確認リンクに載せるトークン。変更を申請し直すと（unconfirmed_email が変わると）無効になる
+  # メールアドレスの変更の確認リンクに載せるトークン。申請し直したとき・パスワードを変えたとき（乗っ取りに気づいた
+  # 持ち主がリセットしたときを含む）に無効になる。トークンは暗号化されず中身を読めるので、ハッシュそのものではなく
+  # Rails のパスワードリセットのトークンと同じくソルトの末尾だけを使う
   generates_token_for :email_change, expires_in: 24.hours do
-    unconfirmed_email
+    [unconfirmed_email, email, password_salt&.last(10)]
   end
 
   scope :unconfirmed_past_retention, lambda {
@@ -64,12 +66,14 @@ class User < ApplicationRecord
     update_column(:email_confirmed_at, Time.current) unless email_confirmed?
   end
 
-  # 変更を申請した新しいアドレスへ切り替える。新しいアドレスの持ち主が確認したので確認済みにする。
-  # 申請から確認までの間に他のユーザーがそのアドレスを使い始めていたら切り替えず false を返す
-  def confirm_email_change!
+  # 変更を申請した新しいアドレス（確認リンクを開いた人が受け取ったアドレス）へ切り替え、確認済みにする。
+  # トークンの確認からロックまでの間に別のアドレスへ申請し直されていたら、確認していないアドレスになるので切り替えない。
+  # 申請から確認までの間に他のユーザーがそのアドレスを使い始めていた場合も切り替えず false を返す
+  def confirm_email_change!(confirmed_email)
     with_lock do
       new_email = unconfirmed_email
-      return false if new_email.blank? || User.where.not(id: id).exists?(email: new_email)
+      return false if new_email.blank? || new_email != confirmed_email
+      return false if User.where.not(id: id).exists?(email: new_email)
 
       now = Time.current
       update_columns(email: new_email, unconfirmed_email: nil, email_confirmed_at: now, updated_at: now)

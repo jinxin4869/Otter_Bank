@@ -285,11 +285,25 @@ RSpec.describe User, type: :model do
       expect(described_class.find_by_token_for(:email_change, token)).to be_nil
     end
 
+    it 'パスワードを変えると変更のトークンは無効になる（乗っ取りに気づいてリセットしたら、申請中の変更も止まる）' do
+      user.update!(unconfirmed_email: 'after@example.com')
+      token = user.generate_token_for(:email_change)
+
+      user.update!(password: 'new-pass-123', password_confirmation: 'new-pass-123')
+      expect(described_class.find_by_token_for(:email_change, token)).to be_nil
+    end
+
+    it '変更のトークンにパスワードのハッシュを載せない（トークンの中身は暗号化されない）' do
+      user.update!(unconfirmed_email: 'after@example.com')
+      payload = Base64.urlsafe_decode64(user.generate_token_for(:email_change).split('--').first)
+      expect(payload).not_to include(user.password_digest)
+    end
+
     describe '#confirm_email_change!' do
       it '新しいアドレスへ切り替えて確認済みにし、申請を消す' do
         user.update_columns(unconfirmed_email: 'after@example.com', email_confirmed_at: nil)
 
-        expect(user.confirm_email_change!).to be true
+        expect(user.confirm_email_change!('after@example.com')).to be true
         user.reload
         expect(user.email).to eq('after@example.com')
         expect(user.unconfirmed_email).to be_nil
@@ -297,7 +311,7 @@ RSpec.describe User, type: :model do
       end
 
       it '申請が無ければ何もせず false を返す' do
-        expect(user.confirm_email_change!).to be false
+        expect(user.confirm_email_change!('after@example.com')).to be false
         expect(user.reload.email).to eq('before@example.com')
       end
 
@@ -305,7 +319,14 @@ RSpec.describe User, type: :model do
         user.update_columns(unconfirmed_email: 'after@example.com')
         create(:user, email: 'after@example.com')
 
-        expect(user.confirm_email_change!).to be false
+        expect(user.confirm_email_change!('after@example.com')).to be false
+        expect(user.reload.email).to eq('before@example.com')
+      end
+
+      it '確認したアドレスと申請中のアドレスが違えば（確認の直前に申請し直された）切り替えない' do
+        user.update_columns(unconfirmed_email: 'other@example.com')
+
+        expect(user.confirm_email_change!('after@example.com')).to be false
         expect(user.reload.email).to eq('before@example.com')
       end
     end

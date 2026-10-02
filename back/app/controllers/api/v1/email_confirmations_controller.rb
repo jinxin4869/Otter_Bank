@@ -42,7 +42,7 @@ module Api
           return
         end
 
-        unless user.confirm_email_change!
+        unless user.confirm_email_change!(user.unconfirmed_email)
           render json: { error: 'このメールアドレスはすでに使われているため変更できません。' }, status: :unprocessable_content
           return
         end
