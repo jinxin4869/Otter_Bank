@@ -104,13 +104,14 @@ export default function TutorialPage() {
   const router = useRouter();
   const { isAuthenticated, isLoading } = useAuth();
   const [currentStep, setCurrentStep] = useState(0);
+  const isLastStep = currentStep === tutorialSteps.length - 1;
 
   const handleNext = () => {
-    if (currentStep < tutorialSteps.length - 1) {
+    if (!isLastStep) {
       setCurrentStep(currentStep + 1);
     } else {
-      // 最後のステップなら登録ページへ
-      router.push("/register");
+      // 最後のステップ: ログイン済みならマイページへ、未ログインなら登録ページへ
+      router.push(isAuthenticated ? "/dashboard" : "/register");
     }
   };
 
@@ -210,15 +211,20 @@ export default function TutorialPage() {
                 前へ
               </Button>
             )}
-            <Button onClick={handleNext} className="w-full sm:w-auto bg-primary hover:bg-primary/90">
-              {currentStep < tutorialSteps.length - 1 ? (
+            {/* 最後のステップの遷移先はログイン状態で決まるので、確認が済むまでは押せないようにする */}
+            <Button
+              onClick={handleNext}
+              disabled={isLastStep && isLoading}
+              className="w-full sm:w-auto bg-primary hover:bg-primary/90"
+            >
+              {!isLastStep ? (
                 <>
                   次へ
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </>
               ) : (
                 <>
-                  アプリを始める
+                  {isAuthenticated ? "マイページへ" : "アプリを始める"}
                   <CheckCircle2 className="ml-2 h-4 w-4" />
                 </>
               )}
@@ -227,7 +233,7 @@ export default function TutorialPage() {
         </CardFooter>
       </Card>
 
-      {!isLoading && !isAuthenticated && currentStep === tutorialSteps.length - 1 && (
+      {!isLoading && !isAuthenticated && isLastStep && (
         <div className="mt-6 text-center">
           <p className="text-sm text-muted-foreground">
             すでにアカウントをお持ちですか？ <a href="/login" className="text-primary hover:underline font-medium">ログイン</a>
