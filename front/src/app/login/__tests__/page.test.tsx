@@ -2,6 +2,7 @@ import { render, screen, fireEvent, waitFor } from "@testing-library/react"
 import { toast } from "sonner"
 import LoginPage from "@/app/login/page"
 import { api } from "@/lib/api"
+import { ApiError } from "@/lib/api-error"
 
 const push = jest.fn()
 const login = jest.fn()
@@ -32,6 +33,18 @@ describe("LoginPage", () => {
 
     expect(await screen.findByRole("alert")).toHaveTextContent("メールアドレスまたはパスワードが無効です")
     expect(toast.error).not.toHaveBeenCalled()
+  })
+
+  it("確認期限を過ぎていたら、エラーではなく入力したアドレスで確認メールの送り直しへ案内する", async () => {
+    apiLogin.mockRejectedValue(new ApiError("メールアドレスの確認が済んでいません", "email_unconfirmed"))
+    const { container } = render(<LoginPage />)
+    await submit(container)
+
+    expect(await screen.findByText("メールアドレスの確認が必要です")).toBeInTheDocument()
+    expect(screen.getByLabelText("メールアドレス", { selector: "#resend-email" })).toHaveValue("dev@example.com")
+    expect(screen.getByRole("button", { name: "確認メールを送り直す" })).toBeInTheDocument()
+    expect(login).not.toHaveBeenCalled()
+    expect(push).not.toHaveBeenCalled()
   })
 
   it("ログインに成功したら成功トーストを出してダッシュボードへ遷移する", async () => {

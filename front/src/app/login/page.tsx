@@ -10,13 +10,15 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { toast } from "sonner"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { AlertCircle, Loader2 } from "lucide-react"
+import { AlertCircle, Loader2, MailWarning } from "lucide-react"
 import Image from "next/image"
 import { useEffect, useState } from "react"
 import { loginSchema, type LoginFormValues } from "@/lib/schemas/auth"
 import { api } from "@/lib/api"
+import { ApiError } from "@/lib/api-error"
 import { getApiUrl } from "@/lib/api-client"
 import { useAuth } from "@/hooks/useAuth"
+import ResendConfirmationForm from "@/components/resend-confirmation-form"
 
 // Google ログインの失敗・キャンセルで戻ってきたときの表示（URL の値はそのまま表示せず、この対応表だけを使う）
 const OAUTH_ERROR_MESSAGES: Record<string, string> = {
@@ -26,6 +28,8 @@ const OAUTH_ERROR_MESSAGES: Record<string, string> = {
 
 export default function LoginPage() {
   const [apiError, setApiError] = useState<string | null>(null)
+  // 確認期限を過ぎてログインできないときの、入力されたメールアドレス（送り直しフォームの初期値）
+  const [unconfirmedEmail, setUnconfirmedEmail] = useState<string | null>(null)
   const [isGoogleLoading, setIsGoogleLoading] = useState(false)
   const router = useRouter()
   const { login } = useAuth()
@@ -47,6 +51,7 @@ export default function LoginPage() {
 
   const onSubmit = async (data: LoginFormValues) => {
     setApiError(null)
+    setUnconfirmedEmail(null)
 
     try {
       const responseData = await api.auth.login(data.email, data.password)
@@ -60,6 +65,11 @@ export default function LoginPage() {
       toast.success("ログイン成功", { description: "ダッシュボードにリダイレクトします" })
       router.push("/dashboard")
     } catch (error) {
+      // パスワードは合っているが、確認しないまま期限を過ぎた。エラーではなく確認メールの送り直しへ案内する
+      if (error instanceof ApiError && error.code === "email_unconfirmed") {
+        setUnconfirmedEmail(data.email)
+        return
+      }
       const message = error instanceof Error ? error.message : "ログインに失敗しました。もう一度お試しください。"
       // フォームのエラーは入力と並べて読めるインライン表示だけにする（トーストとの二重表示を避ける）
       setApiError(message)
@@ -100,6 +110,19 @@ export default function LoginPage() {
               <AlertTitle>エラー</AlertTitle>
               <AlertDescription>{apiError}</AlertDescription>
             </Alert>
+          )}
+
+          {unconfirmedEmail && (
+            <div className="mb-6 space-y-3 rounded-lg border border-primary/30 bg-accent p-4 text-accent-foreground">
+              <div className="flex items-start gap-2">
+                <MailWarning className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden />
+                <div className="space-y-1 text-sm">
+                  <p className="font-medium">メールアドレスの確認が必要です</p>
+                  <p>確認の期限を過ぎたため、確認が済むまでログインできません。確認メールを送り直し、届いたメールのリンクから確認してください。</p>
+                </div>
+              </div>
+              <ResendConfirmationForm key={unconfirmedEmail} defaultEmail={unconfirmedEmail} />
+            </div>
           )}
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
