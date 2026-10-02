@@ -6,6 +6,8 @@ export type AuthUser = {
   name?: string
   lastSignInAt: string | null // 前回サインイン時刻（sleeping mood 判定用）
   isAdmin: boolean // 運営（他人の投稿・コメントを削除できる）。表示の出し分けだけに使い、権限の判定はサーバーが行う
+  emailConfirmed: boolean // メールアドレスを確認済みか。未確認なら確認を促すバナーを出す
+  emailConfirmationDeadline: string | null // 確認せずにログインできる期限（確認済みなら null）
 }
 
 /**
@@ -25,5 +27,9 @@ export function parseAuthUser(data: unknown): AuthUser | null {
     name: typeof raw.name === "string" ? raw.name : undefined,
     lastSignInAt: typeof raw.last_sign_in_at === "string" ? raw.last_sign_in_at : null,
     isAdmin: raw.admin === true,
+    // 項目が無いレスポンス（ログイン API など）では確認済みとして扱い、バナーを誤って出さない
+    emailConfirmed: raw.email_confirmed !== false,
+    emailConfirmationDeadline:
+      typeof raw.email_confirmation_deadline === "string" ? raw.email_confirmation_deadline : null,
   }
 }

@@ -111,6 +111,20 @@ export const api = {
         body: { token, password },
       }),
 
+    /** 確認メールのリンクのトークンでメールアドレスを確認済みにする */
+    confirmEmail: (token: string) =>
+      publicApiRequest<{ message: string }>('/auth/confirm-email', {
+        method: 'POST',
+        body: { token },
+      }),
+
+    /** 確認メールを送り直す（登録の有無・確認済みかどうかにかかわらず同じ応答が返る） */
+    resendEmailConfirmation: (email: string) =>
+      publicApiRequest<{ message: string }>('/auth/confirm-email/resend', {
+        method: 'POST',
+        body: { email },
+      }),
+
     /** JWT トークンを検証してユーザー情報を取得する（形式は parseAuthUser で検証する）。
      *  期限切れの扱いは useAuth 側で行うため、apiRequest の自動リフレッシュは使わない */
     verify: (token: string) =>

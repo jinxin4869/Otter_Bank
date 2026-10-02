@@ -59,3 +59,26 @@ describe("api.posts.list の検索条件", () => {
     expect([...lastUrl().searchParams.keys()]).toEqual(["page", "per"])
   })
 })
+
+describe("api.auth のメールアドレス確認", () => {
+  beforeEach(() => fetchMock.mockClear())
+
+  const lastCall = () => {
+    const [url, init] = fetchMock.mock.calls[fetchMock.mock.calls.length - 1] as [string, RequestInit]
+    return { path: new URL(url).pathname, method: init.method, body: JSON.parse(String(init.body)) }
+  }
+
+  it("confirmEmail はトークンを送る", async () => {
+    await api.auth.confirmEmail("abc")
+    expect(lastCall()).toEqual({ path: "/api/v1/auth/confirm-email", method: "POST", body: { token: "abc" } })
+  })
+
+  it("resendEmailConfirmation はメールアドレスを送る", async () => {
+    await api.auth.resendEmailConfirmation("otter@example.com")
+    expect(lastCall()).toEqual({
+      path: "/api/v1/auth/confirm-email/resend",
+      method: "POST",
+      body: { email: "otter@example.com" },
+    })
+  })
+})
