@@ -44,7 +44,7 @@ export default function RegisterPage() {
         throw new Error("認証トークンを取得できませんでした。もう一度お試しください。")
       }
 
-      await login(responseData.token, data.email)
+      await login(responseData.token)
       localStorage.setItem("tutorialSeen", "false")
 
       // 確認しなくても 7 日間は使えるので、登録はそのまま完了させ、確認メールを送ったことだけ知らせる
