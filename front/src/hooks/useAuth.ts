@@ -15,6 +15,7 @@ const isSuperseded = (checkedToken: string) => localStorage.getItem("authToken")
 const clearAuthStorage = () => {
   localStorage.removeItem("authToken");
   localStorage.removeItem("isLoggedIn");
+  // currentUserEmail は今は保存しない。以前のバージョンが保存した値を消すために残す
   localStorage.removeItem("currentUserEmail");
 };
 
@@ -151,14 +152,11 @@ export const useAuth = () => {
     };
   }, [checkAuth, applySession]);
 
-  const login = useCallback(async (accessToken: string, email?: string) => {
+  const login = useCallback(async (accessToken: string) => {
     // 検証の結果（失敗を含む）を待たずに、ログアウト済みの印は外す
     setHasLoggedOut(false);
     localStorage.setItem("authToken", accessToken);
     localStorage.setItem("isLoggedIn", "true");
-    if (email) {
-      localStorage.setItem("currentUserEmail", email);
-    }
     setToken(accessToken);
     // トークン情報をもとに検証・セッション状態構築
     applySession(await resolveSession(accessToken));

@@ -275,7 +275,7 @@ describe("useAuth（複数インスタンス間の認証状態の共有）", () 
     expect(header.result.current.isAuthenticated).toBe(false)
 
     await act(async () => {
-      await loginPage.result.current.login("access-token", "dev@example.com")
+      await loginPage.result.current.login("access-token")
     })
 
     expect(loginPage.result.current.isAuthenticated).toBe(true)
@@ -289,11 +289,36 @@ describe("useAuth（複数インスタンス間の認証状態の共有）", () 
     await waitFor(() => expect(loginPage.result.current.isLoading).toBe(false))
 
     await act(async () => {
-      await loginPage.result.current.login("access-token", "dev@example.com")
+      await loginPage.result.current.login("access-token")
     })
     await waitFor(() => expect(header.result.current.isAuthenticated).toBe(true))
 
     expect(verifyCalls()).toBe(2)
+  })
+
+  it("ログインしても、メールアドレスを localStorage に保存しない", async () => {
+    const { result } = renderHook(() => useAuth())
+    await waitFor(() => expect(result.current.isLoading).toBe(false))
+
+    await act(async () => {
+      await result.current.login("access-token")
+    })
+
+    expect(result.current.isAuthenticated).toBe(true)
+    expect(localStorage.getItem("currentUserEmail")).toBeNull()
+  })
+
+  it("ログアウトすると、以前のバージョンが保存したメールアドレスも消す", async () => {
+    localStorage.setItem("authToken", "access-token")
+    localStorage.setItem("currentUserEmail", "dev@example.com")
+    const { result } = renderHook(() => useAuth())
+    await waitFor(() => expect(result.current.isAuthenticated).toBe(true))
+
+    await act(async () => {
+      await result.current.logout()
+    })
+
+    expect(localStorage.getItem("currentUserEmail")).toBeNull()
   })
 
   it("別インスタンスでログアウトしたら、もう一方も未認証になる", async () => {
@@ -336,7 +361,7 @@ describe("useAuth（複数インスタンス間の認証状態の共有）", () 
     expect(result.current.hasLoggedOut).toBe(true)
 
     await act(async () => {
-      await result.current.login("new-token", "dev@example.com")
+      await result.current.login("new-token")
     })
     expect(result.current.isAuthenticated).toBe(true)
     expect(result.current.hasLoggedOut).toBe(false)
@@ -374,7 +399,7 @@ describe("useAuth（複数インスタンス間の認証状態の共有）", () 
 
     localStorage.setItem("authToken", "access-token")
     await act(async () => {
-      await other.result.current.login("access-token", "dev@example.com")
+      await other.result.current.login("access-token")
     })
 
     // 発火元の検証 1 回のみ（アンマウント済みのインスタンスは検証しない）
