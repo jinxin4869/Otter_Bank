@@ -296,6 +296,7 @@ describe("useAuth（複数インスタンス間の認証状態の共有）", () 
     expect(verifyCalls()).toBe(2)
   })
 
+  // verify は beforeEach のモックで email 付きのユーザーを返す。どの経路でも保存しないことを確かめる
   it("ログインしても、メールアドレスを localStorage に保存しない", async () => {
     const { result } = renderHook(() => useAuth())
     await waitFor(() => expect(result.current.isLoading).toBe(false))

@@ -15,7 +15,8 @@ const isSuperseded = (checkedToken: string) => localStorage.getItem("authToken")
 const clearAuthStorage = () => {
   localStorage.removeItem("authToken");
   localStorage.removeItem("isLoggedIn");
-  // currentUserEmail は今は保存しない。以前のバージョンが保存した値を消すために残す
+  // currentUserEmail は今は保存しない。以前のバージョン（2026-10 まで）が保存した値を消すために残す。
+  // 古いブラウザに値が残っている心配がなくなったら（目安: 2027 年以降）削除してよい
   localStorage.removeItem("currentUserEmail");
 };
 
