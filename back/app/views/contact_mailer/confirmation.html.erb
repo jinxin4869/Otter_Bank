@@ -1,5 +1,4 @@
-<h2><%= @contact.name %> 様</h2>
-
+<%# 宛先は送信者が自由に入力できるため、名前・本文など入力された文字列は載せない（第三者に任意の文面を送る踏み台にされないように）。内容は運営への通知にだけ載せる %>
 <p>このたびはOtter Bankへお問い合わせいただき、ありがとうございます。</p>
 <p>以下の内容でお問い合わせを受け付けました。担当者より順次ご連絡いたします。</p>
 
@@ -7,24 +6,17 @@
 
 <table>
   <tr>
-    <th>お名前</th>
-    <td><%= @contact.name %></td>
-  </tr>
-  <tr>
-    <th>メールアドレス</th>
-    <td><%= @contact.email %></td>
+    <th>受付番号</th>
+    <td><%= @contact.id %></td>
   </tr>
   <tr>
     <th>件名</th>
-    <td><%= @contact.subject %></td>
-  </tr>
-  <tr>
-    <th>お問い合わせ内容</th>
-    <td><%= simple_format(@contact.message) %></td>
+    <td><%= Contact::SUBJECT_LABELS.fetch(@contact.subject) %></td>
   </tr>
 </table>
 
 <hr>
 
+<p>お心当たりのない場合は、このメールを破棄してください。</p>
 <p>※このメールは自動送信されています。このメールへの返信はできません。</p>
 <p>Otter Bank（獺獺銀行）</p>
