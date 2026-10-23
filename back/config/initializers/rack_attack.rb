@@ -9,61 +9,67 @@ class Rack::Attack
   # キャッシュストア（デフォルトはメモリ、本番ではRedisに変更を推奨）
   # Rack::Attack.cache.store = ActiveSupport::Cache::RedisCacheStore.new(url: ENV['REDIS_URL'])
 
+  # ルーティングは末尾の拡張子（/api/v1/sessions.json など）と / も同じアクションに振り分ける。
+  # 素の req.path で比べると、拡張子を付けるだけで制限を回避できてしまうので、取り除いてから判定する
+  def self.route_path(req)
+    req.path.sub(%r{(?:\.[^/.]+)?/?\z}, '')
+  end
+
   # ログイン試行のレート制限（IPごとに1分間5回まで）
   throttle('login/ip', limit: 5, period: 1.minute) do |req|
-    req.ip if req.post? && req.path == '/api/v1/sessions'
+    req.ip if req.post? && route_path(req) == '/api/v1/sessions'
   end
 
   # ユーザー登録のレート制限（IPごとに1時間10回まで）
   throttle('signup/ip', limit: 10, period: 1.hour) do |req|
-    req.ip if req.post? && req.path == '/api/v1/users'
+    req.ip if req.post? && route_path(req) == '/api/v1/users'
   end
 
   # パスワードリセット関連のレート制限（IPごとに1時間5回まで）
   throttle('password_reset/ip', limit: 5, period: 1.hour) do |req|
     # リセットメールの送信（/auth/reset-password）と確定（/auth/reset-password/confirm）の両方が対象。
     # 同じ IP からの試行を合算して、メールの大量送信とトークンの総当たりをまとめて防ぐ
-    req.ip if req.post? && req.path.start_with?('/api/v1/auth/reset-password')
+    req.ip if req.post? && route_path(req).start_with?('/api/v1/auth/reset-password')
   end
 
   # メールアドレスの確認・確認メールの送り直しのレート制限（IPごとに1時間10回まで）。確認メールの大量送信を防ぐ。
   # 確認と送り直しを合算するので、同じ IP から複数人が使う場合も考えてリセットより緩めにする
   throttle('email_confirmation/ip', limit: 10, period: 1.hour) do |req|
-    req.ip if req.post? && req.path.start_with?('/api/v1/auth/confirm-email')
+    req.ip if req.post? && route_path(req).start_with?('/api/v1/auth/confirm-email')
   end
 
   # お問い合わせのレート制限（IPごとに1時間3回まで）
   throttle('contact/ip', limit: 3, period: 1.hour) do |req|
-    req.ip if req.post? && req.path == '/api/v1/contacts'
+    req.ip if req.post? && route_path(req) == '/api/v1/contacts'
   end
 
   # 掲示板の投稿・コメントのレート制限（IPごとに1分間10回まで）。短時間の連投で掲示板を埋め尽くせないようにする
   throttle('posts/ip', limit: 10, period: 1.minute) do |req|
-    req.ip if req.post? && req.path == '/api/v1/posts'
+    req.ip if req.post? && route_path(req) == '/api/v1/posts'
   end
 
   throttle('comments/ip', limit: 10, period: 1.minute) do |req|
-    req.ip if req.post? && req.path.match?(%r{\A/api/v1/posts/\d+/comments\z})
+    req.ip if req.post? && route_path(req).match?(%r{\A/api/v1/posts/\d+/comments\z})
   end
 
   # 閲覧数のカウント（IPごとに1分間30回まで）。認証不要なので、連打で閲覧数を水増しできないようにする
   throttle('views/ip', limit: 30, period: 1.minute) do |req|
-    req.ip if req.post? && req.path.match?(%r{\A/api/v1/posts/\d+/increment_views\z})
+    req.ip if req.post? && route_path(req).match?(%r{\A/api/v1/posts/\d+/increment_views\z})
   end
 
   # 投稿・コメントのいいねと取り消し（IPごとに1分間30回まで）。付け外しの連打で件数や実績を荒らせないようにする
   throttle('likes/ip', limit: 30, period: 1.minute) do |req|
-    req.ip if req.post? && req.path.match?(%r{\A/api/v1/posts/\d+(/comments/\d+)?/(like|unlike)\z})
+    req.ip if req.post? && route_path(req).match?(%r{\A/api/v1/posts/\d+(/comments/\d+)?/(like|unlike)\z})
   end
 
   # アクセストークンの更新（IPごとに1分間30回まで）。複数タブでの更新を考えて、ログインより緩めにする
   throttle('refresh/ip', limit: 30, period: 1.minute) do |req|
-    req.ip if req.post? && req.path == '/api/v1/auth/refresh'
+    req.ip if req.post? && route_path(req) == '/api/v1/auth/refresh'
   end
 
   # Google OAuthのレート制限（IPごとに1分間10回まで）
   throttle('OAuth/ip', limit: 10, period: 1.minute) do |req|
-    req.ip if req.path.start_with?('/api/v1/auth/google')
+    req.ip if route_path(req).start_with?('/api/v1/auth/google')
   end
 
   # レート制限超過時のレスポンス（429 Too Many Requests）

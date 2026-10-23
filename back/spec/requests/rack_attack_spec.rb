@@ -33,6 +33,13 @@ RSpec.describe 'Rack::Attack レート制限', type: :request do
       expect(response.status).to eq(429)
     end
 
+    # ルーティングは /api/v1/sessions.json も同じアクションに振り分けるので、拡張子を付けても制限を回避できないこと
+    it '末尾に拡張子を付けても同じ制限を受ける' do
+      3.times { post '/api/v1/sessions', params: params, env: { 'REMOTE_ADDR' => '1.2.3.7' } }
+      3.times { post '/api/v1/sessions.json', params: params, env: { 'REMOTE_ADDR' => '1.2.3.7' } }
+      expect(response.status).to eq(429)
+    end
+
     it '429レスポンスに日本語エラーメッセージを含む' do
       6.times { post '/api/v1/sessions', params: params, env: { 'REMOTE_ADDR' => '1.2.3.6' } }
       json = response.parsed_body
@@ -138,6 +145,12 @@ RSpec.describe 'Rack::Attack レート制限', type: :request do
       expect(response.status).not_to eq(429)
 
       post "/api/v1/posts/#{target.id}/unlike", headers: headers, env: env
+      expect(response.status).to eq(429)
+    end
+
+    it '閲覧数のカウントは末尾に拡張子を付けても同じ制限を受ける' do
+      30.times { post "/api/v1/posts/#{target.id}/increment_views.json", env: { 'REMOTE_ADDR' => '5.5.5.4' } }
+      post "/api/v1/posts/#{target.id}/increment_views", env: { 'REMOTE_ADDR' => '5.5.5.4' }
       expect(response.status).to eq(429)
     end
 
