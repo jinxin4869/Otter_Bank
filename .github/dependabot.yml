@@ -19,12 +19,39 @@ updates:
       interval: "monthly"
     open-pull-requests-limit: 5
 
-  # Docker dependencies
-  - package-ecosystem: "docker"
+  # npm dependencies at the root（husky / lint-staged）
+  - package-ecosystem: "npm"
     directory: "/"
     schedule:
       interval: "monthly"
     open-pull-requests-limit: 5
+
+  # Docker dependencies。Dockerfile は back/ と front/ にあり、ルートには無い
+  # （以前は directory: "/" で、どちらのイメージも更新されていなかった）
+  - package-ecosystem: "docker"
+    directories:
+      - "/back"
+      - "/front"
+    schedule:
+      interval: "monthly"
+    open-pull-requests-limit: 5
+    ignore:
+      # メジャーは package.json の engines・.ruby-version・Gemfile と合わせて手で上げる
+      - dependency-name: "node"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "ruby"
+        update-types: ["version-update:semver-major"]
+
+  # compose.yml の開発用イメージ（postgres）
+  - package-ecosystem: "docker-compose"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    open-pull-requests-limit: 5
+    ignore:
+      # メジャーを上げると既存のボリュームのデータを読めなくなる
+      - dependency-name: "postgres"
+        update-types: ["version-update:semver-major"]
 
   # GitHub Actions
   - package-ecosystem: "github-actions"
