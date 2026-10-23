@@ -32,7 +32,8 @@ const securityHeaders = [
   // パスワードリセットなどのトークンを URL に載せるので、外部へはオリジンだけを送る
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
   { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(), payment=()" },
-  { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains" },
+  // includeSubDomains は付けない（独自ドメインにしたとき、http のままのサブドメインに 2 年間つながらなくなるため）
+  { key: "Strict-Transport-Security", value: "max-age=63072000" },
 ];
 
 const nextConfig: NextConfig = {
