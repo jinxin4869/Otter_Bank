@@ -1,0 +1,72 @@
+name: Dependabot auto-merge
+
+# Dependabot の PR を、更新の種類で振り分ける。
+# - パッチ・マイナー: 自動マージを予約する。実際のマージは、ruleset で必須にした CI が通ってから行われる
+#   （CI が落ちればマージされずに残る）。main へのマージは Vercel / Render の本番デプロイにつながる
+# - それ以外（メジャーなど）: needs-manual-review のラベルとコメントを付けて残し、手で判断する。
+#   ずっと断る更新は、PR で @dependabot ignore を使うか、dependabot.yml の ignore に書く
+# - GitHub Actions の更新: 種類に関係なく手で判断する（下の ACTIONS_UPDATE を参照）
+#
+# CI はパスで絞り込んでいるので、ルートの npm（husky / lint-staged）・compose.yml・front/Dockerfile の更新は
+# テストのジョブが動かない（skipped は合格扱い）まま自動マージされる。どれも開発用なので許容している
+#
+# pull_request_target は使わない。Dependabot の PR の pull_request では、permissions で書き込み権限を渡せる
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+
+# ラベルとコメントは Issue の API を使うので issues: write も要る（GitHub の公式の例と同じ）
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  triage:
+    # actor は再実行した人に変わるので、PR の作成者で判定する。fork では動かさない
+    if: >-
+      github.event.pull_request.user.login == 'dependabot[bot]' &&
+      github.repository == 'jinxin4869/Otter_Bank'
+    runs-on: ubuntu-latest
+    env:
+      PR_URL: ${{ github.event.pull_request.html_url }}
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # GitHub Actions の更新は、CI のテストでは中身を確かめられない。さらに pull_request は PR 側の
+      # ワークフローで動くので、更新後の Action がマージ前に書き込み権限つきで実行されてしまう。
+      # そのため外部の Action は動かさず（fetch-metadata も使わない）、gh コマンドで手動確認に回す
+      ACTIONS_UPDATE: ${{ startsWith(github.head_ref, 'dependabot/github_actions/') }}
+    steps:
+      - name: Fetch Dependabot metadata
+        id: metadata
+        if: env.ACTIONS_UPDATE != 'true'
+        uses: dependabot/fetch-metadata@25dd0e34f4fe68f24cc83900b1fe3fe149efef98 # v3.1.0
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Enable auto-merge for patch and minor updates
+        if: >-
+          env.ACTIONS_UPDATE != 'true' && (
+            steps.metadata.outputs.update-type == 'version-update:semver-patch' ||
+            steps.metadata.outputs.update-type == 'version-update:semver-minor'
+          )
+        run: gh pr merge --auto --merge "$PR_URL"
+
+      # synchronize（Dependabot のリベース）のたびにコメントが増えないよう、ラベルが無いときだけ付ける
+      - name: Mark other updates for manual review
+        if: >-
+          !contains(github.event.pull_request.labels.*.name, 'needs-manual-review') && (
+            env.ACTIONS_UPDATE == 'true' || (
+              steps.metadata.outputs.update-type != 'version-update:semver-patch' &&
+              steps.metadata.outputs.update-type != 'version-update:semver-minor'
+            )
+          )
+        run: |
+          if [ "$ACTIONS_UPDATE" = "true" ]; then
+            reason="GitHub Actions の更新"
+          else
+            reason="${UPDATE_TYPE:-種類不明}"
+          fi
+          gh pr edit "$PR_URL" --add-label needs-manual-review
+          gh pr comment "$PR_URL" --body "この更新（${reason}）は自動マージの対象外です。変更履歴と CI の結果を確認して、手でマージするか、\`@dependabot ignore this major version\` などで断ってください。"
+        env:
+          UPDATE_TYPE: ${{ steps.metadata.outputs.update-type }}
