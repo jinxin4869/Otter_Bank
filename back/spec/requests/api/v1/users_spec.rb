@@ -140,6 +140,15 @@ RSpec.describe 'Api::V1::Users', type: :request do
         expect(user.reload.authenticate('new-pass-123')).to be_truthy
       end
 
+      # has_secure_password は password に nil を渡すと digest を消すので、パスワードが無いアカウントにならないこと
+      it 'パスワードに null を送ってもパスワードは消えない' do
+        patch '/api/v1/user',
+              params: { user: { current_password: 'current-pass', password: nil, password_confirmation: nil } },
+              headers: headers, as: :json
+        expect(response).to have_http_status(:unprocessable_content)
+        expect(user.reload.authenticate('current-pass')).to be_truthy
+      end
+
       it 'パスワードを変えると他の端末のリフレッシュトークンは失効し、この端末には新しいトークンを発行する' do
         other_device = RefreshToken.generate_for(user)
 

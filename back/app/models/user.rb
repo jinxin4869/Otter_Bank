@@ -22,6 +22,9 @@ class User < ApplicationRecord
   validates :password, presence: true, length: { minimum: 8 }, if: :password_required? # パスワード長を8文字に変更 (フロントエンドと合わせる)
   validates :unconfirmed_email, format: { with: URI::MailTo::EMAIL_REGEXP }, allow_nil: true
   validate :unconfirmed_email_not_taken, if: :will_save_change_to_unconfirmed_email?
+  # has_secure_password は password に nil を渡すと digest を消す。更新でパスワードの無いアカウントにしない
+  # （Google での乗っ取り防止の take_over_by_verified_owner! は update_columns で意図して消すので対象外）
+  validate :password_not_removed, on: :update, if: :will_save_change_to_password_digest?
 
   after_create :setup_initial_achievements # ユーザー作成時に初期実績を生成
 
@@ -156,11 +159,23 @@ class User < ApplicationRecord
 
   TOKEN_EXPIRY_HOURS = 2
 
+  # DB にはトークンのハッシュだけを保存し、平文はメールで送る分だけにする（DB が漏れても有効期限内のリンクを作れないように）。
+  # トークンは推測できない乱数なので、ソルトや bcrypt は要らない
+  def self.password_reset_token_digest(token)
+    OpenSSL::Digest::SHA256.hexdigest(token.to_s)
+  end
+
+  def self.from_password_reset_token(token)
+    find_by(reset_password_token: password_reset_token_digest(token))
+  end
+
+  # 戻り値はメールに載せる平文のトークン
   def generate_password_reset_token!
     loop do
       token = SecureRandom.urlsafe_base64(32)
-      unless User.exists?(reset_password_token: token)
-        update_columns(reset_password_token: token, reset_password_sent_at: Time.current)
+      digest = User.password_reset_token_digest(token)
+      unless User.exists?(reset_password_token: digest)
+        update_columns(reset_password_token: digest, reset_password_sent_at: Time.current)
         return token
       end
     end
@@ -188,6 +203,10 @@ class User < ApplicationRecord
     return if unconfirmed_email.blank?
 
     errors.add(:unconfirmed_email, :taken) if User.where.not(id: id).exists?(email: unconfirmed_email)
+  end
+
+  def password_not_removed
+    errors.add(:password, :blank) if password_digest.nil?
   end
 
   def password_required?

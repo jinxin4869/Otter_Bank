@@ -71,6 +71,19 @@ RSpec.describe 'Api::V1::PasswordResets', type: :request do
       expect(old_token.reload.revoked).to be false
     end
 
+    it 'DB にはトークンそのものではなくハッシュを保存する' do
+      expect(user.reload.reset_password_token).not_to eq(token)
+      expect(user.reset_password_token).to eq(User.password_reset_token_digest(token))
+    end
+
+    it 'DB に保存されたハッシュをトークンとして送っても422を返す（DB が漏れてもリセットできない）' do
+      token
+      post '/api/v1/auth/reset-password/confirm',
+           params: { token: user.reload.reset_password_token, password: 'newpassword123' }
+
+      expect(response).to have_http_status(:unprocessable_content)
+    end
+
     it '無効なトークンでは422を返す' do
       post '/api/v1/auth/reset-password/confirm', params: { token: 'invalid-token', password: 'newpassword123' }
 
@@ -90,6 +103,18 @@ RSpec.describe 'Api::V1::PasswordResets', type: :request do
       post '/api/v1/auth/reset-password/confirm', params: { token: token, password: 'short' }
 
       expect(response).to have_http_status(:unprocessable_content)
+    end
+
+    # password を送らない・空・文字列以外にすると、パスワードが消えたり意図しない値になったりしないこと
+    [nil, '', { a: '1' }].each do |invalid|
+      it "パスワードが #{invalid.inspect} の場合は422を返し、パスワードもトークンも変えない" do
+        post '/api/v1/auth/reset-password/confirm', params: { token: token, password: invalid }.compact
+
+        expect(response).to have_http_status(:unprocessable_content)
+        user.reload
+        expect(user.authenticate('password123')).to be_truthy
+        expect(user.reset_password_token).to be_present
+      end
     end
   end
 end

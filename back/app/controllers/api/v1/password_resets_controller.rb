@@ -22,10 +22,17 @@ module Api
       # POST /api/v1/auth/reset-password/confirm
       # トークンとパスワードを受け取り、パスワードを更新する
       def confirm_reset
-        user = User.find_by(reset_password_token: params[:token])
+        user = User.from_password_reset_token(params[:token])
 
         unless user&.password_reset_token_valid?
           render json: { error: 'リセットリンクが無効または期限切れです。再度リセット申請を行ってください。' }, status: :unprocessable_content
+          return
+        end
+
+        # nil を渡すと has_secure_password が digest を消し、"" は無視されて変わらないまま成功してしまうので、先に弾く。
+        # password[a]=1 のような Hash も、文字列にした値がパスワードになってしまうので弾く
+        unless params[:password].is_a?(String) && params[:password].present?
+          render json: { error: '新しいパスワードを入力してください。' }, status: :unprocessable_content
           return
         end
 

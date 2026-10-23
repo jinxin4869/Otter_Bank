@@ -91,5 +91,17 @@ RSpec.describe JsonWebToken do
 
       expect { described_class.decode(none_token) }.to raise_error(JWT::DecodeError)
     end
+
+    it 'HS256 で署名する' do
+      header = JWT.decode(described_class.encode(user_id: 1), nil, false)[1]
+
+      expect(header['alg']).to eq('HS256')
+    end
+
+    it '同じ鍵でも HS256 以外のアルゴリズムで署名されたトークンは受け付けない' do
+      hs512_token = JWT.encode({ user_id: 1, exp: 1.hour.from_now.to_i }, described_class.hmac_secret, 'HS512')
+
+      expect { described_class.decode(hs512_token) }.to raise_error(JWT::DecodeError)
+    end
   end
 end
