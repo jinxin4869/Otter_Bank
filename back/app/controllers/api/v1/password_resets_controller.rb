@@ -29,8 +29,9 @@ module Api
           return
         end
 
-        # nil を渡すと has_secure_password が digest を消し、"" は無視されて変わらないまま成功してしまうので、先に弾く
-        if params[:password].blank?
+        # nil を渡すと has_secure_password が digest を消し、"" は無視されて変わらないまま成功してしまうので、先に弾く。
+        # password[a]=1 のような Hash も、文字列にした値がパスワードになってしまうので弾く
+        unless params[:password].is_a?(String) && params[:password].present?
           render json: { error: '新しいパスワードを入力してください。' }, status: :unprocessable_content
           return
         end
