@@ -6,6 +6,9 @@ class JsonWebToken
 
   class MissingSecretError < StandardError; end
 
+  # 署名・検証に使うアルゴリズム。gem の既定値に頼らず固定し、alg を差し替えたトークンを受け付けない
+  ALGORITHM = 'HS256'
+
   # JWT の署名鍵。JWT_SECRET 環境変数のみを参照する。
   # 以前は Rails.application.credentials.secret_key_base にフォールバックしていたが、
   # 復号鍵（config/master.key）がリポジトリに混入し公開されたため参照をやめた。
@@ -24,13 +27,13 @@ class JsonWebToken
 
   def self.encode(payload, exp = 30.minutes.from_now)
     payload[:exp] = exp.to_i
-    JWT.encode(payload, hmac_secret)
+    JWT.encode(payload, hmac_secret, ALGORITHM)
   end
 
   def self.decode(token)
     raise JWT::DecodeError, 'Token is nil' if token.nil?
 
-    decoded = JWT.decode(token, hmac_secret)[0]
+    decoded = JWT.decode(token, hmac_secret, true, algorithm: ALGORITHM)[0]
     ActiveSupport::HashWithIndifferentAccess.new decoded
   rescue JWT::ExpiredSignature
     raise JWT::ExpiredSignature, 'Token has expired'
