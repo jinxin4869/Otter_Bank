@@ -159,7 +159,7 @@ contacts                       (ユーザーと非連携)
 | ランタイム | Node.js は `front/package.json` の `engines.node`（`24.x`）が正。CI（`node-version-file`）と Vercel はこの値を読む。`front/Dockerfile` のタグは別に合わせる。Ruby は `back/.ruby-version` と Gemfile |
 | レート制限 | `login/ip` 5回/分、`signup/ip` 10回/時、`password_reset/ip` 5回/時、`email_confirmation/ip` 10回/時、`contact/ip` 3回/時、`posts/ip` `comments/ip` 各 10回/分、`views/ip` `likes/ip` `refresh/ip` 各 30回/分、`OAuth/ip` 10回/分。パスは `Rack::Attack.route_path` で末尾の拡張子（`.json`）と `/` を除いてから判定する（除かないと `.json` を付けるだけで回避できる） |
 | セキュリティヘッダ | `front/next.config.ts` で全ページに CSP・`X-Frame-Options: DENY`・`nosniff`・`Referrer-Policy`・`Permissions-Policy`・HSTS を付ける（§9 ADR-004）。外部のスクリプト・画像・通信先を足すときは CSP も直す |
-| リポジトリ保護 | ruleset「main を保護する」（PR 必須・承認数 0・CI の 5 ジョブ必須・force push と削除の禁止）。secret scanning と push protection、Dependabot alerts と security updates、Private vulnerability reporting を有効化。報告方法は `SECURITY.md` |
+| リポジトリ保護 | ruleset「main を保護する」（PR 必須・承認数 0・CI の 5 ジョブ必須・force push と削除の禁止）。secret scanning と push protection、Dependabot alerts と security updates、Private vulnerability reporting を有効化。報告方法は [SECURITY.md](./SECURITY.md)（GitHub は docs/ 配下でもセキュリティポリシーとして認識する） |
 | 文字数上限 | 投稿のタイトル 100・本文 5,000、コメント 1,000、お問い合わせ内容 5,000（モデルの `*_MAX_LENGTH` と `front/src/lib/text-limits.ts` を揃える） |
 | 監視 | UptimeRobot が `GET /up` を 5 分ごとに叩く（Render のスリープ防止。落ちたときはメールで通知）。ほかに `GET /api/v1/health`。エラートラッキングなし |
 
