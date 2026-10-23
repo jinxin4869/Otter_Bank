@@ -112,4 +112,38 @@ RSpec.describe 'Rack::Attack レート制限', type: :request do
       expect(response).to have_http_status(:ok)
     end
   end
+
+  describe '閲覧数・いいね・トークンの更新' do
+    let(:user) { create(:user) }
+    let(:headers) { { 'Authorization' => "Bearer #{JsonWebToken.encode(user_id: user.id)}" } }
+    let(:target) { create(:post) }
+
+    it '閲覧数のカウントは 1 分間に 30 回までは数え、超えると 429 を返す' do
+      30.times { post "/api/v1/posts/#{target.id}/increment_views", env: { 'REMOTE_ADDR' => '5.5.5.1' } }
+      expect(response).to have_http_status(:ok)
+      expect(target.reload.views_count).to eq(30)
+
+      post "/api/v1/posts/#{target.id}/increment_views", env: { 'REMOTE_ADDR' => '5.5.5.1' }
+      expect(response.status).to eq(429)
+      expect(target.reload.views_count).to eq(30)
+    end
+
+    it '投稿とコメントのいいね・取り消しは合わせて 1 分間に 30 回を超えると 429 を返す' do
+      comment = create(:comment, post: target)
+      env = { 'REMOTE_ADDR' => '5.5.5.2' }
+      15.times do
+        post "/api/v1/posts/#{target.id}/like", headers: headers, env: env
+        post "/api/v1/posts/#{target.id}/comments/#{comment.id}/unlike", headers: headers, env: env
+      end
+      expect(response.status).not_to eq(429)
+
+      post "/api/v1/posts/#{target.id}/unlike", headers: headers, env: env
+      expect(response.status).to eq(429)
+    end
+
+    it 'トークンの更新は 1 分間に 30 回を超えると 429 を返す' do
+      31.times { post '/api/v1/auth/refresh', env: { 'REMOTE_ADDR' => '5.5.5.3' } }
+      expect(response.status).to eq(429)
+    end
+  end
 end

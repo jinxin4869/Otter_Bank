@@ -46,6 +46,21 @@ class Rack::Attack
     req.ip if req.post? && req.path.match?(%r{\A/api/v1/posts/\d+/comments\z})
   end
 
+  # 閲覧数のカウント（IPごとに1分間30回まで）。認証不要なので、連打で閲覧数を水増しできないようにする
+  throttle('views/ip', limit: 30, period: 1.minute) do |req|
+    req.ip if req.post? && req.path.match?(%r{\A/api/v1/posts/\d+/increment_views\z})
+  end
+
+  # 投稿・コメントのいいねと取り消し（IPごとに1分間30回まで）。付け外しの連打で件数や実績を荒らせないようにする
+  throttle('likes/ip', limit: 30, period: 1.minute) do |req|
+    req.ip if req.post? && req.path.match?(%r{\A/api/v1/posts/\d+(/comments/\d+)?/(like|unlike)\z})
+  end
+
+  # アクセストークンの更新（IPごとに1分間30回まで）。複数タブでの更新を考えて、ログインより緩めにする
+  throttle('refresh/ip', limit: 30, period: 1.minute) do |req|
+    req.ip if req.post? && req.path == '/api/v1/auth/refresh'
+  end
+
   # Google OAuthのレート制限（IPごとに1分間10回まで）
   throttle('OAuth/ip', limit: 10, period: 1.minute) do |req|
     req.ip if req.path.start_with?('/api/v1/auth/google')
