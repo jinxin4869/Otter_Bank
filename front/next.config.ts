@@ -19,8 +19,7 @@ const csp = [
   `connect-src 'self'${apiOrigin ? ` ${apiOrigin}` : ""}`,
   "object-src 'none'",
   "base-uri 'self'",
-  // Google ログインの開始で、API へフォームを POST するため（login CSRF 対策で GET の開始をやめる）
-  `form-action 'self'${apiOrigin ? ` ${apiOrigin}` : ""}`,
+  "form-action 'self'",
   "frame-ancestors 'none'",
   // http の API（ローカルで next start するとき）への通信を https に書き換えて失敗させないよう、API が https のときだけ付ける
   ...(apiOrigin?.startsWith("https://") ? ["upgrade-insecure-requests"] : []),
