@@ -199,7 +199,7 @@ contacts                       (ユーザーと非連携)
 | `require 'rails/all'` | Action Cable / Active Storage / Action Text / Action Mailbox も読み込む（いずれも未使用） | 必要なフレームワークだけを個別 `require` する（active_record / action_controller / action_mailer / active_job）。`app/channels/` と active_storage 設定を削除 |
 | Active Job | アダプタ未指定（プロセス内 `:async`）。再起動でメール送信ジョブが消える | `solid_queue` を入れるか、送信件数が少ない今は `deliver_now` にする |
 | `oauth_providers.access_token / refresh_token / expires_at` | 保存していない（保存すべきでもない） | 列を削除 |
-| ルートの `Gemfile.lock` | Rails 8.0.1 時代の残骸（`back/Gemfile.lock` が本物） | 削除 |
+| ~~ルートの `Gemfile.lock`~~ | 対応済み（2026-10-23）: Rails 8.0.1 時代の残骸だったので削除 | — |
 | ~~`front/tailwind.config.ts` と `tailwindcss-animate`~~ | 対応済み（2026-09-27）: container 設定を `globals.css` に移して削除 | — |
 | `@shadcn/ui`（devDependency） | 旧 CLI パッケージ。コードからは未参照 | 削除（コンポーネント追加は `npx shadcn@latest add`） |
 | `eslint-config-next@15` | `next@16` とメジャーがずれている | 16 系に揃える |
