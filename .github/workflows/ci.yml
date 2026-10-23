@@ -8,6 +8,11 @@ on:
     branches:
       - main
 
+# GITHUB_TOKEN の権限を最小にする。paths-filter は PR の変更ファイルを API で取るので pull-requests: read が要る
+permissions:
+  contents: read
+  pull-requests: read
+
 jobs:
   changes:
     runs-on: ubuntu-latest
