@@ -30,7 +30,7 @@ services:
     tty: true
     stdin_open: true
   db:
-    image: postgres:16.2
+    image: postgres:16.14
     environment:
       POSTGRES_USER: root
       POSTGRES_PASSWORD: password
