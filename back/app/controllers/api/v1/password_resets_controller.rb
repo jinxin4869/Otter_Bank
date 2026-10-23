@@ -22,7 +22,7 @@ module Api
       # POST /api/v1/auth/reset-password/confirm
       # トークンとパスワードを受け取り、パスワードを更新する
       def confirm_reset
-        user = User.find_by(reset_password_token: params[:token])
+        user = User.from_password_reset_token(params[:token])
 
         unless user&.password_reset_token_valid?
           render json: { error: 'リセットリンクが無効または期限切れです。再度リセット申請を行ってください。' }, status: :unprocessable_content

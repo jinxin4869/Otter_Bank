@@ -159,11 +159,23 @@ class User < ApplicationRecord
 
   TOKEN_EXPIRY_HOURS = 2
 
+  # DB にはトークンのハッシュだけを保存し、平文はメールで送る分だけにする（DB が漏れても有効期限内のリンクを作れないように）。
+  # トークンは推測できない乱数なので、ソルトや bcrypt は要らない
+  def self.password_reset_token_digest(token)
+    OpenSSL::Digest::SHA256.hexdigest(token.to_s)
+  end
+
+  def self.from_password_reset_token(token)
+    find_by(reset_password_token: password_reset_token_digest(token))
+  end
+
+  # 戻り値はメールに載せる平文のトークン
   def generate_password_reset_token!
     loop do
       token = SecureRandom.urlsafe_base64(32)
-      unless User.exists?(reset_password_token: token)
-        update_columns(reset_password_token: token, reset_password_sent_at: Time.current)
+      digest = User.password_reset_token_digest(token)
+      unless User.exists?(reset_password_token: digest)
+        update_columns(reset_password_token: digest, reset_password_sent_at: Time.current)
         return token
       end
     end
