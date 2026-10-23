@@ -25,9 +25,10 @@ RSpec.describe ContactMailer, type: :mailer do
     end
 
     # 宛先は送信者が自由に決められるので、入力された文字列を載せると第三者へ任意の文面を送る踏み台になる
-    it '本文に入力された名前と内容を含まない' do
+    it '本文に入力された名前・メールアドレス・内容を含まない' do
       bodies.each do |body|
         expect(body).not_to include(contact.name)
+        expect(body).not_to include(contact.email)
         expect(body).not_to include(contact.message)
       end
     end
