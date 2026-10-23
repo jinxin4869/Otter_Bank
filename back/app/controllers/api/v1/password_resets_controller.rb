@@ -29,6 +29,12 @@ module Api
           return
         end
 
+        # nil を渡すと has_secure_password が digest を消し、"" は無視されて変わらないまま成功してしまうので、先に弾く
+        if params[:password].blank?
+          render json: { error: '新しいパスワードを入力してください。' }, status: :unprocessable_content
+          return
+        end
+
         # パスワードが変わったなら必ず全端末のセッションも失効しているよう、1 トランザクションで行う
         reset = User.transaction do
           next false unless user.update(password: params[:password], password_confirmation: params[:password])

@@ -91,5 +91,17 @@ RSpec.describe 'Api::V1::PasswordResets', type: :request do
 
       expect(response).to have_http_status(:unprocessable_content)
     end
+
+    # password を送らない・空にすると、パスワードが消えたり変わらないまま「リセットしました」になったりしないこと
+    [nil, ''].each do |blank|
+      it "パスワードが #{blank.inspect} の場合は422を返し、パスワードもトークンも変えない" do
+        post '/api/v1/auth/reset-password/confirm', params: { token: token, password: blank }.compact
+
+        expect(response).to have_http_status(:unprocessable_content)
+        user.reload
+        expect(user.authenticate('password123')).to be_truthy
+        expect(user.reset_password_token).to be_present
+      end
+    end
   end
 end

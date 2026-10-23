@@ -22,6 +22,9 @@ class User < ApplicationRecord
   validates :password, presence: true, length: { minimum: 8 }, if: :password_required? # パスワード長を8文字に変更 (フロントエンドと合わせる)
   validates :unconfirmed_email, format: { with: URI::MailTo::EMAIL_REGEXP }, allow_nil: true
   validate :unconfirmed_email_not_taken, if: :will_save_change_to_unconfirmed_email?
+  # has_secure_password は password に nil を渡すと digest を消す。更新でパスワードの無いアカウントにしない
+  # （Google での乗っ取り防止の take_over_by_verified_owner! は update_columns で意図して消すので対象外）
+  validate :password_not_removed, on: :update, if: :will_save_change_to_password_digest?
 
   after_create :setup_initial_achievements # ユーザー作成時に初期実績を生成
 
@@ -188,6 +191,10 @@ class User < ApplicationRecord
     return if unconfirmed_email.blank?
 
     errors.add(:unconfirmed_email, :taken) if User.where.not(id: id).exists?(email: unconfirmed_email)
+  end
+
+  def password_not_removed
+    errors.add(:password, :blank) if password_digest.nil?
   end
 
   def password_required?
