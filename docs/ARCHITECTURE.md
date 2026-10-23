@@ -98,9 +98,10 @@ Rack::Attack（レート制限）→ Rack::Cors → ApplicationController#author
 
 | 項目 | 仕様 |
 |---|---|
-| アクセストークン | JWT（HS256）、payload は `user_id` のみ、有効期限 30 分、`Authorization: Bearer` |
+| アクセストークン | JWT（HS256 をコードで固定し、他のアルゴリズムは拒否）、payload は `user_id` のみ、有効期限 30 分、`Authorization: Bearer`。署名鍵は環境変数 `JWT_SECRET` のみ（credentials は使わない） |
 | リフレッシュトークン | ランダム値のダイジェストを `refresh_tokens` に保存、14 日、HttpOnly Cookie。使用時に行ロック → 失効 → 再発行（ローテーション）。パスワードのリセット・変更時はそのユーザーの全トークンを失効（変更した端末には新しいトークンを発行。発行済みのアクセストークンは失効できないため最大 30 分は有効） |
-| Google ログイン | OmniAuth → `/auth/google/callback` → `oauth_providers(provider, uid)` でユーザーと紐付け |
+| Google ログイン | OmniAuth → `/auth/google/callback` → `oauth_providers(provider, uid)` でユーザーと紐付け。開始は GET（POST だけにすると、別 origin のフロントから Rails の CSRF トークンを送れずログインできない。攻撃者のアカウントに入らせる型の攻撃は callback の `state` の検証で防いでいる） |
+| パスワードリセット | トークンは DB に SHA-256 のハッシュで保存し、平文はメールだけ。有効期限 2 時間。確定時は文字列以外・空のパスワードを 422 にする（`has_secure_password` は `nil` で digest を消すため。モデルでも更新で digest が消えるのを防ぐ） |
 | ゲスト | なし（共有アカウント方式の API は #443 で削除。一時ユーザー方式で作り直す。PRD §9） |
 | 公開エンドポイント | 各コントローラーの `skip_before_action :authorize_request, only: [...]` で明示（GET 系と登録・ログインのみ） |
 | 管理者 | `users.admin`（既定 false）。他人の投稿・コメントを削除できる（編集は本人のみ）。付与は `rails runner` のみで API からは変更不可。削除時は ID だけをログに残す |
@@ -152,10 +153,13 @@ contacts                       (ユーザーと非連携)
 
 | 項目 | 内容 |
 |---|---|
-| CI（GitHub Actions） | back: Brakeman / RuboCop / RSpec（PostgreSQL サービス）/ 本番 Docker イメージのビルドと production 設定での起動確認、front: ESLint / tsc / Jest / next build |
+| CI（GitHub Actions） | back: Brakeman（警告で落とす）/ RuboCop / RSpec（PostgreSQL サービス）/ 本番 Docker イメージのビルドと production 設定での起動確認、front: `npm audit --omit=dev --audit-level=high` / ESLint / tsc / Jest / next build。Action はコミット SHA で固定し（バージョンはコメント）、`permissions` は `contents: read` と `pull-requests: read` |
 | pre-commit | husky + lint-staged（RuboCop・ESLint --fix） |
-| 依存更新 | Dependabot |
-| レート制限 | `login/ip` 5回/分、`signup/ip` 10回/時、`password_reset/ip` 5回/時、`contact/ip` 3回/時、`posts/ip` `comments/ip` 各 10回/分、`OAuth/ip` 10回/分 |
+| 依存更新 | Dependabot（bundler・npm の front とルート・docker の back と front・docker-compose・github-actions）。パッチ・マイナーは CI が通れば自動マージ、メジャーと GitHub Actions の更新は手で判断する（§8 ADR-003）。node / ruby / postgres のイメージのメジャーは `ignore` し、engines・`.ruby-version`・Gemfile と合わせて手で上げる |
+| ランタイム | Node.js は `front/package.json` の `engines.node`（`24.x`）が正。CI（`node-version-file`）と Vercel はこの値を読む。`front/Dockerfile` のタグは別に合わせる。Ruby は `back/.ruby-version` と Gemfile |
+| レート制限 | `login/ip` 5回/分、`signup/ip` 10回/時、`password_reset/ip` 5回/時、`email_confirmation/ip` 10回/時、`contact/ip` 3回/時、`posts/ip` `comments/ip` 各 10回/分、`views/ip` `likes/ip` `refresh/ip` 各 30回/分、`OAuth/ip` 10回/分。パスは `Rack::Attack.route_path` で末尾の拡張子（`.json`）と `/` を除いてから判定する（除かないと `.json` を付けるだけで回避できる） |
+| セキュリティヘッダ | `front/next.config.ts` で全ページに CSP・`X-Frame-Options: DENY`・`nosniff`・`Referrer-Policy`・`Permissions-Policy`・HSTS を付ける（§9 ADR-004）。外部のスクリプト・画像・通信先を足すときは CSP も直す |
+| リポジトリ保護 | ruleset「main を保護する」（PR 必須・承認数 0・CI の 5 ジョブ必須・force push と削除の禁止）。secret scanning と push protection、Dependabot alerts と security updates、Private vulnerability reporting を有効化。報告方法は `SECURITY.md` |
 | 文字数上限 | 投稿のタイトル 100・本文 5,000、コメント 1,000、お問い合わせ内容 5,000（モデルの `*_MAX_LENGTH` と `front/src/lib/text-limits.ts` を揃える） |
 | 監視 | UptimeRobot が `GET /up` を 5 分ごとに叩く（Render のスリープ防止。落ちたときはメールで通知）。ほかに `GET /api/v1/health`。エラートラッキングなし |
 
@@ -202,7 +206,7 @@ contacts                       (ユーザーと非連携)
 | ~~ルートの `Gemfile.lock`~~ | 対応済み（2026-10-23）: Rails 8.0.1 時代の残骸だったので削除 | — |
 | ~~`front/tailwind.config.ts` と `tailwindcss-animate`~~ | 対応済み（2026-09-27）: container 設定を `globals.css` に移して削除 | — |
 | `@shadcn/ui`（devDependency） | 旧 CLI パッケージ。コードからは未参照 | 削除（コンポーネント追加は `npx shadcn@latest add`） |
-| `eslint-config-next@15` | `next@16` とメジャーがずれている | 16 系に揃える |
+| `eslint-config-next@15` | `next@16` とメジャーがずれている。16 系は flat config を直接提供し（`FlatCompat` 経由だと循環参照のエラー）、react-hooks の新ルール（`set-state-in-effect` など）で既存コードに 11 件のエラーが出る（2026-10-23 時点） | 16 系に揃える。設定を flat config に書き換え、11 件を直してから上げる |
 | `next.config.ts` の `rewrites` | フロントは API を直接叩いているため未使用の経路 | 使わないなら削除（残すならどちらかに統一） |
 
 ### 優先度の高い改善（言語変更より効果が大きいもの）
@@ -253,3 +257,54 @@ Fly.io・Railway・Koyeb・Heroku は、新規向けの常時無料プランが�
 - 各サービスの無料枠の条件が変わったとき
 
 移す場合の構成案（API だけ Lightsail、Neon と Vercel は維持）は [aws-lightsail-plan.md](./aws-lightsail-plan.md) に置いてある（未実施）。
+
+## 8. 依存更新の自動マージ（ADR-003: Dependabot のパッチ・マイナーは CI が通れば自動マージする）
+
+**ステータス**: 採用（2026-10-23）/ #498
+
+### 問い
+
+Dependabot の PR が月に十数本たまる。どこまでを人の確認なしにマージしてよいか。
+
+### 判断
+
+| 更新 | 扱い |
+|---|---|
+| パッチ・マイナー | `.github/workflows/dependabot-auto-merge.yml` が `gh pr merge --auto --merge` で予約し、ruleset で必須にした CI が通ったらマージされる。落ちたら残る |
+| メジャーなど（種類を判定できないものを含む） | `needs-manual-review` のラベルとコメントを付けて残す |
+| GitHub Actions の更新 | 種類に関係なく手で判断する |
+
+- **自動で閉じない**。閉じるとセキュリティの修正を含む更新を見落とす。ずっと断る更新は PR で `@dependabot ignore` を使うか、`dependabot.yml` の `ignore` に書く
+- **GitHub Actions の更新は外部の Action を動かさない**。CI のテストでは中身を確かめられず、`pull_request` は PR 側のワークフローで動くので、更新後の Action がマージ前に書き込み権限つきで実行されてしまう。`dependabot/github_actions/` のブランチでは `fetch-metadata` も使わず、`gh` コマンドでラベルだけを付ける
+- 更新の種類は公式の `dependabot/fetch-metadata` で判定する。`pull_request_target` は使わない
+
+### 運用上の注意
+
+- main へのマージは Vercel / Render の本番デプロイにつながる。安全性は CI がどこまで確かめているかに依存する
+- CI はパスで絞り込んでいるので、ルートの npm（husky / lint-staged）・`compose.yml`・`front/Dockerfile` の更新はテストのジョブが skipped（合格扱い）のまま自動マージされる。どれも開発用なので許容している
+- `GITHUB_TOKEN` によるマージは、main の push のワークフロー（CI）を起動しない（GitHub の仕様）。PR の時点で CI は通っている
+
+### 見直す条件
+
+- 自動マージした更新で本番が壊れたとき → 本番の依存はパッチだけにする、または CI の確認を足す
+- 本番に関わる設定（Dockerfile・`render.yaml` など）を Dependabot の対象に足すとき
+
+## 9. セキュリティヘッダ（ADR-004: CSP は nonce なしで付ける）
+
+**ステータス**: 採用（2026-10-23）/ #495
+
+### 問い
+
+JWT を localStorage に置いているので、XSS の被害を抑える CSP を付けたい。Next.js の推奨は nonce を使う方式だが、採るか。
+
+### 判断
+
+- **nonce なしの方式を採る**（Next.js のガイドの「Without Nonces」）。nonce を使うと全ページが動的レンダリングになり、今は静的に配信しているページも毎回サーバーで描画することになる
+- そのため `script-src` に `'unsafe-inline'` が残り、インラインスクリプトによる XSS は防げない。防げるのは、外部のスクリプトの読み込み・外部への送信（`connect-src` は自分と API の origin だけ）・埋め込み（`frame-ancestors 'none'`）
+- API の origin は `getApiUrl()` と同じ環境変数（`NEXT_PUBLIC_API_URL` / `NEXT_PUBLIC_DEV_URL`）からビルド時に決める。`upgrade-insecure-requests` は API が https のときだけ付ける（ローカルの http の API を壊さないため）
+- HSTS に `includeSubDomains` は付けない（独自ドメインにしたとき、http のままのサブドメインに 2 年間つながらなくなるため）
+
+### 見直す条件
+
+- 外部のスクリプト・画像・フォント・通信先（分析ツール、外部画像など）を足すとき → `front/next.config.ts` の CSP に origin を足す
+- 動的レンダリングが中心になったとき → nonce の方式に切り替える
