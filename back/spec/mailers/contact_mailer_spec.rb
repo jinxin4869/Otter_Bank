@@ -4,8 +4,11 @@ require 'rails_helper'
 
 RSpec.describe ContactMailer, type: :mailer do
   describe '#confirmation' do
-    let(:contact) { create(:contact, name: 'テスト太郎', email: 'contact@example.com', message: 'お問い合わせ本文です') }
+    let(:contact) do
+      create(:contact, name: 'テスト太郎', email: 'contact@example.com', subject: 'bug', message: 'お問い合わせ本文です')
+    end
     let(:mail) { described_class.confirmation(contact) }
+    let(:bodies) { [mail.text_part.body.decoded, mail.html_part.body.decoded] }
 
     it '宛先がお問い合わせ者のメールアドレスである' do
       expect(mail.to).to eq([contact.email])
@@ -15,9 +18,19 @@ RSpec.describe ContactMailer, type: :mailer do
       expect(mail.subject).to eq('【Otter Bank】お問い合わせを受け付けました')
     end
 
-    it '本文にお問い合わせ者の名前と内容が含まれる' do
-      expect(mail.text_part.body.decoded).to include(contact.name)
-      expect(mail.text_part.body.decoded).to include(contact.message)
+    it '本文に受付番号と件名の表示名が含まれる' do
+      bodies.each do |body|
+        expect(body).to include(contact.id.to_s, '不具合の報告')
+      end
+    end
+
+    # 宛先は送信者が自由に決められるので、入力された文字列を載せると第三者へ任意の文面を送る踏み台になる
+    it '本文に入力された名前・メールアドレス・内容を含まない' do
+      bodies.each do |body|
+        expect(body).not_to include(contact.name)
+        expect(body).not_to include(contact.email)
+        expect(body).not_to include(contact.message)
+      end
     end
   end
 
