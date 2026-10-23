@@ -55,7 +55,7 @@
 ### 前提条件
 
 - Docker / Docker Compose
-- （個別起動の場合）Node.js 22+、Ruby 3.4.10、Bundler
+- （個別起動の場合）Node.js 24（`front/package.json` の `engines`）、Ruby 3.4.10、Bundler
 
 ---
 

@@ -66,7 +66,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v7
         with:
-          # Vercel と同じく package.json の engines.node を使う（バージョンの指定を1か所にまとめる）
+          # Vercel と同じく package.json の engines.node を使う（CI と Vercel の指定を1か所にまとめる。front/Dockerfile のタグは別に管理する）
           node-version-file: ./front/package.json
           cache: "npm"
           cache-dependency-path: ./front/package-lock.json
